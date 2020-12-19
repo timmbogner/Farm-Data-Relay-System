@@ -1,6 +1,6 @@
 //  FARM DATA RELAY SYSTEM
 //  
-//  TERMINAL MODULE
+//  RELAY MODULE
 //  
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, IL.
 //  Setup instructions available in the "topography.h" file.
