@@ -3,11 +3,11 @@
 //  TERMINAL MODULE
 //  
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions available in the "topography.h" file.
+//  Setup instructions available in the "fdrs_config.h" file.
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
-#include "topography.h"
+#include "fdrs_config.h"
 
 #define DELAY 60000
 

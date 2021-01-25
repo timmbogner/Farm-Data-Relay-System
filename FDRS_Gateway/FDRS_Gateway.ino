@@ -3,14 +3,14 @@
 //  GATEWAY MODULE
 //  
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions available in the "topography.h" file.
+//  Setup instructions available in the "fdrs_config" file.
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include <BlynkSimpleEsp8266.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include "topography.h"
+#include "fdrs_config.h"
 
 #define STASSID "user"
 #define STAPSK  "pass"

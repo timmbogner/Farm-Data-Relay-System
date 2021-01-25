@@ -2,12 +2,12 @@
 //  
 //  RELAY MODULE
 //  
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, IL.
-//  Setup instructions available in the "topography.h" file.
+//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Setup instructions available in the "fdrs_config.h" file.
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
-#include "topography.h"
+#include "fdrs_config.h"
 
 uint8_t prevAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, PREV_MAC};
 uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
@@ -22,7 +22,6 @@ typedef struct DataReading {
 } DataReading;
 
 DataReading theData[6];
-bool clickStatus = false;
 bool newData = false;
 uint8_t senderMAC[12];
 
@@ -38,11 +37,9 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   Serial.print("Last Packet Send Status: ");
   if (sendStatus == 0) {
     Serial.println("Delivery success");
-    clickStatus = true;
   }
   else {
     Serial.println("Delivery fail");
-    clickStatus = false;
   }
 }
 
@@ -57,9 +54,6 @@ void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len) {
 void setup() {
   // Init Serial Monitor
   Serial.begin(115200);
-  //Set an output pin for feedback (clicks)
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, true);
   // Init WiFi and set MAC address
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -90,16 +84,6 @@ void setup() {
 void loop() {
   if (newData) {
     newData = false;
-    digitalWrite(LED_BUILTIN, false);
-    delay(50);
-    digitalWrite(LED_BUILTIN, true);
     passOn();
-  }
-  if (clickStatus) {
-    delay(250);
-    clickStatus = false;
-    digitalWrite(LED_BUILTIN, false);
-    delay(250);
-    digitalWrite(LED_BUILTIN, true);
   }
 }
