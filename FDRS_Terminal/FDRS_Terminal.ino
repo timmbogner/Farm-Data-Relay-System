@@ -3,13 +3,13 @@
 //  TERMINAL MODULE
 //  
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions available in the "fdrs_config.h" file.
+//  Setup instructions located in the "fdrs_config.h" file.
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include "fdrs_config.h"
 
-#define DELAY 60000
+#define DELAY 5000
 
 uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
 uint8_t nextAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, NEXT_MAC};
@@ -18,6 +18,7 @@ typedef struct DataReading {
   float t;
   float h;
   byte n;
+  byte d;
 } DataReading;
 
 DataReading incData;
@@ -27,6 +28,12 @@ bool newData = false;
 int wait_time = 0;
 
 void passForward() {
+    for (int i = 0; i < 6; i++) {
+    theData[i].n = i;
+    theData[i].d = i;
+    theData[i].t = 3.2*i;
+    theData[i].h = 2.1*i;
+  }
   Serial.println("Passing On");
   esp_now_send(nextAddress, (uint8_t *) &theData, sizeof(theData));
 }

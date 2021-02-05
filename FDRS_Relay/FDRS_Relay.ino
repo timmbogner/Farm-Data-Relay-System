@@ -1,9 +1,9 @@
 //  FARM DATA RELAY SYSTEM
-//  
+//
 //  RELAY MODULE
-//  
+//
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions available in the "fdrs_config.h" file.
+//  Setup instructions located in the "fdrs_config.h" file.
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -13,23 +13,19 @@ uint8_t prevAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, PREV_MAC};
 uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
 uint8_t nextAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, NEXT_MAC};
 uint8_t incMAC[6];
-uint8_t outMAC[6];
+uint8_t outMAC[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
 
-typedef struct DataReading {
-  float t;
-  float h;
-  byte n;
-} DataReading;
-
-DataReading theData[6];
+uint8_t theData[250];
 bool newData = false;
-uint8_t senderMAC[12];
 
 void passOn() {
+  if (incMAC[5] == PREV_MAC) outMAC[5] = NEXT_MAC;
+  if (incMAC[5] == NEXT_MAC) outMAC[5] = PREV_MAC;
   Serial.print("Packet Received from device: ");
-  if (memcmp(&incMAC, &prevAddress, 6)) memcpy(&outMAC, &nextAddress, 6);
-  if (memcmp(&incMAC, &nextAddress, 6)) memcpy(&outMAC, &prevAddress, 6);
+  Serial.println(incMAC[5]);
+  Serial.print("and sent to: ");
   Serial.println(outMAC[5]);
+
   esp_now_send(outMAC, (uint8_t *) &theData, sizeof(theData));
 }
 
@@ -57,11 +53,9 @@ void setup() {
   // Init WiFi and set MAC address
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
+  wifi_set_macaddr(STATION_IF, selfAddress);
   Serial.println();
   Serial.println("Sola Gratia FDRS Relay");
-  Serial.print("Original MAC: ");
-  Serial.println(WiFi.macAddress());
-  wifi_set_macaddr(STATION_IF, selfAddress);
   Serial.println("New MAC:" + WiFi.macAddress());
   Serial.print("Previous device: ");
   Serial.println(PREV_MAC);
@@ -70,7 +64,6 @@ void setup() {
   Serial.println(" ");
   // Init ESP-NOW
   if (esp_now_init() != 0) {
-    Serial.println("Error initializing ESP-NOW");
     return;
   }
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);

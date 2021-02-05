@@ -3,14 +3,17 @@
 //  DHT11/DHT22 SENSOR MODULE
 //  
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions available in the "topography.h" file.
+//  Each sensor is assigned a one-byte identifier.
+
+#define SENSOR_ID 0
+#define TERM_MAC 0x00 //Terminal MAC
+
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include "DHTesp.h"
-#define SENSOR_ID 2
 
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
 int next_send = 0;
 
 DHTesp dht;
@@ -19,12 +22,12 @@ typedef struct DataReading {
   float t;
   float h;
   byte n;
+  byte d;
+
 } DataReading;
 
 DataReading theData;
 
-
-// Callback when data is sent
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   Serial.print("Last Packet Send Status: ");
   if (sendStatus == 0) {
@@ -36,9 +39,19 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 }
 
 void loadData() {
-  theData.h = dht.getHumidity();
-  theData.t = dht.getTemperature() * 1.8 + 32;
+  float h = dht.getHumidity();
+  float t = dht.getTemperature();
+  if (!(isnan(h) || isnan(t))) {
+  theData.h =   h;
+  theData.t =  t * 1.8 + 32;
   theData.n = SENSOR_ID;
+  theData.d = 1;
+  }else{
+  theData.h =   -4.20;
+  theData.t =  -69.00;
+  theData.n = SENSOR_ID;
+  theData.d = -1;
+  }
 }
 
 void setup() {

@@ -3,14 +3,17 @@
 //  DALLAS DS18B20 SENSOR MODULE
 //  
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions available in the "topography.h" file.
+//  Each sensor is assigned a one-byte identifier.
+
+#define SENSOR_ID 3
+#define TERM_MAC 0x00 //Terminal MAC
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #define ONE_WIRE_BUS 2
-#define SENSOR_ID 3
+
 
 uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00};
 int next_send = 0;
