@@ -1,4 +1,4 @@
-# Farm-Data-Relay-System
+# Farm Data Relay System
 
 The goal of the Farm Data Relay System is to provide a way for sensor data to be collected from areas out of wifi range, while not straying from the popular and presentable ESP8266 or soon, the ESP32. I have tested ESP-NOW range to be reliable within at least 500 feet with line of sight, effectively double what would be possible with regular WiFi connections. Another goal is to make the system straight-forward and easy to use, as the primary user will not necessarily be familiar with Arduino.
 Other than the sensors, each device in the system has a one-byte address. To make things easier, it's good to keep their addresses consecutive with their order in the system. At boot, each device changes its MAC address to "AA:BB:CC:DD:EE:xx" where xx is the device's address identifier.
