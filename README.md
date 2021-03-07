@@ -18,8 +18,9 @@ I've included an ESP8266 sketch for receiving the JSON over serial and posting i
 # Sensors
 The sensors are pre-set with the address of the terminal and their own one-byte identifier. This ID is sent along with each data reading and will define its position in the larger data array at the terminal and beyond.
 
-#The future
+# Future plans
 The code is currently all written for ESP8266. The NEXT major addition will be ESP32 support. The two work with ESP-NOW just slightly differently in Arduino, but I will be porting it very soon.
+
 Future plans include two-way communication, some basic routing ability for the relays, and optimizing the underlying protocols needed for the first two goals. I'd like to eventually be able to send commands to remotely adjust irrigation/ventilation or even send weather data such as tornado warnings to the terminal in future iterations of this project.
 
 # Thank you
