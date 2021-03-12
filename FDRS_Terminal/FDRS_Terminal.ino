@@ -28,12 +28,6 @@ bool newData = false;
 int wait_time = 0;
 
 void passForward() {
-    for (int i = 0; i < 6; i++) {
-    theData[i].n = i;
-    theData[i].d = i;
-    theData[i].t = 3.2*i;
-    theData[i].h = 2.1*i;
-  }
   Serial.println("Passing On");
   esp_now_send(nextAddress, (uint8_t *) &theData, sizeof(theData));
 }
