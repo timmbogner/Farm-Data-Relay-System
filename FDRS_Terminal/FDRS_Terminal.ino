@@ -9,7 +9,7 @@
 #include <espnow.h>
 #include "fdrs_config.h"
 
-#define DELAY 5000
+#define DELAY 60000
 
 uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
 uint8_t nextAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, NEXT_MAC};
