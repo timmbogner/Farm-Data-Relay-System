@@ -16,7 +16,7 @@ Relays are absolute ESP-NOW repeaters. They are programmed with the address of t
 In the FDRS, one can place as many relays as needed to span the distance to the final device in the system: the gateway.
 
 ## Gateway
-The gateway takes the packet of ESP-NOW data and interprets it into JSON format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi known as a front-end to be sent to the cloud for further processing and storage.
+The gateway takes the packet of ESP-NOW data and interprets it into Json format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi known as a front-end to be sent to the cloud for further processing and storage.
 
 ## Front-end
 ### Blynk
