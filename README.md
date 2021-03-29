@@ -30,5 +30,5 @@ Also, the purpose of the DataPacket wrapper will soon change, as there is no nee
 ## Thank you
 ...very much for checking out my project! There are a few topics I've glossed over here that I intend to elaborate on in the future. If you have any questions, please feel free to contact me at bogner1@gmail.com.
 
-Also a big thank you to both Sola Gratia Farm and the IDEA Store of Urbana, IL, USA, without whom this project would not exist.
+Also a big thank you to both ***Sola Gratia Farm*** and ***The IDEA Store*** of *Urbana, IL, USA*, without whom this project would not exist.
 
