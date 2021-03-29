@@ -15,6 +15,8 @@ The terminal receives DataPackets from the sensors and compiles them into its ow
 Relays are absolute ESP-NOW repeaters. They are programmed with the address of the previous and next device, and when data is received from one, it delivers it to the other. While I haven't added any functionality to send data backwards through the system, the "DEFT_MAC" setting defines where a relay will send an incoming packet with an unknown address. This can be used to direct sensor packets either to the terminal or the gateway.
 In the FDRS, one can place as many relays as needed to span the distance to the final device in the system: the gateway.
 
+*As far as I know, a relay should re-transmit any given ESP-NOW packet, not just the type used in the FDRS.*
+
 ## Gateway
 The gateway takes the packet of ESP-NOW data and interprets it into Json format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi known as a front-end to be sent to the cloud for further processing and storage.
 
