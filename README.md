@@ -1,6 +1,6 @@
 # Farm Data Relay System
 
-The goal of the Farm Data Relay System is to provide a way for sensor data to be collected from areas out of wifi range, while using only the popular and readily available ESP series of microcontrollers. It uses the ESP-NOW communication protocol to transmit and receive data over ranges that far-exceed those that would be possible using WiFi. The whole system could be described as a daisy chain of ESP devices.
+The goal of the Farm Data Relay System is to provide a way for sensor data to be collected from areas out of wifi range, while using only the popular and readily available ESP series of microcontrollers. It uses the ESP-NOW communication protocol to transmit and receive data over ranges that exceed those that would be possible using WiFi. The whole system could be described as a daisy chain of ESP devices.
 Another goal is to make the system straight-forward and easy to use, as the primary user may not necessarily be familiar with Arduino. Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code.
 Other than the sensors, each device in the system has a one-byte address. To make things easier, it's good to keep their addresses consecutive with their order in the system. At boot, each device changes its MAC address to "AA:BB:CC:DD:EE:xx" where xx is the device's address identifier.
 There are three types of units in the FDRS: the terminal, the relays, and the gateway.
