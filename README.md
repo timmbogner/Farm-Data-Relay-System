@@ -18,19 +18,22 @@ In the FDRS, one can place as many relays as needed to span the distance to the 
 *As far as I know, a relay should re-transmit any given ESP-NOW packet, not just the type used in the FDRS.*
 
 ## Gateway
-The gateway takes the packet of ESP-NOW data and interprets it into Json format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi known as a front-end to be sent to the cloud for further processing and storage.
+The gateway takes the packet of ESP-NOW data and interprets it into json format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi known as a front-end to be sent to the cloud for further processing and storage.
 
 ## Front-end
 ### Blynk
-So far, the only front end module available is an example I wrote for sending the data to Blynk. I'll be adding more as I implement the system further.
+So far, the only front-end module available is an example I wrote for sending the data to Blynk. I'll be adding more as I implement the system further.
 
 ## Future plans
 Future plans include two-way communication and as many data sources as I can fathom. I'd like to eventually be able to send commands to remotely adjust irrigation/ventilation or even send weather data such as tornado warnings to the terminal in future iterations of this project.
 
-Also, the purpose of the DataPacket wrapper will soon change, as there is no need to know the legnth of the array it contains anymore. I just wanted to get that out before someone mentioned it :o) 
 
 ## Thank you
 ...very much for checking out my project! There are a few topics I've glossed over here that I intend to elaborate on in the future. If you have any questions, please feel free to contact me at bogner1@gmail.com.
 
 Also a big thank you to both ***Sola Gratia Farm*** and ***The IDEA Store*** of *Urbana, IL, USA*, without whom this project would not exist.
+
+
+[***In loving memory of Gay Holman, an extraordinary individual.***](https://www.facebook.com/CFECI/posts/2967989419953119) 
+
 
