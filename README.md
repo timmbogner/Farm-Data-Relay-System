@@ -1,32 +1,31 @@
 # Farm Data Relay System
 
-The goal of the Farm Data Relay System is to provide a way for sensor data to be collected from areas out of wifi range, while using only the popular and readily available ESP series of microcontrollers. It uses the ESP-NOW communication protocol to transmit and receive data over ranges that exceed those that would be possible using WiFi. The whole system could be described as a daisy chain of ESP devices.
-Another goal is to make the system straight-forward and easy to use, as the primary user may not necessarily be familiar with Arduino. Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code.
+The purpose of the Farm Data Relay System is to provide a method of exchanging data between many ESP32 or ESP8266 devices in a situation where it would be difficult or energy-consuming to provide full WiFi coverage. 
+A major goal is to make the system straight-forward and easy to use, as the primary user may not necessarily be very familiar with Arduino. Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. 
 Other than the sensors, each device in the system has a one-byte address. To make things easier, it's good to keep their addresses consecutive with their order in the system. At boot, each device changes its MAC address to "AA:BB:CC:DD:EE:xx" where xx is the device's address identifier.
 There are three types of units in the FDRS: the terminal, the relays, and the gateway.
 
-## Sensors
-Data starts its life at a sensor, where it is stored as a float within an object caled a DataReading. This object also contains one-byte sensor type, and a two-byte global identifier. Multiple data readings are assembled into a DataPacket object, and sent forward via ESP-NOW to a pre-programmed terminal. *Although I use confusing terminology at the moment, sensors can also be directed to a relay or directly to the gateway.*
+## Nodes
+Each "node" in the system sends its data as a float 'd' inside of a structure called a DataReading. Its global address is represented by an integer 'id', and has a type represented by a single byte 't'. For example: a BME280 sketch using FDRS will send an array of three DataReadings, one each for temperature, humidity, and pressure. The types for those readings are 1, 2, and 3 respectively.
+I'm experimenting with nodes that *recieve* DataReadings as well. DataReadings of type 201 are treated as commands.
 
 ## Terminal
-The terminal receives DataPackets from the sensors and compiles them into its own Datapacket.  At a set interval, the terminal sends its packet to the preprogrammed next device in the system.
+The terminal is a device that recieves data from the nodes and aggregates them into a larger array. The larger array is then periodically sent to the next device in the system. The time between sends must be short enough so as not to  exceed the maximum legnth of an ESP-NOW packet with DataReadings, with is 31.
+As I implement the ability to send commands, the terminal has taken on some routing resposibilities as well. When a terminal recieves a DataReading of type 200, it associates the last byte of the MAC with the ID of the reading in an array. This array is referenced in order for the terminal to forward any commands it recieves to its proper destination.
 
 ## Relays
-Relays are absolute ESP-NOW repeaters. They are programmed with the address of the previous and next device, and when data is received from one, it delivers it to the other. While I haven't added any functionality to send data backwards through the system, the "DEFT_MAC" setting defines where a relay will send an incoming packet with an unknown address. This can be used to direct sensor packets either to the terminal or the gateway.
-In the FDRS, one can place as many relays as needed to span the distance to the final device in the system: the gateway.
-
-*As far as I know, a relay should re-transmit any given ESP-NOW packet, not just the type used in the FDRS.*
+Relays are absolute ESP-NOW repeaters. They are programmed with the address of the previous and next device, and when data is received from one, it delivers it to the other. The "DEFT_MAC" setting defines where a relay will send an incoming packet with an unknown address. This can be used to direct sensor packets either to the terminal or the gateway.
+In the FDRS, one can place as many relays as needed to span the distance to the gateway, which is the final device in the system. Being honest, I now have access to WiFi close to my terminal, so I no longer need any relays at all. They're still handy though.
 
 ## Gateway
-The gateway takes the packet of ESP-NOW data and interprets it into json format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi known as a front-end to be sent to the cloud for further processing and storage.
+The gateway takes the packet of DataReadings and interprets it into json format, then outputs it over the serial port. From here it can be collected by another microcontroller or a Raspberry Pi front-end to be sent to the cloud for further processing and storage.
 
 ## Front-end
 ### Blynk
-So far, the only front-end module available is an example I wrote for sending the data to Blynk. I'll be adding more as I implement the system further.
+The Blynk sketch has been giving me problems, but it does still work. It suffers from a couple seemingly random WDT resets that I'm still struggling to pin down. This doesn't affect much functionality much for me, but I'd graciously accept any advice in that area.
 
 ## Future plans
-Future plans include two-way communication and as many data sources as I can fathom. I'd like to eventually be able to send commands to remotely adjust irrigation/ventilation or even send weather data such as tornado warnings to the terminal in future iterations of this project.
-
+Future plans are to include as many types of nodes as I can fathom. I'm working on sketches to remotely adjust irrigation/ventilation, as well as an idea for RGB lanterns, with colors controlled by FDRS. I'm also looking into the ability to display certain readings on a screen and send manual commands from the terminal itself, or other devices within the system locally.
 
 ## Thank you
 ...very much for checking out my project! There are a few topics I've glossed over here that I intend to elaborate on in the future. If you have any questions, please feel free to contact me at bogner1@gmail.com.
