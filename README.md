@@ -24,6 +24,7 @@ The gateway takes the packet of DataReadings and interprets it into json format,
 
 ### Blynk
 Each DataReading that is recieved via serial is set to its blynk virtual pin counterpart. I've also implemented "set" and "get" commands for the blynk terminal, but these are still experimental.
+
 The Blynk sketch has been giving me problems, but it does still work. It suffers from a couple seemingly random WDT resets that I'm still struggling to pin down. This doesn't affect much functionality much for me, but I'd graciously accept any advice in that area.
 
 ## Future plans
