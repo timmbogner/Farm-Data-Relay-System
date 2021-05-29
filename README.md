@@ -1,6 +1,7 @@
 # Farm Data Relay System
 
 The purpose of the Farm Data Relay System is to provide a method of exchanging data between many ESP32 or ESP8266 devices in situations where it would be difficult or energy-consuming to provide full WiFi coverage. 
+
 A major goal is to make the system straight-forward and easy to use, as the primary user may not necessarily be very familiar with Arduino. Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. 
 Other than the sensors, each device in the system has a one-byte address. To make things easier, it's good to keep their addresses consecutive with their order in the system. At boot, each device changes its MAC address to "AA:BB:CC:DD:EE:xx" where xx is the device's address identifier.
 There are three types of units in the FDRS: the terminal, the relays, and the gateway.
@@ -11,10 +12,12 @@ I'm experimenting with nodes that *recieve* DataReadings as well. DataReadings o
 
 ## Terminal
 The terminal is a device that recieves data from the nodes and aggregates them into a larger array. The larger array is then periodically sent to the next device in the system. The time between sends must be short enough so as not to  exceed the maximum legnth of an ESP-NOW packet with DataReadings, which is 31.
+
 As I implement the ability to send commands, the terminal has taken on some routing resposibilities as well. When a terminal recieves a DataReading of type 200, it associates the last byte of the incoming MAC with the ID of the reading in an array. This array is referenced in order for the terminal to forward any commands it recieves to their proper destinations.
 
 ## Relays
 Relays are absolute ESP-NOW repeaters. They are programmed with the address of the previous and next device, and when data is received from one, it delivers it to the other. The "DEFT_MAC" setting defines where a relay will send an incoming packet with an unknown address. This can be used to direct sensor packets either to the terminal or the gateway.
+
 In the FDRS, one can place as many relays as needed to span the distance to the gateway, which is the final device in the system. Being honest, I now have access to WiFi close to my terminal, so I no longer need any relays at all. They're still handy though.
 
 ## Gateway
