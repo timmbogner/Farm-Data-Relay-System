@@ -6,16 +6,16 @@
 //  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
 //  
 
-#define TEMP_ID     10    //Unique ID (0 - 1023) for each data reading
-#define HUM_ID      11
+#define TEMP_ID     0   //Unique ID for each data reading
+#define HUM_ID      1
 #define PRES_ID     2
-
 #define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  60   //Time to sleep in seconds
+#define SLEEPYTIME  30   //Time to sleep in seconds
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include <Adafruit_BME280.h>
+#include "DataReading.h"
 
 Adafruit_BME280 bme;     //0x76
 uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
@@ -30,21 +30,6 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
     Serial.println("Delivery fail");
   }
 }
-
-typedef struct DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
-
-} DataReading;
-
-
-typedef struct DataPacket {
-  uint8_t l;
-  DataReading packet[30];
-
-} DataPacket;
-
 
 void setup() {
   Serial.begin(115200);
@@ -89,11 +74,10 @@ void loadData() {
   Pres.id = PRES_ID;
   Pres.t = 3;
   
-  DataPacket thePacket;
-  thePacket.packet[0] = Temp;
-  thePacket.packet[1] = Hum;
-  //thePacket.packet[2] = Pres; 
-  thePacket.l = 2;
+  DataReading thePacket[3];
+  thePacket[0] = Temp;
+  thePacket[1] = Hum;
+  thePacket[2] = Pres; 
   esp_now_send(broadcastAddress, (uint8_t *) &thePacket, sizeof(thePacket));
 
 }

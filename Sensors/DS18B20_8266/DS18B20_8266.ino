@@ -15,6 +15,7 @@
 #include <espnow.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "DataReading.h"
 
 uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
 int wait_time = 0;
@@ -30,20 +31,6 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
     Serial.println("Delivery fail");
   }
 }
-
-typedef struct DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
-
-} DataReading;
-
-typedef struct DataPacket {
-  uint8_t l;
-  DataReading packet[30];
-
-} DataPacket;
-
 
 void setup() {
   Serial.begin(115200);
@@ -72,9 +59,7 @@ void loadData() {
   Temp.t = 1;
   if (tempC = DEVICE_DISCONNECTED_C) Temp.d = -69.00;
   else Temp.d = tempC;
-  DataPacket thePacket;
-  thePacket.packet[0] = Temp;
-  thePacket.l = 1;
-  esp_now_send(broadcastAddress, (uint8_t *) &thePacket, sizeof(thePacket));
+
+  esp_now_send(broadcastAddress, (uint8_t *) &Temp, sizeof(Temp));
 
 }

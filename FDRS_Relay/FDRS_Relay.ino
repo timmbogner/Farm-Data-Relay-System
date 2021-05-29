@@ -26,12 +26,26 @@ uint8_t ln;
 bool newData = false;
 
 void passOn() {
-  if (incMAC[5] == PREV_MAC) outMAC[5] = NEXT_MAC;
-  else if (incMAC[5] == NEXT_MAC) outMAC[5] = PREV_MAC;
-  else outMAC[5] = DEFT_MAC;
+  switch (incMAC[5]) {
+    case PREV_MAC:
+      outMAC[5] = NEXT_MAC;
+      break;
+    case NEXT_MAC:
+      outMAC[5] = PREV_MAC;
+      break;
+    default:
+      outMAC[5] = DEFT_MAC;
+      break;
+  }
+
+//
+//  if (incMAC[5] == PREV_MAC) outMAC[5] = NEXT_MAC;
+//  else if (incMAC[5] == NEXT_MAC) outMAC[5] = PREV_MAC;
+//  else outMAC[5] = DEFT_MAC;
+
   Serial.print("Packet Received from device: ");
   Serial.println(incMAC[5]);
-  Serial.print("and sent to: ");
+  Serial.print("and sending to: ");
   Serial.println(outMAC[5]);
   esp_now_send(outMAC, (uint8_t *) &theData, ln);
 }

@@ -7,12 +7,15 @@
 //  
 
 #define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  60   //Time to sleep in seconds
-#define TEMP_ID     1    //Unique ID (0 - 255) for each data reading
+#define SLEEPYTIME  30   //Time to sleep in seconds
+#define TEMP_ID     5    //Unique ID (0 - 255) for each data reading
+#define PRES_ID     6
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include <Adafruit_BMP280.h>
+#include "DataReading.h"
+
 Adafruit_BMP280 bmp;     //0x76
 uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
 int wait_time = 0;
@@ -27,19 +30,6 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   }
 }
 
-typedef struct DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
-
-} DataReading;
-
-
-typedef struct DataPacket {
-  uint8_t l;
-  DataReading packet[30];
-
-} DataPacket;
 
 
 void setup() {
@@ -73,9 +63,12 @@ void loadData() {
   Temp.d = bmp_temp;
   Temp.id = TEMP_ID;
   Temp.t = 1;
-  DataPacket thePacket;
-  thePacket.packet[0] = Temp;
-  thePacket.l = 1;
+  DataReading Pres;
+  Pres.d = bmp_pressure;
+  Pres.id = PRES_ID;
+  Pres.t = 3;
+  DataReading thePacket[2];
+  thePacket[0] = Temp;
+  thePacket[1] = Pres;
   esp_now_send(broadcastAddress, (uint8_t *) &thePacket, sizeof(thePacket));
-
 }

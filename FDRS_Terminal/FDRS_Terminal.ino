@@ -14,35 +14,27 @@
 #include <esp_wifi.h>
 #endif
 #include "fdrs_config.h"
+#include "DataReading.h"
 
-typedef struct DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
+DataReading incData[31];
+DataReading theData[31];
+DataReading theCMD;
+byte mac_table[256];
 
-} DataReading;
 
-typedef struct DataPacket {
-  uint8_t l;
-  DataReading packet[30];
-
-} DataPacket;
-
-DataPacket incData;
-DataPacket theData;
-bool newData = false;
+bool newCMD = false;
 int wait_time = 0;
 uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
 uint8_t nextAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, NEXT_MAC};
-
+int tot_readings = 0;
 void passForward() {
-  Serial.println("Passing On");
-  esp_now_send(nextAddress, (uint8_t *) &theData, sizeof(theData));
-  for (int i = 0; i < 30; i++) {
-    theData.packet[i].d = 0;
-    theData.packet[i].id = 0;
-    theData.packet[i].t = 0;
-    theData.l = 0;
+  Serial.println("Passing Forward");
+  esp_now_send(nextAddress, (uint8_t *) &theData, sizeof(DataReading)*tot_readings);
+  tot_readings = 0;
+  for (int i = 0; i < 250 / sizeof(DataReading); i++) {
+    theData[i].d = 0;
+    theData[i].id = 0;
+    theData[i].t = 0;
   }
 }
 
@@ -64,21 +56,35 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
-  memcpy(&incData, incomingData, sizeof(incData));
+  memcpy(&incData, incomingData, len);
+  int pkt_readings = len / sizeof(DataReading);
   Serial.println(":Packet:");
-  for (byte i = 0; i < incData.l; i++) {
-    Serial.println("SENSOR ID: " + String(incData.packet[i].id) + "  TYPE " + String(incData.packet[i].t) + "  DATA " + String(incData.packet[i].d));
-    if (theData.l >= 30) {
+  for (byte i = 0; i < pkt_readings; i++) {
+    Serial.println("SENSOR ID: " + String(incData[i].id) + "  TYPE " + String(incData[i].t) + "  DATA " + String(incData[i].d));
+    if (tot_readings >= 250 / sizeof(DataReading)) {
       Serial.println("ERROR::Too many sensor readings sent within delay period.");
       break;
     }
-    theData.packet[theData.l] = incData.packet[i];  //Save the current incoming reading to the next open packet slot
-    ++theData.l;
+    switch (incData[i].t) {
+      case 200:
+        Serial.println("Registering " + String(mac[5]) +" to ID: " + String(incData[i].id));
+        mac_table[incData[i].id] =  mac[5];
+        break;
+      case 201:
+        newCMD = true;
+        theCMD = incData[i];
+        break;
+        
+      default:
+        theData[tot_readings] = incData[i];  //Save the current incoming reading to the next open packet slot
+        ++tot_readings;
+        break;
+    }
   }
 }
 
 void setup() {
-  // Init Serial Monitor
+  // Init Serial 
   Serial.begin(115200);
   // Init WiFi
   WiFi.mode(WIFI_STA);
@@ -117,11 +123,36 @@ void setup() {
   Serial.println("MAC:" + WiFi.macAddress());
   Serial.print("Next device: ");
   Serial.println(NEXT_MAC);
+//  Serial.println(250 / sizeof(DataReading), DEC);
+//  Serial.println(sizeof(DataReading), DEC);
 }
 
 void loop() {
+  if (newCMD) {
+    newCMD = false;
+    sendCmd();
+  }
   if (millis() > wait_time) {
     wait_time = wait_time + DELAY;
-    if (theData.l != 0) passForward();
+    if (tot_readings != 0) passForward();
   }
+}
+
+void sendCmd() {
+  uint8_t sendAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, mac_table[theCMD.id]};
+//#if defined(ESP8266)
+//  esp_now_add_peer(nextAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+//#elif defined(ESP32)
+//  esp_now_peer_info_t peerInfo;
+//  peerInfo.channel = 0;
+//  peerInfo.encrypt = false;
+//  // Register peer
+//  memcpy(peerInfo.peer_addr, nextAddress, 6);
+//  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+//    Serial.println("Failed to add peer");
+//    return;
+//  }
+//#endif
+  Serial.println("Sending CMD " + String(theCMD.d) + " to " + String(theCMD.id) + " at " + String(sendAddress[5], HEX));
+  esp_now_send(sendAddress, (uint8_t *) &theCMD, sizeof(DataReading));
 }
