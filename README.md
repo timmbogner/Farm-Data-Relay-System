@@ -11,7 +11,7 @@ Each "node" in the system sends its data as a float 'd' inside of a structure ca
 I'm experimenting with nodes that *recieve* DataReadings as well. DataReadings of type 201 are treated as commands.
 
 ## Terminal
-The terminal is a device that recieves data from the nodes and aggregates them into a larger array. The larger array is then periodically sent to the next device in the system. The time between sends must be short enough so as not to  exceed the maximum legnth of an ESP-NOW packet with DataReadings, which is 31.
+The terminal is a device that recieves data from the nodes and aggregates them into a larger array. The larger array is then periodically sent through the system to the gateway. The time between sends must be short enough so as not to  exceed the maximum legnth of an ESP-NOW packet with DataReadings, which is 31.
 
 As I implement the ability to send commands, the terminal has taken on some routing resposibilities as well. When a terminal recieves a DataReading of type 200, it associates the last byte of the incoming MAC with the ID of the reading in an array. This array is referenced in order for the terminal to forward any commands it recieves to their proper destinations.
 
