@@ -27,7 +27,7 @@ The gateway takes the packet of DataReadings and interprets it into json format,
 ### Node Red
 I'm very excited to have begun learning about and supporting Node Red via Raspberry Pi. Icurrently have soldered the serial and power connections of a WeMos D1 Mini directly to my RPi Zero W. I am getting pretty busy with actual farming, so this will make it a lot easier to develop front-end applications in the short-term.
 ### Blynk
-This is for the original Blynk! I won't have time to learn the new system for a while, so it will probably remain in this state for a while...
+This is for the original Blynk! I won't have time to learn the new system for a while, so it will probably remain in this state for a bit...
 
 Each DataReading that is recieved via serial is set to its blynk virtual pin counterpart. I've also implemented "set" and "get" commands for the blynk terminal, but these are still experimental.
 
