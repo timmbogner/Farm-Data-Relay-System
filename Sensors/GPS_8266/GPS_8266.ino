@@ -11,8 +11,8 @@
 #define TEMP_ID     1    //Unique ID (0 - 255) for each data reading
 
 
-#define BASE_LAT  40.10766122891675
-#define BASE_LON -88.21271402255591
+#define BASE_LAT
+#define BASE_LON
 #include <SoftwareSerial.h>
 
 #include <ESP8266WiFi.h>
