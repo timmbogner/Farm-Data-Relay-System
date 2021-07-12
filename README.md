@@ -4,7 +4,6 @@ The purpose of the Farm Data Relay System is to provide a method of exchanging d
 
 A major goal is to make the system straight-forward and easy to use, as the primary user may not necessarily be very familiar with Arduino. Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. 
 Other than the sensors, each device in the system has a one-byte address. To make things easier, it's good to keep their addresses consecutive with their order in the system. At boot, each device changes its MAC address to "AA:BB:CC:DD:EE:xx" where xx is the device's address identifier.
-There are three types of units in the FDRS: the terminal, the relays, and the gateway.
 
 ## Nodes
 Each "node" in the system sends its data as a float 'd' inside of a structure called a DataReading. Its global address is represented by an integer 'id', and has a type represented by a single byte 't'. For example: a BME280 sketch using FDRS will send an array of three DataReadings, one each for temperature, humidity, and pressure. The types for those readings are 1, 2, and 3 respectively.
