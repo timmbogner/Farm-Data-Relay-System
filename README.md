@@ -11,7 +11,6 @@ typedef struct DataReading {
   float d;
   uint16_t id;
   uint8_t t;
-
 } DataReading;
 ```
 Each node in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global address is represented by an integer 'id', and has a type represented by a single byte 't'. 
