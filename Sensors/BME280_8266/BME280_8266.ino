@@ -6,9 +6,9 @@
 //  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
 //  
 
-#define TEMP_ID     0   //Unique ID for each data reading
-#define HUM_ID      1
-#define PRES_ID     2
+#define TEMP_ID     1   //Unique ID for each data reading
+#define HUM_ID      11
+#define PRES_ID     21
 #define TERM_MAC    0x00 //Terminal MAC
 #define SLEEPYTIME  30   //Time to sleep in seconds
 
@@ -33,6 +33,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
 void setup() {
   Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
   Wire.begin();
   while (!bme.begin(0x76)) {
     delay(10);
@@ -41,10 +42,10 @@ void setup() {
   if (esp_now_init() != 0) {
     return;
   }
-  esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+  esp_now_set_self_role(ESP_NOW_ROLE_CONTROLLER);
   esp_now_register_send_cb(OnDataSent);
   // Register peer
-  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
 }
 
 void loop() {

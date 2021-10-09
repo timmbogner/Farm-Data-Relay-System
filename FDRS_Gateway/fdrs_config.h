@@ -19,15 +19,15 @@
 //   The gateway receives the data and outputs it as a json string over the serial port. 
 
 // THIS UNIT
-//#define UNIT_MAC 0x00 // Terminal
-#define UNIT_MAC 0x01 // Relay 0
+#define UNIT_MAC 0x00 // Terminal
+//#define UNIT_MAC 0x01 // Relay 0
 //#define UNIT_MAC 0x02 // Relay 1
 //#define UNIT_MAC 0x03 // Gateway
 //#define UNIT_MAC 0x04 // 
 
 // PREVIOUS UNIT
-#define PREV_MAC 0x00 // Terminal
+//#define PREV_MAC 0x00 // Terminal
 //#define PREV_MAC 0x01 // Relay 0
 //#define PREV_MAC 0x02 // Relay 1
 //#define PREV_MAC 0x03 // Gateway
-//#define PREV_MAC 0x04 // 
+#define PREV_MAC 0x04 // 

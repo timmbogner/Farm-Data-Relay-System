@@ -4,7 +4,7 @@
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
-//  
+//
 
 #define TERM_MAC    0x00 //Terminal MAC
 #define SLEEPYTIME  30   //Time to sleep in seconds
@@ -39,6 +39,8 @@ void setup() {
     delay(10);
   }
   Serial.println("BMP INIT");
+  WiFi.mode(WIFI_STA);
+
   if (esp_now_init() != 0) {
     return;
   }

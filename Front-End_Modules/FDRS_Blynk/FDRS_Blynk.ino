@@ -4,8 +4,8 @@
 //  Uses JSON data from the serial port to set Blynk variables.
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  This code has some WDT issues that cause periodic reboots.
-//  If you have any insights into these, I'd love to hear them!
+//  This code was written for the now-outdated version of Blynk, and is mostly here for reference.
+//  
 
 #define STASSID ""   //Your SSID
 #define STAPSK  ""   //Your Password

@@ -7,9 +7,9 @@
 //
 
 #define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  60   //Time to sleep in seconds
-#define TEMP_ID     1    //Unique ID (0 - 255) for each data reading
-#define ONE_WIRE_BUS 2   //Pin that the DS18B20 is connected to
+#define SLEEPYTIME  30   //Time to sleep in seconds
+#define TEMP_ID     4    //Unique ID (0 - 255) for each data reading
+#define ONE_WIRE_BUS 13   //Pin that the DS18B20 is connected to
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -34,15 +34,18 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
 void setup() {
   Serial.begin(115200);
-  sensors.begin();
-  Serial.println("DS18B20 Initialized");
+  WiFi.mode(WIFI_STA);
   if (esp_now_init() != 0) {
     return;
   }
+
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
   esp_now_register_send_cb(OnDataSent);
   // Register peer
   esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+
+  sensors.begin();
+
 }
 
 void loop() {
@@ -57,9 +60,9 @@ void loadData() {
   DataReading Temp;
   Temp.id = TEMP_ID;
   Temp.t = 1;
-  if (tempC = DEVICE_DISCONNECTED_C) Temp.d = -69.00;
-  else Temp.d = tempC;
-
+  //  if (tempC = DEVICE_DISCONNECTED_C) Temp.d = -69.00;
+  //  else Temp.d = tempC;
+  Temp.d = tempC;
   esp_now_send(broadcastAddress, (uint8_t *) &Temp, sizeof(Temp));
 
 }

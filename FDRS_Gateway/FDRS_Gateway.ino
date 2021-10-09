@@ -1,4 +1,4 @@
-//  FARM DATA RELAY SYSTEM
+ //  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY MODULE
 //
@@ -104,15 +104,20 @@ void setup() {
 void getSerial() {
   String incomingString = Serial.readString();
   StaticJsonDocument<3072> doc;
-  //Serial.println(incomingString);
+  Serial.println(incomingString);
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
+    Serial.println("yikes");
+
+
     return;
   } else {
     DataReading newCMD;
-    newCMD.id = doc[0]["id"];
-    newCMD.t = doc[0]["type"];
-    newCMD.d = doc[0]["data"];
+
+    newCMD.id = doc["id"];
+    newCMD.t = doc["type"];
+    newCMD.d = doc["data"];
+    Serial.println(newCMD.id );
     esp_now_send(prevAddress, (uint8_t *) &newCMD, sizeof(newCMD));
   }
 }
