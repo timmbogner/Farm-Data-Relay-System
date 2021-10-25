@@ -3,6 +3,7 @@
 The Farm Data Relay System is an easy way to link remote sensors to the internet without the need for WiFi. It uses the ESP-NOW protocol on widely availabe ESP32 and ESP8266 microcontroller boards, and can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage. 
 
 A major consideration has been to make the system straight-forward and easy to set up, since the primary user may not be very familiar with Arduino. Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. 
+
 Other than the nodes, each device in the system has a one-byte address. At boot, each device changes its MAC address to "AA:BB:CC:DD:EE:xx" where xx is the device's address identifier. Nodes can send their data to a terminal, a relay, or directly to a gateway. Each of these devices can be connected as needed in a chain that leads to a gateway, where the data is handed off to another system.
 
 ## Nodes
