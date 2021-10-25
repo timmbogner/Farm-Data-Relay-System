@@ -14,7 +14,7 @@ typedef struct DataReading {
   uint8_t t;
 } DataReading;
 ```
-Each node in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global address is represented by an integer 'id', and has a type represented by a single byte 't'. 
+Each node in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global address is represented by an integer 'id', and has a type represented by a single byte 't'.  If a sensor is capable of multiple types of readings (ex: temp and humidity), they are send in an array.
 
 ## Terminal
 A terminal is a device that recieves data from the nodes and aggregates it into a larger array. The larger array is then periodically sent forward through the system to the gateway. The time between sends must be short enough so as not to  exceed the maximum legnth of an ESP-NOW packet with DataReadings, which is 31.
