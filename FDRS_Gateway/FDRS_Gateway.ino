@@ -1,4 +1,4 @@
- //  FARM DATA RELAY SYSTEM
+//  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY MODULE
 //
@@ -9,6 +9,8 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #elif defined(ESP32)
+#define RXD2 21
+#define TXD2 22
 #include <esp_now.h>
 #include <WiFi.h>
 #include <esp_wifi.h>
@@ -17,60 +19,36 @@
 #include <ArduinoJson.h>
 #include "DataReading.h"
 
-uint8_t prevAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, PREV_MAC};
-uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
+uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t prevAddress[] = {MAC_PREFIX, PREV_MAC};
+uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 DataReading incData[31];
-DataReading theData[31];
 bool newData = false;
 int pkt_readings;
-void encodeJSON() {
-  StaticJsonDocument<2048> doc;
-  for (int i = 0; i < pkt_readings; i++) {
-    doc[i]["id"]   = theData[i].id;
-    doc[i]["type"] = theData[i].t;
-    doc[i]["data"] = theData[i].d;
-    theData[i].id = 0;
-    theData[i].t = 0;
-    theData[i].d = 0;
-  }
-  Serial.write('~');
-  serializeJson(doc, Serial);
-}
+uint8_t incMAC[6];
 
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
-  Serial.print("Last Packet Send Status: ");
-  if (sendStatus == 0) {
-    Serial.println("Delivery success");
-  }
-  else {
-    Serial.println("Delivery fail");
-  }
 }
-
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
 #elif defined(ESP32)
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  Serial.print("Last Packet Send Status:");
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
-  memcpy(&theData, incomingData, len);
+
+  memcpy(&incData, incomingData, len);
+  memcpy(&incMAC, mac, 6);
   pkt_readings = len / sizeof(DataReading);
   newData = true;
 }
 
 void setup() {
-  // Init Serial Monitor
-  Serial.begin(115200);
-  // Init WiFi
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
-  Serial.println();
-  Serial.println("FDRS Gateway Module");
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
 #if defined(ESP8266)
+  Serial.begin(115200);
   wifi_set_macaddr(STATION_IF, selfAddress);
   if (esp_now_init() != 0) {
     return;
@@ -80,7 +58,10 @@ void setup() {
   esp_now_register_recv_cb(OnDataRecv);
   // Register peer
   esp_now_add_peer(prevAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+  esp_now_add_peer(broadcast_mac, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+
 #elif defined(ESP32)
+  Serial.begin(115200, SERIAL_8N1, RXD2, TXD2);
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
@@ -91,8 +72,12 @@ void setup() {
   esp_now_peer_info_t peerInfo;
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
-  // register peer
   memcpy(peerInfo.peer_addr, prevAddress, 6);
+  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+    Serial.println("Failed to add peer");
+    return;
+  }
+  memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer");
     return;
@@ -100,33 +85,47 @@ void setup() {
 #endif
 }
 
+//CMD example {"id":72,"type":201,"data":166}
 
 void getSerial() {
-  String incomingString = Serial.readString();
-  StaticJsonDocument<3072> doc;
-  Serial.println(incomingString);
+  DataReading theCommands[31];
+  String incomingString =  Serial.readStringUntil('\n');
+  StaticJsonDocument<2048> doc;
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    Serial.println("yikes");
-
+    Serial.println("parse err");
 
     return;
   } else {
-    DataReading newCMD;
+    int s = doc.size();
+    //Serial.println(s);
+    for (int i = 0; i < s; i++) {
+      if (i > 31) break;
+      theCommands[i].id = doc[i]["id"];
+      theCommands[i].t = doc[i]["type"];
+      theCommands[i].d = doc[i]["data"];
+    }
+    esp_now_send(broadcast_mac, (uint8_t *) &theCommands, s * sizeof(DataReading));
 
-    newCMD.id = doc["id"];
-    newCMD.t = doc["type"];
-    newCMD.d = doc["data"];
-    Serial.println(newCMD.id );
-    esp_now_send(prevAddress, (uint8_t *) &newCMD, sizeof(newCMD));
   }
+}
+
+void encodeJSON() {
+  StaticJsonDocument<2048> doc;
+  for (int i = 0; i < pkt_readings; i++) {
+    doc[i]["id"]   = incData[i].id;
+    doc[i]["type"] = incData[i].t;
+    doc[i]["data"] = incData[i].d;
+    incData[i].id = 0;
+    incData[i].t = 0;
+    incData[i].d = 0;
+  }
+  serializeJson(doc, Serial);
 }
 
 void loop() {
   while (Serial.available()) {
-    if (Serial.read() == '~') {
-      getSerial();
-    }
+    getSerial();
   }
   if (newData) {
     newData = false;

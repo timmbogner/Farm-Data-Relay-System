@@ -18,18 +18,10 @@
 
 //   The gateway receives the data and outputs it as a json string over the serial port.
 
-#define DELAY 20000
+#define DELAY 15000
 
 // THIS UNIT
-#define UNIT_MAC 0x00 // Terminal
-//#define UNIT_MAC 0x01 // Relay 0
-//#define UNIT_MAC 0x02 // Relay 1
-//#define UNIT_MAC 0x03 // Gateway
-//#define UNIT_MAC 0x04 //
+#define UNIT_MAC 0x01
 
 // NEXT UNIT
-//#define NEXT_MAC 0x00 // Terminal
-#define NEXT_MAC 0x01 // Relay 0
-//#define NEXT_MAC 0x02 // Relay 1
-//#define NEXT_MAC 0x03 // Gateway
-//#define NEXT_MAC 0x04 //
+#define NEXT_MAC 0x00 

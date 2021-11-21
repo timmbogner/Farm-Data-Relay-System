@@ -38,11 +38,6 @@ void passOn() {
       break;
   }
 
-//
-//  if (incMAC[5] == PREV_MAC) outMAC[5] = NEXT_MAC;
-//  else if (incMAC[5] == NEXT_MAC) outMAC[5] = PREV_MAC;
-//  else outMAC[5] = DEFT_MAC;
-
   Serial.print("Packet Received from device: ");
   Serial.println(incMAC[5]);
   Serial.print("and sending to: ");
@@ -72,6 +67,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
   memcpy(&theData, incomingData, sizeof(theData));
   memcpy(&incMAC, mac, sizeof(incMAC));
+  if (memcmp(&incMAC, &selfAddress, 5) != 0) return;
   Serial.print("Data received: ");
   Serial.println(len);
   ln = len;
