@@ -24,7 +24,7 @@ uint8_t incMAC[6];
 uint8_t theData[250];
 uint8_t ln;
 bool newData = false;
-
+bool isLocal = false;
 void passOn() {
   switch (incMAC[5]) {
     case PREV_MAC:
@@ -37,7 +37,7 @@ void passOn() {
       outMAC[5] = DEFT_MAC;
       break;
   }
-
+  if (!isLocal) outMAC[5] = DEFT_MAC;
   Serial.print("Packet Received from device: ");
   Serial.println(incMAC[5]);
   Serial.print("and sending to: ");
@@ -67,7 +67,11 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
   memcpy(&theData, incomingData, sizeof(theData));
   memcpy(&incMAC, mac, sizeof(incMAC));
-  if (memcmp(&incMAC, &selfAddress, 5) != 0) return;
+  if (memcmp(&incMAC, &selfAddress, 5) != 0) {
+    isLocal = false;
+  } else {
+    isLocal = true;
+  }
   Serial.print("Data received: ");
   Serial.println(len);
   ln = len;
