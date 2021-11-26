@@ -38,9 +38,9 @@ The gateway takes the packet of DataReadings and interprets it into json format,
 
 ## Front-end
 ### Node-Red
-I have really been enjoying the flexibility of Node-red for collecting and displaying the data. My current setup is a work in progress, but I'd be interested in feedback.
+I have really been enjoying the flexibility of Node-red for collecting and displaying the data. I included my current working setup, with connections to ui nodes for examples.
 ### Blynk
-This is for the original Blynk! I won't have time to learn the new Blynk system for a while, so it will probably remain in this state for a bit...
+This sketch is outdated and left in only for reference. 
 
 ## Future plans
 Future plans are to include as many types of nodes and front end modules as I can fathom. I'm also working on sketches to remotely adjust irrigation/ventilation, as well as an idea for RGB lanterns, with colors controlled by FDRS.
