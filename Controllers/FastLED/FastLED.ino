@@ -17,12 +17,8 @@
 #endif
 
 
-#define COLOR_ID    118        //Unique ID for controller
-#define BRIGHT_ID   COLOR_ID + 1000
-#define BAT_ID      COLOR_ID + 2000
-
-#define UNIT_MAC    0x15       //Unit Address
-#define TERM_MAC    0x00       //Terminal MAC
+#define READING_ID    118        //Unique ID for controller
+#define GTWY_MAC      0x00       //Gateway MAC
 
 #define DATA_PIN    4
 #define BAT_ADC     33
@@ -30,10 +26,7 @@
 #define NUM_LEDS    24
 
 
-
-
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
-uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 CRGB leds[NUM_LEDS];
 
 typedef struct DataReading {
@@ -48,7 +41,7 @@ int the_color = 0;
 int the_bright = 255;
 bool newData = false;
 int pkt_readings;
-int wait_time=0;
+int wait_time = 0;
 
 
 #if defined(ESP8266)
@@ -72,19 +65,22 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
   memcpy(&theCommands, incomingData, len);
   pkt_readings = len / sizeof(DataReading);
-  for (int i; i <= pkt_readings; i++) {
-    if (theCommands[i].id == COLOR_ID) {
-      the_color = (int)theCommands[i].d;
-      Serial.println(theCommands[i].d);
-      newData = true;
-    }
-    if  (theCommands[i].id == BRIGHT_ID) {
-      the_bright = (int)theCommands[i].d;
-      Serial.println(theCommands[i].d);
-      newData = true;
+  for (int i; i <= pkt_readings; i++) {        //Cycle through array of incoming DataReadings for any addressed to this device
+    if (theCommands[i].id == READING_ID) {
+      if (theCommands[i].t == 201) {           //Adjust color or brightness, depending on type.
+        the_color = (int)theCommands[i].d;
+        Serial.println("D:" + String(theCommands[i].d));
+        newData = true;
+      }
+      if  (theCommands[i].t == 202) {
+        the_bright = (int)theCommands[i].d;
+        Serial.println("B:" + String(theCommands[i].d));
+        newData = true;
+      }
     }
   }
 }
+
 float readBattery()
 {
   int vref = 1100;
@@ -93,23 +89,6 @@ float readBattery()
   float battery_voltage = ((float)volt / 4095.0) * 2.0 * 3.3 * (vref);
   return battery_voltage;
 }
-void loop()
-{
-  if (newData) {
-    newData = false;
-    fill_solid(leds, NUM_LEDS, CHSV(the_color, 255, the_bright)); FastLED.show();
-  }
-//  if (millis() > wait_time) {
-//    wait_time = wait_time + 30 * 1000;
-//    DataReading theVoltage;
-//    theVoltage.d = readBattery();
-//    theVoltage.id = BAT_ID;
-//    theVoltage.t = 50;
-//    esp_now_send(broadcastAddress, (uint8_t *) &theVoltage, sizeof(theVoltage));
-//
-//
-//  }
-}
 
 void setup() {
 
@@ -117,7 +96,6 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
 #if defined(ESP8266)
-  wifi_set_macaddr(STATION_IF, selfAddress);
   if (esp_now_init() != 0) {
     return;
   }
@@ -128,7 +106,6 @@ void setup() {
   // Register peer
   esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
-  esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
@@ -149,7 +126,7 @@ void setup() {
 
   Serial.println();
   Serial.println("FARM DATA RELAY SYSTEM :: Pretty Lantern FastLED Module");
-  Serial.println("Thank You Very Much DAN GARCIA");
+  Serial.println("Thank You DAN GARCIA!");
   Serial.println("MAC: " + WiFi.macAddress());
   Serial.println("COLOR ID:  " + String(COLOR_ID));
   Serial.println("BRIGHT ID: " + String(BRIGHT_ID));
@@ -163,4 +140,22 @@ void setup() {
   delay(250);
   fill_solid(leds, NUM_LEDS, CRGB::Black); FastLED.show();
 
+}
+
+void loop()
+{
+  if (newData) {
+    newData = false;
+    fill_solid(leds, NUM_LEDS, CHSV(the_color, 255, the_bright)); FastLED.show();
+  }
+  //  if (millis() > wait_time) {
+  //    wait_time = wait_time + 30 * 1000;
+  //    DataReading theVoltage;
+  //    theVoltage.d = readBattery();
+  //    theVoltage.id = BAT_ID;
+  //    theVoltage.t = 50;
+  //    esp_now_send(broadcastAddress, (uint8_t *) &theVoltage, sizeof(theVoltage));
+  //
+  //
+  //  }
 }

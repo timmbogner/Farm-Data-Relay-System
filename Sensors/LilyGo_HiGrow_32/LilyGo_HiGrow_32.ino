@@ -3,19 +3,13 @@
 //  LILYGO HIGROW SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 
-#define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  60   //Time to sleep in seconds
 
-#define TEMP_ID     18    //Unique ID (0 - 1023) for each data reading
-#define HUM_ID      19
-#define LUX_ID      20
-#define PRES_ID     21
-#define SALT_ID     22
-#define SOIL_ID     23
-#define BAT_ID      24
-#define COUNT_ID    25
+#define READING_ID     18    //Unique ID (0 - 1023) for each data reading
+#define SLEEPYTIME     60    //Time to sleep in seconds
+#define GTWY_MAC       0x00  //Gateway MAC
+
 
 #define I2C_SDA             25
 #define I2C_SCL             26
@@ -37,7 +31,7 @@
 BH1750 lightMeter(0x23); //0x23
 Adafruit_BME280 bmp;     //0x77
 RTC_DATA_ATTR int the_count = 0;
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   //  Serial.print("Last Packet Send Status:");
@@ -112,42 +106,42 @@ void loadData() {
 
   DataReading Temp;
   Temp.d = bme_temp;
-  Temp.id = TEMP_ID;
+  Temp.id = READING_ID;
   Temp.t = 1;
 
   DataReading Hum;
   Hum.d = bme_humidity;
-  Hum.id = HUM_ID;
+  Hum.id = READING_ID;
   Hum.t = 2;
 
   DataReading Lux;
   Lux.d = lux;
-  Lux.id = LUX_ID;
+  Lux.id = READING_ID;
   Lux.t = 4;
 
   DataReading Pres;
   Pres.d = bme_pressure;
-  Pres.id = PRES_ID;
+  Pres.id = READING_ID;
   Pres.t = 3;
 
   DataReading Salt;
   Salt.d = s_salt;
-  Salt.id = SALT_ID;
+  Salt.id = READING_ID;
   Salt.t = 6;
 
   DataReading Soil;
   Soil.d = s_soil;
-  Soil.id = SOIL_ID;
+  Soil.id = READING_ID;
   Soil.t = 5;
 
   DataReading Bat;
   Bat.d = s_battery;
-  Bat.id = BAT_ID;
+  Bat.id = READING_ID;
   Bat.t = 50;
 
   DataReading Count;
   Count.d = float(the_count);
-  Count.id = COUNT_ID;
+  Count.id = READING_ID;
   Count.t = 51;
 
   DataReading thePacket[8];

@@ -3,11 +3,13 @@
 //  TIPPING BUCKET RAINFALL SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 //
+
+#define READING_ID  45    //Unique integer for each data reading
+#define GTWY_MAC    0x00  //Gateway MAC
+
 #define REED_PIN 2
-#define TERM_MAC 0x00 //Terminal MAC
-#define RAIN_ID  0    //Unique ID (0 - 255) for each data reading
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include "DataReading.h"
@@ -15,7 +17,7 @@ unsigned int theCount = 0;
 unsigned long lastTrigger = 0;
 boolean clicked = false;
 
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   Serial.print("Last Packet Send Status: ");
@@ -57,7 +59,7 @@ void loop() {
     clicked = false;
     DataReading Rain;
     Rain.d = theCount;
-    Rain.id = RAIN_ID;
+    Rain.id = READING_ID;
     Rain.t = 7;
     esp_now_send(broadcastAddress, (uint8_t *) &Rain, sizeof(Rain));
   }

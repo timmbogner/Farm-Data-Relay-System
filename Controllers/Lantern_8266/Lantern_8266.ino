@@ -6,10 +6,9 @@
 //
 //
 
-#define CONTROLLER_ID 72    //Unique ID (0 - 255) for controller
-#define UNIT_MAC      0x15  //Unit Address
-#define TERM_MAC      0x00  //Terminal MAC
-#define UPDATE_TIME   360   //Time in seconds between status update packets
+#define READING_ID    72    //Unique ID (0 - 255) for controller
+#define GTWY_MAC      0x00  //Gateway MAC
+
 #define REDPIN   12
 #define GREENPIN 13
 #define BLUEPIN  15
@@ -18,8 +17,7 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
-uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 
 typedef struct DataReading {
   float d;
@@ -28,11 +26,12 @@ typedef struct DataReading {
 
 } DataReading;
 
-DataReading theCMD;
+DataReading theCommands[31];
 int the_color = 0;
-bool connection_state = false;
+int the_bright = 255;
 bool newData = false;
-unsigned long wait_time = 0;
+int pkt_readings;
+
 void showAnalogRGB( const CRGB& rgb)
 {
   analogWrite(REDPIN,   rgb.r );
@@ -44,34 +43,31 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   Serial.print("Last Packet Send Status: ");
   if (sendStatus == 0) {
     Serial.println("Delivery success");
-    connection_state = true;
   }
   else {
-    Serial.println("Delivery fail");
-    connection_state = false;
+    Serial.println("Delivery fail"); 
   }
 }
 
 void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len) {
-  memcpy(&theCMD, incomingData, sizeof(theCMD));
-  Serial.println("recv");
-
-  if (theCMD.id == CONTROLLER_ID) {
-    the_color = (int)theCMD.d;
+  memcpy(&theCommands, incomingData, len);
+  pkt_readings = len / sizeof(DataReading);
+  for (int i; i <= pkt_readings; i++) {        //Cycle through array of incoming DataReadings for any addressed to this device
+    if (theCommands[i].id == READING_ID) {
+      if (theCommands[i].t == 201) {           //Adjust color or brightness, depending on type.
+        the_color = (int)theCommands[i].d;
+        Serial.println("D:" + String(theCommands[i].d));
+        newData = true;
+      }
+      if  (theCommands[i].t == 202) {
+        the_bright = (int)theCommands[i].d;
+        Serial.println("B:" + String(theCommands[i].d));
+        newData = true;
+      }
+    }
   }
-  newData = true;
-  connection_state = true;
-
-
 }
 
-void sayHello() {
-  DataReading Packet;
-  Packet.id = CONTROLLER_ID;
-  Packet.t = 200;
-  Packet.d = (float)the_color;
-  esp_now_send(broadcastAddress, (uint8_t *) &Packet, sizeof(DataReading));
-}
 void colorBars()
 {
   showAnalogRGB( CRGB::Red );   delay(500);
@@ -83,17 +79,13 @@ void colorBars()
 void loop()
 {
 
-  if (millis() > wait_time) {
-    wait_time = wait_time + (UPDATE_TIME * 1000);
-    sayHello();
-  }
   if (newData) {
-    Serial.println("DATA");
     newData = false;
-    showAnalogRGB(CHSV(the_color, 255, 255));
-  }
-}
+    showAnalogRGB(CHSV(the_color, 255, the_bright));
 
+  }
+
+}
 
 
 void setup() {
@@ -103,7 +95,6 @@ void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
-  wifi_set_macaddr(STATION_IF, selfAddress);
   if (esp_now_init() != 0) {
     return;
   }

@@ -3,12 +3,13 @@
 //  MOTION SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 //  This code is unfinished, but may work.
 //
+#define READING_ID  32    //Unique integer for each data reading
+#define GTWY_MAC    0x00 //Terminal MAC
+
 #define MOTION_PIN 13
-#define TERM_MAC 0x00 //Terminal MAC
-#define MOTION_ID  100    //Unique ID (0 - 255) for each data reading
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include "DataReading.h"
@@ -17,7 +18,7 @@ unsigned long nextCheck = 0;
 boolean motionDetected = false;
 unsigned long isr_time = millis();
 
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 
 
 ICACHE_RAM_ATTR void detectsMovement() {
@@ -75,7 +76,7 @@ void checkDetector() {
 
     DataReading Motion;
     Motion.d = theCount;
-    Motion.id = MOTION_ID;
+    Motion.id = READING_ID;
     Motion.t = 8;
     esp_now_send(broadcastAddress, (uint8_t *) &Motion, sizeof(Motion));
   } else {

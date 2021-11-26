@@ -3,21 +3,21 @@
 //  BMP280 SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 //
 
-#define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  30   //Time to sleep in seconds
-#define TEMP_ID     5    //Unique ID (0 - 255) for each data reading
-#define PRES_ID     6
+#define READING_ID     9    //Unique integer for each data reading
+#define SLEEPYTIME     30   //Time to sleep in seconds
+#define GTWY_MAC       0x00 //Gateway MAC
+
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include <Adafruit_BMP280.h>
 #include "DataReading.h"
 
-Adafruit_BMP280 bmp;     //0x76
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+Adafruit_BMP280 bmp; 
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 int wait_time = 0;
 
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
@@ -63,11 +63,11 @@ void loadData() {
   Serial.println(bmp_temp);
   DataReading Temp;
   Temp.d = bmp_temp;
-  Temp.id = TEMP_ID;
+  Temp.id = READING_ID;
   Temp.t = 1;
   DataReading Pres;
   Pres.d = bmp_pressure;
-  Pres.id = PRES_ID;
+  Pres.id = READING_ID;
   Pres.t = 3;
   DataReading thePacket[2];
   thePacket[0] = Temp;

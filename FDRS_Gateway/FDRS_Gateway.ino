@@ -121,6 +121,7 @@ void encodeJSON() {
     incData[i].d = 0;
   }
   serializeJson(doc, Serial);
+  Serial.println();
 }
 
 void loop() {

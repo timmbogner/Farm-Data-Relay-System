@@ -3,21 +3,22 @@
 //  CAPACITIVE SOIL MOISTURE SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 //
+#define READING_ID     51    //Unique integer for each data reading
+#define GTWY_MAC       0x00  //Gateway MAC
+#define SLEEPYTIME     60    //Time to sleep in seconds
+
 #define CALIBRATION_MODE 0
 #define CALIB_H 285
 #define CALIB_L 485
-#define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  60   //Time to sleep in seconds
-#define SOIL_ID     51    //Unique ID (0 - 255) for each data reading
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include "DataReading.h"
 
 
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   Serial.print("Last Packet Send Status: ");
@@ -58,7 +59,7 @@ void loadData() {
   Serial.println(s);
   DataReading Soil;
   Soil.d = s;
-  Soil.id = SOIL_ID;
+  Soil.id = READING_ID;
   Soil.t = 5;
   DataReading thePacket[1];
   thePacket[0] = Soil;

@@ -3,14 +3,12 @@
 //  BME280 SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 //  
 
-#define TEMP_ID     1   //Unique ID for each data reading
-#define HUM_ID      11
-#define PRES_ID     21
-#define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  30   //Time to sleep in seconds
+#define READING_ID     63   //Unique integer for each data reading
+#define SLEEPYTIME     30   //Time to sleep in seconds
+#define GTWY_MAC       0x00 //Gateway MAC
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -18,7 +16,7 @@
 #include "DataReading.h"
 
 Adafruit_BME280 bme;     //0x76
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 int wait_time = 0;
 
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
@@ -62,17 +60,17 @@ void loadData() {
   Serial.println(bme_temp);
   DataReading Temp;
   Temp.d = bme_temp;
-  Temp.id = TEMP_ID;
+  Temp.id = READING_ID;
   Temp.t = 1;
 
   DataReading Hum;
   Hum.d = bme_humidity;
-  Hum.id = HUM_ID;
+  Hum.id = READING_ID;
   Hum.t = 2;
 
   DataReading Pres;
   Pres.d = bme_pressure;
-  Pres.id = PRES_ID;
+  Pres.id = READING_ID;
   Pres.t = 3;
   
   DataReading thePacket[3];

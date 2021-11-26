@@ -1,17 +1,7 @@
 //  To configure FDRS:
-
-//   Uncomment the code corresponding to the unit you are configuring,
-//    then uncomment the code corresponding to the unit you would like
-//    to be previous and/or next in the line of communication.
  
 //   Each device in the system has a unique, one-byte address which 
 //    is assigned to the last digit of its MAC address at startup.
-
-//   Each device is configured to know what the previous and/or next
-//    device in the line of communication is.
-
-//   The terminal is considered the "first" device, which can be addressed
-//    to a relay or the gateway.
 
 //   Each relay receives data from its pre-programmed "PREV_MAC" device and
 //    sends the packet verbatim to the address corresponding to "NEXT_MAC".
@@ -20,24 +10,13 @@
 
 
 // THIS UNIT
-//#define UNIT_MAC 0x00
 #define UNIT_MAC 0x01
-//#define UNIT_MAC 0x02
-//#define UNIT_MAC 0x03
-//#define UNIT_MAC 0x04
-
-// PREVIOUS UNIT
-//#define PREV_MAC 0x00 
-//#define PREV_MAC 0x01 
-#define PREV_MAC 0x02 
-//#define PREV_MAC 0x03 
-//#define PREV_MAC 0x04 
 
 // NEXT UNIT
 #define NEXT_MAC 0x00 
-//#define NEXT_MAC 0x01 
-//#define NEXT_MAC 0x02 
-//#define NEXT_MAC 0x03
-//#define NEXT_MAC 0x04
 
-#define DEFT_MAC NEXT_MAC //Packets from unknown MACs are sent here.
+// PREVIOUS UNIT
+#define PREV_MAC 0x02 
+
+//Packets from unknown MACs are sent here.
+#define DEFT_MAC NEXT_MAC 

@@ -3,13 +3,13 @@
 //  DS18B20 SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each sensor is assigned a two-byte identifier along with a one-byte sensor type
+//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
 //
 
-#define TERM_MAC    0x00 //Terminal MAC
-#define SLEEPYTIME  30   //Time to sleep in seconds
-#define TEMP_ID     4    //Unique ID (0 - 255) for each data reading
-#define ONE_WIRE_BUS 13   //Pin that the DS18B20 is connected to
+#define READING_ID    29    //Unique integer for each data reading
+#define GTWY_MAC      0x00 //Gateway MAC
+#define SLEEPYTIME    30   //Time to sleep in seconds
+#define ONE_WIRE_BUS  13   //Pin that the DS18B20 is connected to
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -17,7 +17,7 @@
 #include <DallasTemperature.h>
 #include "DataReading.h"
 
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, TERM_MAC};
+uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
 int wait_time = 0;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -58,7 +58,7 @@ void loadData() {
   sensors.requestTemperatures(); // Send the command to get temperatures
   float tempC = sensors.getTempCByIndex(0);
   DataReading Temp;
-  Temp.id = TEMP_ID;
+  Temp.id = READING_ID;
   Temp.t = 1;
   //  if (tempC = DEVICE_DISCONNECTED_C) Temp.d = -69.00;
   //  else Temp.d = tempC;
