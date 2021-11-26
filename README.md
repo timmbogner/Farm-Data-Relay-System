@@ -46,7 +46,7 @@ This sketch is outdated and left in only for reference.
 Future plans are to include as many types of nodes and front end modules as I can fathom. I'm also working on sketches to remotely adjust irrigation/ventilation, as well as an idea for RGB lanterns, with colors controlled by FDRS.
 
 ## Thank you
-...very much for checking out my project! There are a few topics I've glossed over here that I intend to elaborate on in the future. If you have any questions, please feel free to contact me at bogner1@gmail.com. If you have any extra money laying around, you could [https://www.paypal.com/donate/?business=F2MYGWWTGG5PN&no_recurring=0&item_name=Anything+helps%21&currency_code=USD](send it to me via this link). I'm a farmer by occupation, and donations would help me to spend more time developing farm gadgets over the winter months. 
+...very much for checking out my project! There are a few topics I've glossed over here that I intend to elaborate on in the future. If you have any questions, please feel free to contact me at bogner1@gmail.com. If you have any extra money laying around, you could [send it to me via this link](https://www.paypal.com/donate/?business=F2MYGWWTGG5PN&no_recurring=0&item_name=Anything+helps%21&currency_code=USD). I'm a farmer by occupation, and donations would help me to spend more time developing farm gadgets over the winter months. 
 
 A big thank you to both [***Sola Gratia Farm***](https://www.solagratiacsa.com/) and ***The IDEA Store*** of *Urbana, IL, USA*, without whom this project would not exist.
 
