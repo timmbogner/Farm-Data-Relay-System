@@ -14,7 +14,7 @@ By default, all sensors have GTWY_MAC set to 0x00. You'll only need to change th
 
 If you need to get data from sensors that are out of reach of the gateway, place an FDRS_Relay device near the edge of the gateway's range. Flash this device with the default parameters, and then flash the sensors with GTWY_MAC set to 0x01. They will now send their data to the relay, which in turn sends it to the gateway.
 
-## Nodes
+## Sensors
 ```
 typedef struct DataReading {
   float d;
@@ -22,7 +22,7 @@ typedef struct DataReading {
   uint8_t t;
 } DataReading;
 ```
-Each node in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global sensor address is represented by an integer 'id', and each type is represented by a single byte 't'.  If sensors need to send multiple types of readings (ex: temp and humidity), then they are sent in an array of DataReadings. In this case each reading will share an id, but be differentiated by its type.
+Each sensor in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global sensor address is represented by an integer 'id', and each type is represented by a single byte 't'.  If sensors need to send multiple types of readings (ex: temp and humidity), then they are sent in an array of DataReadings. In this case each reading will share an id, but be differentiated by its type.
 
 ## Terminal
 A terminal is a device that recieves data from the nodes and aggregates it into a larger array. The larger array is then periodically sent forward through the system to the gateway. The time between sends must be short enough so as not to  exceed the maximum legnth of an ESP-NOW packet with DataReadings, which is 31.
