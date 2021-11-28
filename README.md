@@ -1,4 +1,5 @@
 # Farm Data Relay System
+##### <p align="center">[***In loving memory of Gay Holman, an extraordinary woman.***](https://www.facebook.com/CFECI/posts/2967989419953119) #####
 
 The Farm Data Relay System is an easy way to link remote sensors to the internet without the need for WiFi. It uses the ESP-NOW protocol on widely availabe ESP32 and ESP8266 microcontroller boards, and can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage. 
 
@@ -59,4 +60,3 @@ A big thank you to both [***Sola Gratia Farm***](https://www.solagratiacsa.com/)
 
 
 
-[***In loving memory of Gay Holman, an extraordinary individual.***](https://www.facebook.com/CFECI/posts/2967989419953119) 
