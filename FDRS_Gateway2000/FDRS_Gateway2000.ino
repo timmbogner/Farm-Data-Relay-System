@@ -1,9 +1,10 @@
 //  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY 2.000
+//  This is still in progress. Stay tuned!
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Setup instructions located in the "fdrs_config.h" file.
+//
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -19,9 +20,9 @@
 #include <PubSubClient.h>
 #include "fdrs_functions.h"
 
-const char* ssid = "";
-const char* password = "";
-const char* mqtt_server = "192.168.0.8";
+const char* ssid = WIFI_NET;
+const char* password = WIFI_PASS;
+const char* mqtt_server = MQTT_ADDR;
 
 void setup() {
   Serial.begin(115200);
@@ -46,23 +47,19 @@ void loop() {
     
     switch (newData) {
       case 1:     //ESP-NOW #1
-        sendESPNOW(2);
-        sendSerial();
+        ESPNOW1_ACT
         break;
       case 2:     //ESP-NOW #2
-        sendESPNOW(1);
-        sendSerial();
+        ESPNOW2_ACT
         break;
       case 3:     //ESP-NOW General
-        sendSerial();
+        ESPNOWG_ACT
         break;
       case 4:     //Serial
-        sendESPNOW(0);
-        sendSerial();
-        sendMQTT();
+        SERIAL_ACT
         break;
       case 5:     //MQTT
-        sendSerial();
+        MQTT_ACT
         break;
     }
     newData = 0;

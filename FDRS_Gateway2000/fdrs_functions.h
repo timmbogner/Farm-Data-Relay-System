@@ -108,6 +108,7 @@ void sendESPNOW(uint8_t interface) {
 
 }
 void sendMQTT() {
+#ifdef USE_WIFI
   StaticJsonDocument<2048> doc;
   for (int i = 0; i < ln / sizeof(DataReading); i++) {
     doc[i]["id"]   = theData[i].id;
@@ -117,6 +118,7 @@ void sendMQTT() {
   String incomingString;
   serializeJson(doc, incomingString);
   client.publish("esp/fdrs", (char*) incomingString.c_str());
+#endif
 }
 
 void sendSerial() {
