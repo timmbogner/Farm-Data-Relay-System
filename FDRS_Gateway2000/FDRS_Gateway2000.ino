@@ -27,6 +27,7 @@ const char* ssid = WIFI_NET;
 const char* password = WIFI_PASS;
 const char* mqtt_server = MQTT_ADDR;
 #endif
+
 #ifdef USE_LORA
 void sendLoRa() {
   LoRa.beginPacket();
@@ -34,6 +35,7 @@ void sendLoRa() {
   LoRa.endPacket();
 }
 #endif
+
 void setup() {
   Serial.begin(115200);
   begin_espnow();
