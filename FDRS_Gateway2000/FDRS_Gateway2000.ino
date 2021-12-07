@@ -1,3 +1,4 @@
+
 //  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY 2.000
@@ -19,11 +20,20 @@
 #include "DataReading.h"
 #include <PubSubClient.h>
 #include "fdrs_functions.h"
+#include <LoRa.h>
 
+#ifdef USE_WIFI
 const char* ssid = WIFI_NET;
 const char* password = WIFI_PASS;
 const char* mqtt_server = MQTT_ADDR;
-
+#endif
+#ifdef USE_LORA
+void sendLoRa() {
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&theData, ln);
+  LoRa.endPacket();
+}
+#endif
 void setup() {
   Serial.begin(115200);
   begin_espnow();
@@ -36,15 +46,29 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(mqtt_callback);
 #endif
+#ifdef USE_LORA
+  SPI.begin(SCK, MISO, MOSI, SS);
+  LoRa.setPins(SS, RST, DIO0);
+  if (!LoRa.begin(BAND)) {
+    while (1);
+  }
+#endif
 }
 
 void loop() {
   while (Serial.available()) {
     getSerial();
   }
-  if (newData != 0) {
-
-    
+#ifdef USE_LORA
+  int packetSize = LoRa.parsePacket();
+  if (packetSize)
+  {
+    LoRa.readBytes((uint8_t *)&theData, packetSize);
+    ln = packetSize;
+    newData = 6;
+  }
+#endif
+  if (newData) {
     switch (newData) {
       case 1:     //ESP-NOW #1
         ESPNOW1_ACT
@@ -61,11 +85,12 @@ void loop() {
       case 5:     //MQTT
         MQTT_ACT
         break;
+      case 6:     //LoRa
+        LORA_ACT
+        break;
     }
     newData = 0;
   }
-
-
 #ifdef USE_WIFI
   if (!client.connected()) {
     reconnect();
