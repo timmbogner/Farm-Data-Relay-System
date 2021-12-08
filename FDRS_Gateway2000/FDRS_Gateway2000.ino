@@ -37,9 +37,11 @@ void sendLoRa() {
 }
 
 void setup() {
-  //Serial.begin(115200);
-    Serial.begin(115200, SERIAL_8N1, RXD2, TXD2);
-
+#if defined(ESP8266)
+  Serial.begin(115200);
+#elif defined(ESP32)
+  Serial.begin(115200, SERIAL_8N1, RXD2, TXD2);
+#endif
   begin_espnow();
 #ifdef USE_WIFI
   delay(10);
