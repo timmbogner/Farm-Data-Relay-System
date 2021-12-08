@@ -2,7 +2,8 @@
 //
 //  GATEWAY 2.000 Configuration
 //  This is still in progress. Stay tuned!
-
+#define RXD2 21
+#define TXD2 22
 #define UNIT_MAC 0x00// THIS UNIT
 #define PREV_MAC 0x01// ESPNOW1 Address 
 #define NEXT_MAC 0x02// ESPNOW2 Address

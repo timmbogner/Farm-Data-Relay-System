@@ -28,16 +28,18 @@ const char* password = WIFI_PASS;
 const char* mqtt_server = MQTT_ADDR;
 #endif
 
-#ifdef USE_LORA
 void sendLoRa() {
+#ifdef USE_LORA
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&theData, ln);
   LoRa.endPacket();
-}
 #endif
+}
 
 void setup() {
-  Serial.begin(115200);
+  //Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, RXD2, TXD2);
+
   begin_espnow();
 #ifdef USE_WIFI
   delay(10);
