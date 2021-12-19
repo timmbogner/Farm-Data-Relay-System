@@ -53,7 +53,7 @@ If you have any extra money laying around, you could [send it to me via this Pay
 
 A big thank you to both [***Sola Gratia Farm***](https://www.solagratiacsa.com/) and ***The IDEA Store*** of *Urbana, IL, USA*, without whom this project would not exist.
 
-[Random Nerd Tutorials](https://randomnerdtutorials.com/) was also an indispensable source of ESP knowledge.
+[Random Nerd Tutorials](https://randomnerdtutorials.com/) is also an indispensable source of ESP knowledge.
 
 
 
