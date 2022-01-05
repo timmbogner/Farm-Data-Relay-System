@@ -28,13 +28,6 @@ const char* password = WIFI_PASS;
 const char* mqtt_server = MQTT_ADDR;
 #endif
 
-void sendLoRa() {
-#ifdef USE_LORA
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&theData, ln);
-  LoRa.endPacket();
-#endif
-}
 
 void setup() {
 #if defined(ESP8266)
@@ -62,6 +55,32 @@ void setup() {
 }
 
 void loop() {
+  if (millis() > timeESPNOWG) {
+    timeESPNOWG += ESPNOWG_DELAY;
+    if  (lenESPNOWG > 0) releaseESPNOW(0);
+  }
+  if (millis() > timeESPNOW1) {
+    timeESPNOW1 += ESPNOW1_DELAY;
+    if (lenESPNOW1 > 0)   releaseESPNOW(1);
+  }
+  if (millis() > timeESPNOW2) {
+    timeESPNOW2 += ESPNOW2_DELAY;
+    if (lenESPNOW2 > 0) releaseESPNOW(2);
+  }
+  if (millis() > timeSERIAL) {
+    //Serial.println("timeSERIAL tripped: " + String(lenSERIAL));
+    timeSERIAL  += SERIAL_DELAY;
+    if (lenSERIAL  > 0) releaseSerial();
+  }
+  if (millis() > timeMQTT) {
+    timeMQTT += MQTT_DELAY;
+    if (lenMQTT    > 0) releaseMQTT();
+  }
+  if (millis() > timeLORA) {
+    timeLORA += LORA_DELAY;
+    if (lenLORA    > 0) releaseLoRa();
+  }
+
   while (Serial.available()) {
     getSerial();
   }
@@ -73,6 +92,12 @@ void loop() {
     ln = packetSize;
     newData = 6;
   }
+#endif
+#ifdef USE_WIFI
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
 #endif
   if (newData) {
     switch (newData) {
@@ -97,10 +122,4 @@ void loop() {
     }
     newData = 0;
   }
-#ifdef USE_WIFI
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-#endif
 }
