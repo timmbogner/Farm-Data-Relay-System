@@ -46,9 +46,9 @@
 
 //Use these settings for a gateway that recieves serial (UART) data and sends MQTT.
 //#define USE_WIFI
-//#define ESPNOW1_ACTION  
-//#define ESPNOW2_ACTION  
-//#define ESPNOWG_ACTION  
-//#define SERIAL_ACTION   sendMQTT();
-//#define MQTT_ACTION     sendSerial();
-//#define LORA_ACT        sendSerial();
+//#define ESPNOW1_ACT  
+//#define ESPNOW2_ACT  
+//#define ESPNOWG_ACT  
+//#define SERIAL_ACT   sendMQTT();
+//#define MQTT_ACT     sendSerial();
+//#define LORA_ACT     sendSerial();
