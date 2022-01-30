@@ -2,10 +2,9 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#define UNIT_MAC     0x01  // THIS UNIT
-#define ESPNOW1_MAC  0x00  // ESPNOW1 Address 
-#define ESPNOW2_MAC  0x02  // ESPNOW2 Address
-#define ESPNOW2_MAC  0x07  // ESPNOW2 Address
+#define UNIT_MAC     0x00  // THIS UNIT
+#define ESPNOW1_MAC  0x01  // ESPNOW1 Address 
+#define ESPNOW2_MAC  0x01  // ESPNOW2 Address
 
 //Actions -- Define what happens when a packet arrives at each interface:
 //Current function options are: sendESPNOW(interface),  sendSerial(), sendMQTT(), and sendLoRa().
@@ -38,8 +37,6 @@
 //915E6 for North America
 #define BAND 915E6
 
-
-
 #define ESPNOW1_DELAY  0
 #define ESPNOW2_DELAY  0
 #define ESPNOWG_DELAY  0
@@ -64,8 +61,10 @@
 //#define MQTT_ACT     sendSerial();
 //#define LORA_ACT     sendSerial();
 
-//Use these settings for a basic repeater.
-
+//Use these settings for a basic repeater addressed to the final gateway.
+//#define UNIT_MAC     0x01  // THIS UNIT
+//#define ESPNOW1_MAC  0x00  // ESPNOW1 Address 
+//#define ESPNOW2_MAC  0x02  // ESPNOW2 Address
 //#define ESPNOW1_ACT  sendESPNOW(2);
 //#define ESPNOW2_ACT  sendESPNOW(1);
 //#define ESPNOWG_ACT  sendESPNOW(1);
