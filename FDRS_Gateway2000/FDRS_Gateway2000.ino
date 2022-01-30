@@ -1,8 +1,6 @@
-
 //  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY 2.000
-//  This is still in progress. Stay tuned!
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //

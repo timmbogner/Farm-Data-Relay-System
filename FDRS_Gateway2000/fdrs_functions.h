@@ -2,9 +2,9 @@ const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t prevAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, PREV_MAC};
-uint8_t selfAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
-uint8_t nextAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, NEXT_MAC};
+uint8_t ESPNOW1[] =       {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, ESPNOW1_MAC};
+uint8_t selfAddress[] =   {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
+uint8_t ESPNOW2[] =       {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, ESPNOW2_MAC};
 uint8_t incMAC[6];
 
 DataReading theData[256];
@@ -46,8 +46,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
   memcpy(&theData, incomingData, sizeof(theData));
   memcpy(&incMAC, mac, sizeof(incMAC));
-  if (memcmp(&incMAC, &prevAddress, 6) == 0) newData = 1;
-  else if (memcmp(&incMAC, &nextAddress, 6) == 0) newData = 2;
+  if (memcmp(&incMAC, &ESPNOW1, 6) == 0) newData = 1;
+  else if (memcmp(&incMAC, &ESPNOW2, 6) == 0) newData = 2;
   else newData = 3;
   ln = len / sizeof(DataReading);
   Serial.println("RCV:" + String(ln));
@@ -174,12 +174,12 @@ void releaseESPNOW(uint8_t interface) {
         for (int i = 0; i < lenESPNOW1; i++) {
           if ( j > 250 / sizeof(DataReading)) {
             j = 0;
-            esp_now_send(prevAddress, (uint8_t *) &thePacket, sizeof(thePacket));
+            esp_now_send(ESPNOW1, (uint8_t *) &thePacket, sizeof(thePacket));
           }
           thePacket[j] = bufferESPNOW1[i];
           j++;
         }
-        esp_now_send(prevAddress, (uint8_t *) &thePacket, j * sizeof(DataReading));
+        esp_now_send(ESPNOW1, (uint8_t *) &thePacket, j * sizeof(DataReading));
         lenESPNOW1 = 0;
         break;
       }
@@ -190,12 +190,12 @@ void releaseESPNOW(uint8_t interface) {
         for (int i = 0; i < lenESPNOW2; i++) {
           if ( j > 250 / sizeof(DataReading)) {
             j = 0;
-            esp_now_send(nextAddress, (uint8_t *) &thePacket, sizeof(thePacket));
+            esp_now_send(ESPNOW2, (uint8_t *) &thePacket, sizeof(thePacket));
           }
           thePacket[j] = bufferESPNOW2[i];
           j++;
         }
-        esp_now_send(nextAddress, (uint8_t *) &thePacket, j * sizeof(DataReading));
+        esp_now_send(ESPNOW2, (uint8_t *) &thePacket, j * sizeof(DataReading));
         lenESPNOW2 = 0;
         break;
       }
@@ -276,8 +276,8 @@ void begin_espnow() {
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
   // Register peers
-  esp_now_add_peer(prevAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-  esp_now_add_peer(nextAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+  esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+  esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
@@ -290,12 +290,12 @@ void begin_espnow() {
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
   // Register first peer
-  memcpy(peerInfo.peer_addr, prevAddress, 6);
+  memcpy(peerInfo.peer_addr, ESPNOW1, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer");
     return;
   }
-  memcpy(peerInfo.peer_addr, nextAddress, 6);
+  memcpy(peerInfo.peer_addr, ESPNOW2, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer");
     return;

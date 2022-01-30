@@ -1,14 +1,27 @@
 //  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY 2.000 Configuration
-//  This is still in progress. Stay tuned!
+
+#define UNIT_MAC     0x01  // THIS UNIT
+#define ESPNOW1_MAC  0x00  // ESPNOW1 Address 
+#define ESPNOW2_MAC  0x02  // ESPNOW2 Address
+#define ESPNOW2_MAC  0x07  // ESPNOW2 Address
+
+//Actions -- Define what happens when a packet arrives at each interface:
+//Current function options are: sendESPNOW(interface),  sendSerial(), sendMQTT(), and sendLoRa().
+
+#define ESPNOW1_ACT    sendSerial();
+#define ESPNOW2_ACT    sendSerial();
+#define ESPNOWG_ACT    sendSerial();
+#define SERIAL_ACT     sendESPNOW(0);
+#define MQTT_ACT       sendSerial();
+#define LORA_ACT       sendSerial();
+
+//ESP32 Only
 #define RXD2 21
 #define TXD2 22
-#define UNIT_MAC 0x01// THIS UNIT
-#define PREV_MAC 0x00// ESPNOW1 Address 
-#define NEXT_MAC 0x03// ESPNOW2 Address
 
-//#define USE_WIFI    //You cannot use ESP-NOW while WiFi is in use
+//#define USE_WIFI    //You should not use ESP-NOW while WiFi is in use
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"
 #define MQTT_ADDR "192.168.0.8"
@@ -26,8 +39,6 @@
 #define BAND 915E6
 
 
-//Actions -- Define what happens when a packet arrives at each interface:
-//Current function options are: sendESPNOW(interface),  sendSerial(), sendMQTT(), and sendLoRa().
 
 #define ESPNOW1_DELAY  0
 #define ESPNOW2_DELAY  0
@@ -37,12 +48,12 @@
 #define LORA_DELAY     0
 
 //Use these settings for a gateway that recieves ESP-NOW data and sends serial (UART).
-#define ESPNOW1_ACT    sendSerial();
-#define ESPNOW2_ACT    sendSerial();
-#define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     sendESPNOW(0);
-#define MQTT_ACT       sendSerial();
-#define LORA_ACT       sendSerial();
+//#define ESPNOW1_ACT    sendSerial();
+//#define ESPNOW2_ACT    sendSerial();
+//#define ESPNOWG_ACT    sendSerial();
+//#define SERIAL_ACT     sendESPNOW(0);
+//#define MQTT_ACT       sendSerial();
+//#define LORA_ACT       sendSerial();
 
 //Use these settings for a gateway that recieves serial (UART) data and sends MQTT.
 //#define USE_WIFI
@@ -52,3 +63,12 @@
 //#define SERIAL_ACT   sendMQTT();
 //#define MQTT_ACT     sendSerial();
 //#define LORA_ACT     sendSerial();
+
+//Use these settings for a basic repeater.
+
+//#define ESPNOW1_ACT  sendESPNOW(2);
+//#define ESPNOW2_ACT  sendESPNOW(1);
+//#define ESPNOWG_ACT  sendESPNOW(1);
+//#define SERIAL_ACT   
+//#define MQTT_ACT     
+//#define LORA_ACT     
