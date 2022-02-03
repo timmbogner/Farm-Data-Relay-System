@@ -4,7 +4,7 @@ This is the FDRS Multiprotocol Gateway sketch. The device listens for packets ov
 
 The most commonly used configuration tells the device to take any packet it receives and output the data over the serial port (UART):
 ```
-#define UNIT_MAC     0x00
+#define UNIT_MAC       0x00
 #define ESPNOWG_ACT    sendSerial();
 ```
 The companion for this device, connected via serial, takes any data it receives from the serial port and sends it via MQTT:
