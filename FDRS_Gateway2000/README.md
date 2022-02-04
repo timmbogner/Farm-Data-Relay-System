@@ -2,7 +2,7 @@
 
 This is the FDRS Multiprotocol Gateway sketch. The device listens for packets over ESP-NOW, UART, LoRa, and/or WiFi, then retransmits the packets over these interfaces using rules defined in the configuration file.
 
-The most commonly used configuration tells the device to take any packet it receives and output the data over the serial port (UART):
+The most commonly used configuration tells the device to take any ESP-NOW packet it receives and output the data over the serial port (UART):
 ```
 #define UNIT_MAC       0x00
 #define ESPNOWG_ACT    sendSerial();
