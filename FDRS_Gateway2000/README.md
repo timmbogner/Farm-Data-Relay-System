@@ -18,9 +18,6 @@ If you have sensors that are out of range of your first gateway, you can use a g
 ```
 #define UNIT_MAC     0x01  // THIS UNIT
 #define ESPNOW1_MAC  0x00  // ESPNOW1 Address 
-#define ESPNOW2_MAC  0x02  // ESPNOW2 Address
 
-#define ESPNOW1_ACT  sendESPNOW(2);
-#define ESPNOW2_ACT  sendESPNOW(1);
 #define ESPNOWG_ACT  sendESPNOW(1);
 ```
