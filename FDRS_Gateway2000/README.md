@@ -1,6 +1,6 @@
 # Gateway 2.000
 
-This is the FDRS Multiprotocol Gateway sketch. The device listens for packets over ESP-NOW, UART, LoRa, and/or WiFi, then retransmits the packets over these interfaces using rules defined in the configuration file.
+This is the FDRS Multiprotocol Gateway sketch. The device listens for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmits the packets over these interfaces using rules defined in the configuration file.
 
 The most commonly used configuration tells the device to take any ESP-NOW packet it receives and output the data over the serial port (UART):
 ```
