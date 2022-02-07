@@ -11,7 +11,7 @@ Gateways can be configured to send an ESP-NOW transmission either to the serial 
 To use FDRS with Node-Red and MQTT you'll need two ESP devices (gateways) that are connected via UART, plus additional ESP devices with sensors connected.
 The two **gateways** are programmed using the instructions [found with the Gateway2000 sketch](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Gateway2000). 
 The **sensors** can either use the [example sketches](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/Sensors) included, or you can use the “fdrs_sensor.h” file to [use FDRS with a sketch you’ve already written.](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Sensor2000)
-
+![Basic](/FDRS_Gateway2000/Basic_Setup.png)
 ### Sensors
 ```
 typedef struct DataReading {
