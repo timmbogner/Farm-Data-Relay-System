@@ -17,7 +17,5 @@ Splitting the gateway into two devices allows you to use ESP-NOW and WiFi simult
 If you have sensors that are out of range of your first gateway, you can use a gateway as a repeater. First you will set the ESPNOW1 address to that of your first gateway, then you'll direct general ESP-NOW traffic to the ESPNOW1 interface:
 ```
 #define UNIT_MAC     0x01  // THIS UNIT
-#define ESPNOW1_MAC  0x00  // ESPNOW1 Address 
-
-#define ESPNOWG_ACT  sendESPNOW(1);
+#define ESPNOWG_ACT  sendESPNOW(0x00);
 ```
