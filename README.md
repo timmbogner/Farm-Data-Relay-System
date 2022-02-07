@@ -3,7 +3,7 @@
 
 The Farm Data Relay System is an easy way to link remote sensors to the internet without the need for WiFi. It is based around the ESP-NOW protocol, which is readily available on ESP32 and ESP8266 microcontroller boards. The system can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage. 
 
-Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code.  Every ESP-NOW gateway is assigned a single-byte identifier, known as the UNIT_MAC. This along with a set, 5-byte preamble is assigned to the MAC address of the ESP's radio at boot. 
+Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code.  Every ESP-NOW gateway is assigned a single-byte identifier, known as the UNIT_MAC. This along with a set, 5-byte prefix is assigned to the MAC address of the ESP's radio at boot. 
 
 Gateways can be configured to send an ESP-NOW transmission either to the serial port using JSON, another ESP-NOW gateway, or broadcast it via LoRa PHY. An incoming transmission from the serial port can also be routed to the same interfaces, with the addition of MQTT.
 
