@@ -2,31 +2,31 @@ const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t ESPNOW1[] =       {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, ESPNOW1_MAC};
-uint8_t selfAddress[] =   {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, UNIT_MAC};
-uint8_t ESPNOW2[] =       {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, ESPNOW2_MAC};
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_MAC};
+uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
+uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_MAC};
 uint8_t incMAC[6];
 
 DataReading theData[256];
 uint8_t ln;
 uint8_t newData = 0;
 
-DataReading bufferESPNOW1[256];
+DataReading ESPNOW1buffer[256];
 uint8_t lenESPNOW1 = 0;
 uint32_t timeESPNOW1 = 0;
-DataReading bufferESPNOW2[256];
+DataReading ESPNOW2buffer[256];
 uint8_t lenESPNOW2 = 0;
 uint32_t timeESPNOW2 = 0;
-DataReading bufferESPNOWG[256];
+DataReading ESPNOWGbuffer[256];
 uint8_t lenESPNOWG = 0;
 uint32_t timeESPNOWG = 0;
-DataReading bufferSERIAL[256];
+DataReading SERIALbuffer[256];
 uint8_t lenSERIAL = 0;
 uint32_t timeSERIAL = 0;
-DataReading bufferMQTT[256];
+DataReading MQTTbuffer[256];
 uint8_t lenMQTT = 0;
 uint32_t timeMQTT = 0;
-DataReading bufferLORA[256];
+DataReading LORAbuffer[256];
 uint8_t lenLORA = 0;
 uint32_t timeLORA = 0;
 
@@ -50,7 +50,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   else if (memcmp(&incMAC, &ESPNOW2, 6) == 0) newData = 2;
   else newData = 3;
   ln = len / sizeof(DataReading);
-  Serial.println("RCV:" + String(ln));
+  //Serial.println("RCV:" + String(ln));
 }
 void getSerial() {
   String incomingString =  Serial.readStringUntil('\n');
@@ -106,48 +106,101 @@ void getLoRa() {
 #endif
 
 
-void sendESPNOW(uint8_t interface) {
+void sendESPNOW(uint8_t address) {
+
+  uint8_t NEWPEER[] = {MAC_PREFIX, address};
+#if defined(ESP32)
+  esp_now_peer_info_t peerInfo;
+  peerInfo.ifidx = WIFI_IF_STA;
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+  memcpy(peerInfo.peer_addr, NEWPEER, 6);
+  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+    Serial.println("Failed to add peer");
+    return;
+  }
+#endif
+
+  DataReading thePacket[ln];
+  int j = 0;
+  for (int i = 0; i < ln; i++) {
+    if ( j > espnow_size) {
+      j = 0;
+      esp_now_send(NEWPEER, (uint8_t *) &thePacket, sizeof(thePacket));
+    }
+    thePacket[j] = theData[i];
+    j++;
+  }
+  esp_now_send(NEWPEER, (uint8_t *) &thePacket, j * sizeof(DataReading));
+  esp_now_del_peer(NEWPEER);
+}
+
+void sendSerial() {
+  DynamicJsonDocument doc(24576);
+  for (int i = 0; i < ln; i++) {
+    doc[i]["id"]   = theData[i].id;
+    doc[i]["type"] = theData[i].t;
+    doc[i]["data"] = theData[i].d;
+  }
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+void sendMQTT() {
+#ifdef USE_WIFI
+  DynamicJsonDocument doc(24576);
+  for (int i = 0; i < ln; i++) {
+    doc[i]["id"]   = theData[i].id;
+    doc[i]["type"] = theData[i].t;
+    doc[i]["data"] = theData[i].d;
+  }
+  String outgoingString;
+  serializeJson(doc, outgoingString);
+  client.publish("esp/fdrs", (char*) outgoingString.c_str());
+#endif
+}
+
+void bufferESPNOW(uint8_t interface) {
   switch (interface) {
     case 0:
       for (int i = 0; i < ln; i++) {
-        bufferESPNOWG[lenESPNOWG + i] = theData[i];
+        ESPNOWGbuffer[lenESPNOWG + i] = theData[i];
       }
       lenESPNOWG +=  ln;
       break;
     case 1:
       for (int i = 0; i < ln; i++) {
-        bufferESPNOW1[lenESPNOW1 + i] = theData[i];
+        ESPNOW1buffer[lenESPNOW1 + i] = theData[i];
       }
       lenESPNOW1 +=  ln;
       break;
     case 2:
       for (int i = 0; i < ln; i++) {
-        bufferESPNOW2[lenESPNOW2 + i] = theData[i];
+        ESPNOW2buffer[lenESPNOW2 + i] = theData[i];
       }
       lenESPNOW2 +=  ln;
       break;
   }
 }
-void sendSerial() {
+void bufferSerial() {
   for (int i = 0; i < ln; i++) {
-    bufferSERIAL[lenSERIAL + i] = theData[i];
+    SERIALbuffer[lenSERIAL + i] = theData[i];
   }
   lenSERIAL += ln;
-  Serial.println("SENDSERIAL:" + String(lenSERIAL)+" ");
-
+  //Serial.println("SENDSERIAL:" + String(lenSERIAL) + " ");
 }
-void sendMQTT() {
+void bufferMQTT() {
   for (int i = 0; i < ln; i++) {
-    bufferMQTT[lenMQTT + i] = theData[i];
+    MQTTbuffer[lenMQTT + i] = theData[i];
   }
   lenMQTT += ln;
 }
-void sendLoRa() {
+void bufferLoRa() {
   for (int i = 0; i < ln; i++) {
-    bufferLORA[lenLORA + i] = theData[i];
+    LORAbuffer[lenLORA + i] = theData[i];
   }
   lenLORA += ln;
 }
+
 
 void releaseESPNOW(uint8_t interface) {
   switch (interface) {
@@ -160,7 +213,7 @@ void releaseESPNOW(uint8_t interface) {
             j = 0;
             esp_now_send(broadcast_mac, (uint8_t *) &thePacket, sizeof(thePacket));
           }
-          thePacket[j] = bufferESPNOWG[i];
+          thePacket[j] = ESPNOWGbuffer[i];
           j++;
         }
         esp_now_send(broadcast_mac, (uint8_t *) &thePacket, j * sizeof(DataReading));
@@ -176,7 +229,7 @@ void releaseESPNOW(uint8_t interface) {
             j = 0;
             esp_now_send(ESPNOW1, (uint8_t *) &thePacket, sizeof(thePacket));
           }
-          thePacket[j] = bufferESPNOW1[i];
+          thePacket[j] = ESPNOW1buffer[i];
           j++;
         }
         esp_now_send(ESPNOW1, (uint8_t *) &thePacket, j * sizeof(DataReading));
@@ -192,7 +245,7 @@ void releaseESPNOW(uint8_t interface) {
             j = 0;
             esp_now_send(ESPNOW2, (uint8_t *) &thePacket, sizeof(thePacket));
           }
-          thePacket[j] = bufferESPNOW2[i];
+          thePacket[j] = ESPNOW2buffer[i];
           j++;
         }
         esp_now_send(ESPNOW2, (uint8_t *) &thePacket, j * sizeof(DataReading));
@@ -202,13 +255,11 @@ void releaseESPNOW(uint8_t interface) {
   }
 }
 void releaseSerial() {
-  //DynamicJsonDocument doc(24576);
-    StaticJsonDocument<2048> doc;
-
+  DynamicJsonDocument doc(24576);
   for (int i = 0; i < lenSERIAL; i++) {
-    doc[i]["id"]   = bufferSERIAL[i].id;
-    doc[i]["type"] = bufferSERIAL[i].t;
-    doc[i]["data"] = bufferSERIAL[i].d;
+    doc[i]["id"]   = SERIALbuffer[i].id;
+    doc[i]["type"] = SERIALbuffer[i].t;
+    doc[i]["data"] = SERIALbuffer[i].d;
   }
   serializeJson(doc, Serial);
   Serial.println();
@@ -218,9 +269,9 @@ void releaseMQTT() {
 #ifdef USE_WIFI
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < lenMQTT; i++) {
-    doc[i]["id"]   = bufferMQTT[i].id;
-    doc[i]["type"] = bufferMQTT[i].t;
-    doc[i]["data"] = bufferMQTT[i].d;
+    doc[i]["id"]   = MQTTbuffer[i].id;
+    doc[i]["type"] = MQTTbuffer[i].t;
+    doc[i]["data"] = MQTTbuffer[i].d;
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
@@ -239,7 +290,7 @@ void releaseLoRa() {
       LoRa.write((uint8_t*)&thePacket, j * sizeof(DataReading));
       LoRa.endPacket();
     }
-    thePacket[j] = bufferLORA[i];
+    thePacket[j] = LORAbuffer[i];
     j++;
   }
   LoRa.beginPacket();
@@ -292,17 +343,17 @@ void begin_espnow() {
   // Register first peer
   memcpy(peerInfo.peer_addr, ESPNOW1, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer");
+    Serial.println("Failed to add peer 1");
     return;
   }
   memcpy(peerInfo.peer_addr, ESPNOW2, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer");
+    Serial.println("Failed to add peer 2");
     return;
   }
   memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer");
+    Serial.println("Failed to add peer bcast");
     return;
   }
 #endif
