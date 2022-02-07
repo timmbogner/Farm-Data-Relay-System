@@ -29,6 +29,6 @@ If you have any extra money laying around, you could [send it to me via this Pay
 
 A big thank you to both [***Sola Gratia Farm***](https://www.solagratiacsa.com/) and ***The IDEA Store*** of *Urbana, IL, USA*, without whom this project would not exist.
 
-A huge thanks to the ever-instructional [Andreas Spiess](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ).
+A huge thanks to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ).
   
-[Random Nerd Tutorials](https://randomnerdtutorials.com/) is also an indispensable source of ESP knowledge.
+[**Random Nerd Tutorials**](https://randomnerdtutorials.com/) is also an indispensable source of ESP knowledge.
