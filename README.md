@@ -20,7 +20,7 @@ typedef struct DataReading {
   uint8_t t;
 } DataReading;
 ```
-Each sensor in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global sensor address is represented by an integer 'id', and each type is represented by a single byte 't'.  If sensors need to send multiple types of readings (ex: temp and humidity), then they are sent in an array of DataReadings. A single DataReading.id may have multiple readings of different types associated with it. 
+Each sensor in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global sensor address is represented by an integer 'id', and each type is represented by a single byte 't'.  If a sensor module needs to send multiple types of readings, then they are sent in an array of DataReadings. A single DataReading.id may have readings of multiple types associated with it.
 
 ## Thank you
 ...very much for checking out my project! I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at bogner1@gmail.com.
