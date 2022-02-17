@@ -1,23 +1,29 @@
 #define UNIT_MAC     0xFD  // THIS UNIT
 #define ESPNOW1_MAC  0xFE  // ESPNOW1 Address 
 #define ESPNOW2_MAC  0xFF  // ESPNOW2 Address
+#define LORA1_MAC    0xFE  // LoRa1 Address
+#define LORA2_MAC    0xFF  // LoRa2 Address
 
 #define ESPNOW1_DELAY  0
 #define ESPNOW2_DELAY  0
 #define ESPNOWG_DELAY  0
 #define SERIAL_DELAY   0
 #define MQTT_DELAY     0
-#define LORA_DELAY     0
+#define LORAG_DELAY    250
+#define LORA1_DELAY    250
+#define LORA2_DELAY    250
 
 #define ESPNOW1_ACT    
 #define ESPNOW2_ACT    
 #define ESPNOWG_ACT    
 #define SERIAL_ACT     
 #define MQTT_ACT       
-#define LORA_ACT       
+#define LORAG_ACT   
+#define LORA1_ACT 
+#define LORA2_ACT     
 
-#define RXD2 21
-#define TXD2 22
+//#define RXD2 21
+//#define TXD2 22
 
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"

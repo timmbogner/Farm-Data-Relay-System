@@ -4,8 +4,9 @@
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
-
-#if defined(ESP8266)
+#include "fdrs_config.h"
+#include "DataReading.h"
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #elif defined(ESP32)
@@ -13,25 +14,23 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #endif
-#include "fdrs_config.h"
 #include <ArduinoJson.h>
-#include "DataReading.h"
 #include <PubSubClient.h>
-#include "fdrs_functions.h"
+#ifdef USE_LORA
 #include <LoRa.h>
-
-#ifdef USE_WIFI
-const char* ssid = WIFI_NET;
-const char* password = WIFI_PASS;
-const char* mqtt_server = MQTT_ADDR;
 #endif
+#include "fdrs_functions.h"
 
 
 void setup() {
 #if defined(ESP8266)
   Serial.begin(115200);
 #elif defined(ESP32)
+#if defined(RXD2)
   Serial.begin(115200, SERIAL_8N1, RXD2, TXD2);
+#elif !defined(RXD2)
+  Serial.begin(115200);
+#endif
 #endif
   begin_espnow();
 #ifdef USE_WIFI
@@ -66,7 +65,6 @@ void loop() {
     if (lenESPNOW2 > 0) releaseESPNOW(2);
   }
   if (millis() > timeSERIAL) {
-    //Serial.println("timeSERIAL tripped: " + String(lenSERIAL));
     timeSERIAL  += SERIAL_DELAY;
     if (lenSERIAL  > 0) releaseSerial();
   }
@@ -74,23 +72,23 @@ void loop() {
     timeMQTT += MQTT_DELAY;
     if (lenMQTT    > 0) releaseMQTT();
   }
-  if (millis() > timeLORA) {
-    timeLORA += LORA_DELAY;
-    if (lenLORA    > 0) releaseLoRa();
+  if (millis() > timeLORAG) {
+    timeLORAG += LORAG_DELAY;
+    if (lenLORAG    > 0) releaseLoRa(0);
+  }
+  if (millis() > timeLORA1) {
+    timeLORA1 += LORA1_DELAY;
+    if (lenLORA1    > 0) releaseLoRa(1);
+  }
+  if (millis() > timeLORA2) {
+    timeLORA2 += LORA2_DELAY;
+    if (lenLORA2    > 0) releaseLoRa(2);
   }
 
   while (Serial.available()) {
     getSerial();
   }
-#ifdef USE_LORA
-  int packetSize = LoRa.parsePacket();
-  if (packetSize)
-  {
-    LoRa.readBytes((uint8_t *)&theData, packetSize);
-    ln = packetSize;
-    newData = 6;
-  }
-#endif
+  getLoRa();
 #ifdef USE_WIFI
   if (!client.connected()) {
     reconnect();
@@ -114,8 +112,14 @@ void loop() {
       case 5:     //MQTT
         MQTT_ACT
         break;
-      case 6:     //LoRa
-        LORA_ACT
+      case 6:     //LoRa General
+        LORAG_ACT
+        break;
+      case 7:     //LoRa #1
+        LORA1_ACT
+        break;
+      case 8:     //LoRa #2
+        LORA2_ACT
         break;
     }
     newData = 0;

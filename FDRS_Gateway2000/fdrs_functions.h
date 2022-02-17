@@ -1,11 +1,14 @@
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
+const uint8_t mac_prefix[] = {MAC_PREFIX};
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_MAC};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_MAC};
 uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_MAC};
 uint8_t incMAC[6];
+uint8_t LoRa1[] =         {mac_prefix[4], LORA1_MAC};
+uint8_t LoRa2[] =         {mac_prefix[4], LORA2_MAC};
 
 DataReading theData[256];
 uint8_t ln;
@@ -26,13 +29,25 @@ uint32_t timeSERIAL = 0;
 DataReading MQTTbuffer[256];
 uint8_t lenMQTT = 0;
 uint32_t timeMQTT = 0;
-DataReading LORAbuffer[256];
-uint8_t lenLORA = 0;
-uint32_t timeLORA = 0;
-
+DataReading LORAGbuffer[256];
+uint8_t lenLORAG = 0;
+uint32_t timeLORAG = 0;
+DataReading LORA1buffer[256];
+uint8_t lenLORA1 = 0;
+uint32_t timeLORA1 = 0;
+DataReading LORA2buffer[256];
+uint8_t lenLORA2 = 0;
+uint32_t timeLORA2 = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+
+#ifdef USE_WIFI
+const char* ssid = WIFI_NET;
+const char* password = WIFI_PASS;
+const char* mqtt_server = MQTT_ADDR;
+#endif
+
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -58,6 +73,7 @@ void getSerial() {
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
     Serial.println("parse err");
+    Serial.println(incomingString);
     return;
   } else {
     int s = doc.size();
@@ -93,21 +109,28 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
     newData = 5;
   }
 }
-#ifdef USE_LORA
-void getLoRa() {
-  int packetSize = LoRa.parsePacket();
-  if (packetSize)
-  {
-    LoRa.readBytes((uint8_t *)&theData, packetSize);
-    ln = packetSize / sizeof(DataReading);
-    newData = 6;
-  }
-}
-#endif
 
+void getLoRa() {
+#ifdef USE_LORA
+  int packetSize = LoRa.parsePacket();
+  if (packetSize) {
+    uint8_t packet[packetSize];
+    uint8_t incLORAMAC[2];
+    LoRa.readBytes((uint8_t *)&packet, packetSize);
+    if (memcmp(&packet, &selfAddress[4], 2) == 0) {        //Check if addressed to this device
+      memcpy(&incLORAMAC, &packet[2], 2);                  //Split off address portion of packet
+      memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
+      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) newData = 7;     //Check if it is from a registered sender
+      else if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) newData = 8;
+      else newData = 6;
+      ln = (packetSize - 5) / sizeof(DataReading);
+      newData = 6;
+    }
+  }
+#endif
+}
 
 void sendESPNOW(uint8_t address) {
-
   uint8_t NEWPEER[] = {MAC_PREFIX, address};
 #if defined(ESP32)
   esp_now_peer_info_t peerInfo;
@@ -194,13 +217,34 @@ void bufferMQTT() {
   }
   lenMQTT += ln;
 }
-void bufferLoRa() {
-  for (int i = 0; i < ln; i++) {
-    LORAbuffer[lenLORA + i] = theData[i];
+//void bufferLoRa() {
+//  for (int i = 0; i < ln; i++) {
+//    LORAbuffer[lenLORA + i] = theData[i];
+//  }
+//  lenLORA += ln;
+//}
+void bufferLoRa(uint8_t interface) {
+  switch (interface) {
+    case 0:
+      for (int i = 0; i < ln; i++) {
+        LORAGbuffer[lenLORAG + i] = theData[i];
+      }
+      lenLORAG += ln;
+      break;
+    case 1:
+      for (int i = 0; i < ln; i++) {
+        LORA1buffer[lenLORA1 + i] = theData[i];
+      }
+      lenLORA1 += ln;
+      break;
+    case 2:
+      for (int i = 0; i < ln; i++) {
+        LORA2buffer[lenLORA2 + i] = theData[i];
+      }
+      lenLORA2 += ln;
+      break;
   }
-  lenLORA += ln;
 }
-
 
 void releaseESPNOW(uint8_t interface) {
   switch (interface) {
@@ -209,7 +253,7 @@ void releaseESPNOW(uint8_t interface) {
         DataReading thePacket[espnow_size];
         int j = 0;
         for (int i = 0; i < lenESPNOWG; i++) {
-          if ( j > 250 / sizeof(DataReading)) {
+          if ( j > espnow_size) {
             j = 0;
             esp_now_send(broadcast_mac, (uint8_t *) &thePacket, sizeof(thePacket));
           }
@@ -225,7 +269,7 @@ void releaseESPNOW(uint8_t interface) {
         DataReading thePacket[espnow_size];
         int j = 0;
         for (int i = 0; i < lenESPNOW1; i++) {
-          if ( j > 250 / sizeof(DataReading)) {
+          if ( j > espnow_size) {
             j = 0;
             esp_now_send(ESPNOW1, (uint8_t *) &thePacket, sizeof(thePacket));
           }
@@ -241,7 +285,7 @@ void releaseESPNOW(uint8_t interface) {
         DataReading thePacket[espnow_size];
         int j = 0;
         for (int i = 0; i < lenESPNOW2; i++) {
-          if ( j > 250 / sizeof(DataReading)) {
+          if ( j > espnow_size) {
             j = 0;
             esp_now_send(ESPNOW2, (uint8_t *) &thePacket, sizeof(thePacket));
           }
@@ -253,6 +297,74 @@ void releaseESPNOW(uint8_t interface) {
         break;
       }
   }
+}
+#ifdef USE_LORA
+void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
+  uint8_t pkt[5 + (len * sizeof(DataReading))];
+  memcpy(&pkt, mac, 2);
+  memcpy(&pkt[2], &selfAddress[4], 2);
+  memcpy(&pkt[5], packet, len * sizeof(DataReading));
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+  LoRa.endPacket();
+}
+#endif
+
+void releaseLoRa(uint8_t interface) {
+#ifdef USE_LORA
+  switch (interface) {
+    case 0:
+      {
+        DataReading thePacket[lora_size];
+        int j = 0;
+        for (int i = 0; i < lenLORAG; i++) {
+          if ( j > lora_size) {
+            j = 0;
+            transmitLoRa(broadcast_mac, thePacket, j);
+          }
+          thePacket[j] = LORAGbuffer[i];
+          j++;
+        }
+        transmitLoRa(broadcast_mac, thePacket, j);
+        lenLORAG = 0;
+
+        break;
+      }
+    case 1:
+      {
+        DataReading thePacket[lora_size];
+        int j = 0;
+        for (int i = 0; i < lenLORA1; i++) {
+          if ( j > lora_size) {
+            j = 0;
+            transmitLoRa(LoRa1, thePacket, j);
+          }
+          thePacket[j] = LORA1buffer[i];
+          j++;
+        }
+        transmitLoRa(LoRa1, thePacket, j);
+        lenLORA1 = 0;
+        break;
+      }
+    case 2:
+      {
+        DataReading thePacket[lora_size];
+        int j = 0;
+        for (int i = 0; i < lenLORA2; i++) {
+          if ( j > lora_size) {
+            j = 0;
+            transmitLoRa(LoRa2, thePacket, j);
+          }
+          thePacket[j] = LORA2buffer[i];
+          j++;
+        }
+        transmitLoRa(LoRa2, thePacket, j);
+        lenLORA2 = 0;
+
+        break;
+      }
+  }
+#endif
 }
 void releaseSerial() {
   DynamicJsonDocument doc(24576);
@@ -279,28 +391,6 @@ void releaseMQTT() {
   lenMQTT = 0;
 #endif
 }
-void releaseLoRa() {
-#ifdef USE_LORA
-  DataReading thePacket[lora_size];
-  int j = 0;
-  for (int i = 0; i < lenLORA); i++) {
-    if ( j > lora_size)) {
-      j = 0;
-      LoRa.beginPacket();
-      LoRa.write((uint8_t*)&thePacket, j * sizeof(DataReading));
-      LoRa.endPacket();
-    }
-    thePacket[j] = LORAbuffer[i];
-    j++;
-  }
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&thePacket, j * sizeof(DataReading));
-  LoRa.endPacket();
-  lenLORA = 0;
-
-#endif
-}
-
 void reconnect() {
   // Loop until reconnected
   while (!client.connected()) {
