@@ -4,8 +4,9 @@
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
-#define READING_ID    57   //Unique ID for controller
-#define GTWY_MAC      0x00 //Gateway MAC
+
+#include "fdrs_config.h"
+#include "DataReading.h"
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -15,24 +16,23 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #endif
-#include <ArduinoJson.h>
-#include <PubSubClient.h>
 #include <LoRa.h>
 
-typedef struct DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
-
-} DataReading;
 const uint16_t espnow_size = 250 / sizeof(DataReading);
-uint8_t gatewayAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
+uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
+uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
+uint8_t LoRaAddress[] = {0x42, 0x00};
+
 
 uint32_t wait_time = 0;
-DataReading fdrsData[espnow_size];
-uint8_t data_count = 0;
+
+  DataReading fdrsData[espnow_size];
+  uint8_t data_count = 0;
 
 void beginFDRS() {
+
+
+#ifdef USE_ESPNOW
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
@@ -59,9 +59,33 @@ void beginFDRS() {
     return;
   }
 #endif
+#endif
+#ifdef USE_LORA
+  SPI.begin(SCK, MISO, MOSI, SS);
+  LoRa.setPins(SS, RST, DIO0);
+  if (!LoRa.begin(BAND)) {
+    while (1);
+  }
+#endif
 }
+#ifdef USE_LORA
+void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
+  uint8_t pkt[5 + (len * sizeof(DataReading))];
+  memcpy(&pkt, mac, 3);
+  memcpy(&pkt[3], &LoRaAddress, 2);
+  memcpy(&pkt[5], packet, len * sizeof(DataReading));
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+  LoRa.endPacket();
+}
+#endif
 void sendFDRS() {
+#ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
+#endif
+#ifdef USE_LORA
+  transmitLoRa(gtwyAddress, fdrsData, data_count);
+#endif
   data_count = 0;
 }
 void loadFDRS(float d, uint8_t t) {

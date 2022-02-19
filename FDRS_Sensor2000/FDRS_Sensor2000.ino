@@ -12,6 +12,7 @@ float data1 = 42.069;
 float data2 = 21.0345;
 
 void setup() {
+
   beginFDRS();
 }
 void loop() {
