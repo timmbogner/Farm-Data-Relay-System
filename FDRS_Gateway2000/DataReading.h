@@ -1,5 +1,5 @@
 
-typedef struct DataReading {
+typedef struct __attribute__((packed)) DataReading {
   float d;
   uint16_t id;
   uint8_t t;

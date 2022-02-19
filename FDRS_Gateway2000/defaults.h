@@ -1,8 +1,8 @@
 #define UNIT_MAC     0xFD  // THIS UNIT
-#define ESPNOW1_MAC  0xFE  // ESPNOW1 Address 
-#define ESPNOW2_MAC  0xFF  // ESPNOW2 Address
-#define LORA1_MAC    0xFE  // LoRa1 Address
-#define LORA2_MAC    0xFF  // LoRa2 Address
+#define ESPNOW1_PEER  0xFE  // ESPNOW1 Address 
+#define ESPNOW2_PEER  0xFF  // ESPNOW2 Address
+#define LORA1_PEER    0xFE  // LoRa1 Address
+#define LORA2_PEER    0xFF  // LoRa2 Address
 
 #define ESPNOW1_DELAY  0
 #define ESPNOW2_DELAY  0

@@ -32,6 +32,7 @@ void setup() {
   Serial.begin(115200);
 #endif
 #endif
+
   begin_espnow();
 #ifdef USE_WIFI
   delay(10);
@@ -48,7 +49,9 @@ void setup() {
   if (!LoRa.begin(BAND)) {
     while (1);
   }
-#endif
+#endif 
+Serial.println(sizeof(DataReading));
+
 }
 
 void loop() {

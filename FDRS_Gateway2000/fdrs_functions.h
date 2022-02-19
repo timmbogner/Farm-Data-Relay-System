@@ -4,11 +4,11 @@ const uint8_t mac_prefix[] = {MAC_PREFIX};
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
-uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_MAC};
-uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_MAC};
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
+uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_PEER};
 uint8_t incMAC[6];
-uint8_t LoRa1[] =         {mac_prefix[4], LORA1_MAC};
-uint8_t LoRa2[] =         {mac_prefix[4], LORA2_MAC};
+uint8_t LoRa1[] =         {mac_prefix[3], mac_prefix[4], LORA1_PEER};
+uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 
 DataReading theData[256];
 uint8_t ln;
@@ -117,8 +117,11 @@ void getLoRa() {
     uint8_t packet[packetSize];
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
-    if (memcmp(&packet, &selfAddress[4], 2) == 0) {        //Check if addressed to this device
-      memcpy(&incLORAMAC, &packet[2], 2);                  //Split off address portion of packet
+    //    for (int i = 0; i < packetSize; i++) {
+    //      Serial.println(packet[i], HEX);
+    //    }
+    if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
+      memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
       memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
       if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) newData = 7;     //Check if it is from a registered sender
       else if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) newData = 8;
@@ -301,8 +304,8 @@ void releaseESPNOW(uint8_t interface) {
 #ifdef USE_LORA
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
   uint8_t pkt[5 + (len * sizeof(DataReading))];
-  memcpy(&pkt, mac, 2);
-  memcpy(&pkt[2], &selfAddress[4], 2);
+  memcpy(&pkt, mac, 3);
+  memcpy(&pkt[3], &selfAddress[4], 2);
   memcpy(&pkt[5], packet, len * sizeof(DataReading));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
