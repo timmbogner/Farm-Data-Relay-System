@@ -12,12 +12,11 @@ float data1 = 42.069;
 float data2 = 21.0345;
 
 void setup() {
-
   beginFDRS();
 }
 void loop() {
-  loadFDRS(data1, 101);
-  loadFDRS(data2, 102);
+  loadFDRS(data1, HUMIDITY_T);
+  loadFDRS(data2, TEMP_T);
   sendFDRS();
-  delay(30000);
+  sleepFDRS(5);  //Sleep time in seconds
 }
