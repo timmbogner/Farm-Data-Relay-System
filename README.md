@@ -8,7 +8,7 @@ Using an assigned MAC address scheme allows for the whole system to be configure
 Gateways can be configured to send an ESP-NOW transmission either to the serial port using JSON, another ESP-NOW gateway, or broadcast it via LoRa PHY. An incoming transmission from the serial port can also be routed to the same interfaces, with the addition of MQTT.
 
 ## Getting Started
-To use FDRS with Node-Red and MQTT you'll need two ESP devices (gateways) that are connected via UART, plus additional ESP devices with sensors connected.
+To use FDRS with Node-Red and MQTT you'll need two ESP devices (gateways) that are connected via UART, plus additional ESP or LoRa devices with sensors connected.
 
   **Sensors** can use the [“fdrs_sensor.h”](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Sensor2000) file to set up the device and send FDRS data via ESP-NOW and/or LoRa. 
   
@@ -20,6 +20,7 @@ The Node-RED **front-end** can be set up with these nodes:
 ```
   
 ![Basic](/FDRS_Gateway2000/Basic_Setup.png)
+![Advanced](/FDRS_Gateway2000/Advanced_Setup_LoRa.png)
 ### Sensors
 ```
 typedef struct DataReading {
