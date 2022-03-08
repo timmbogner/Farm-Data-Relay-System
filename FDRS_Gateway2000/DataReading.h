@@ -6,6 +6,8 @@ typedef struct __attribute__((packed)) DataReading {
 
 } DataReading;
 
+//Type definitions in progress:
+
 #define STATUS_T    0  // Status 
 #define TEMP_T      1  // Temperature 
 #define TEMP2_T     2  // Temperature #2

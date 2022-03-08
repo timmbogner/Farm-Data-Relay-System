@@ -1,3 +1,6 @@
+#ifdef ESP8266
+#define UART_IF Serial
+#endif
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -40,9 +43,11 @@ uint8_t lenLORA2 = 0;
 uint32_t timeLORA2 = 0;
 
 WiFiClient espClient;
-PubSubClient client(espClient);
-
+#ifdef USE_LED
+CRGB leds[NUM_LEDS];
+#endif
 #ifdef USE_WIFI
+PubSubClient client(espClient);
 const char* ssid = WIFI_NET;
 const char* password = WIFI_PASS;
 const char* mqtt_server = MQTT_ADDR;
@@ -65,19 +70,20 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   else if (memcmp(&incMAC, &ESPNOW2, 6) == 0) newData = 2;
   else newData = 3;
   ln = len / sizeof(DataReading);
-  //Serial.println("RCV:" + String(ln));
+  //UART_IF.println("RCV:" + String(ln));
 }
 void getSerial() {
-  String incomingString =  Serial.readStringUntil('\n');
+  String incomingString =  UART_IF.readStringUntil('\n');
+  //Serial.println("getting serial");
   DynamicJsonDocument doc(24576);
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    Serial.println("parse err");
+    Serial.print("parse err: ");
     Serial.println(incomingString);
     return;
   } else {
     int s = doc.size();
-    //Serial.println(s);
+    //UART_IF.println(s);
     for (int i = 0; i < s; i++) {
       theData[i].id = doc[i]["id"];
       theData[i].t = doc[i]["type"];
@@ -95,11 +101,11 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
   StaticJsonDocument<2048> doc;
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    //Serial.println("parse err");
+    //UART_IF.println("parse err");
     return;
   } else {
     int s = doc.size();
-    //Serial.println(s);
+    //UART_IF.println(s);
     for (int i = 0; i < s; i++) {
       theData[i].id = doc[i]["id"];
       theData[i].t = doc[i]["type"];
@@ -118,7 +124,7 @@ void getLoRa() {
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
     //    for (int i = 0; i < packetSize; i++) {
-    //      Serial.println(packet[i], HEX);
+    //      UART_IF.println(packet[i], HEX);
     //    }
     if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
       memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
@@ -142,7 +148,7 @@ void sendESPNOW(uint8_t address) {
   peerInfo.encrypt = false;
   memcpy(peerInfo.peer_addr, NEWPEER, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer");
+    UART_IF.println("Failed to add peer");
     return;
   }
 #endif
@@ -168,8 +174,12 @@ void sendSerial() {
     doc[i]["type"] = theData[i].t;
     doc[i]["data"] = theData[i].d;
   }
+  serializeJson(doc, UART_IF);
   serializeJson(doc, Serial);
+
+  UART_IF.println();
   Serial.println();
+
 }
 void sendMQTT() {
 #ifdef USE_WIFI
@@ -212,7 +222,7 @@ void bufferSerial() {
     SERIALbuffer[lenSERIAL + i] = theData[i];
   }
   lenSERIAL += ln;
-  //Serial.println("SENDSERIAL:" + String(lenSERIAL) + " ");
+  //UART_IF.println("SENDSERIAL:" + String(lenSERIAL) + " ");
 }
 void bufferMQTT() {
   for (int i = 0; i < ln; i++) {
@@ -376,8 +386,8 @@ void releaseSerial() {
     doc[i]["type"] = SERIALbuffer[i].t;
     doc[i]["data"] = SERIALbuffer[i].d;
   }
-  serializeJson(doc, Serial);
-  Serial.println();
+  serializeJson(doc, UART_IF);
+  UART_IF.println();
   lenSERIAL = 0;
 }
 void releaseMQTT() {
@@ -395,6 +405,7 @@ void releaseMQTT() {
 #endif
 }
 void reconnect() {
+#ifdef USE_WIFI
   // Loop until reconnected
   while (!client.connected()) {
     // Attempt to connect
@@ -406,6 +417,7 @@ void reconnect() {
       delay(5000);
     }
   }
+#endif
 }
 void begin_espnow() {
   WiFi.mode(WIFI_STA);
@@ -425,7 +437,7 @@ void begin_espnow() {
 #elif defined(ESP32)
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing ESP-NOW");
+    UART_IF.println("Error initializing ESP-NOW");
     return;
   }
   esp_now_register_send_cb(OnDataSent);
@@ -436,17 +448,17 @@ void begin_espnow() {
   // Register first peer
   memcpy(peerInfo.peer_addr, ESPNOW1, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer 1");
+    UART_IF.println("Failed to add peer 1");
     return;
   }
   memcpy(peerInfo.peer_addr, ESPNOW2, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer 2");
+    UART_IF.println("Failed to add peer 2");
     return;
   }
   memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add peer bcast");
+    UART_IF.println("Failed to add peer bcast");
     return;
   }
 #endif

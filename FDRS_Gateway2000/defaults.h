@@ -9,9 +9,9 @@
 #define ESPNOWG_DELAY  0
 #define SERIAL_DELAY   0
 #define MQTT_DELAY     0
-#define LORAG_DELAY    250
-#define LORA1_DELAY    250
-#define LORA2_DELAY    250
+#define LORAG_DELAY    1000
+#define LORA1_DELAY    1000
+#define LORA2_DELAY    1000
 
 #define ESPNOW1_ACT    
 #define ESPNOW2_ACT    
@@ -41,4 +41,9 @@
 //915E6 for North America
 #define BAND 915E6
 
+//#define USE_LED
+#define LED_PIN    32
+#define NUM_LEDS    4
+
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+#define UART_IF Serial1

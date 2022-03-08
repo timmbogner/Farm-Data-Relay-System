@@ -15,33 +15,48 @@
 #include <esp_wifi.h>
 #endif
 #include <ArduinoJson.h>
+#ifdef USE_WIFI
 #include <PubSubClient.h>
+#endif
 #ifdef USE_LORA
 #include <LoRa.h>
+#endif
+#ifdef USE_LED
+#include <FastLED.h>
 #endif
 #include "fdrs_functions.h"
 
 
 void setup() {
 #if defined(ESP8266)
-  Serial.begin(115200);
+  UART_IF.begin(115200);
 #elif defined(ESP32)
-#if defined(RXD2)
-  Serial.begin(115200, SERIAL_8N1, RXD2, TXD2);
-#elif !defined(RXD2)
   Serial.begin(115200);
+  Serial.println("main terminal");
+  UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
+#ifdef USE_LED
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  leds[0] = CRGB::Blue;
+  FastLED.show();
 #endif
-
-  begin_espnow();
 #ifdef USE_WIFI
   delay(10);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Connecting to Wifi...");
+
     delay(500);
   }
   client.setServer(mqtt_server, 1883);
+  //client.setServer("192.168.137.249", 1883);
+  if (!client.connected()) {
+    Serial.println("Connecting mqtt...");
+    reconnect();
+  }
   client.setCallback(mqtt_callback);
+#else
+  begin_espnow();
 #endif
 #ifdef USE_LORA
   SPI.begin(SCK, MISO, MOSI, SS);
@@ -49,8 +64,8 @@ void setup() {
   if (!LoRa.begin(BAND)) {
     while (1);
   }
-#endif 
-Serial.println(sizeof(DataReading));
+#endif
+  //  UART_IF.println(sizeof(DataReading));
 
 }
 
@@ -88,12 +103,13 @@ void loop() {
     if (lenLORA2    > 0) releaseLoRa(2);
   }
 
-  while (Serial.available()) {
+  while (UART_IF.available()) {
     getSerial();
   }
   getLoRa();
 #ifdef USE_WIFI
   if (!client.connected()) {
+    Serial.println("Connecting mqtt...");
     reconnect();
   }
   client.loop();

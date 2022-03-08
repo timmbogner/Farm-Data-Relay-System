@@ -10,16 +10,17 @@
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
   
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     
+#define SERIAL_ACT     //sendMQTT();
 #define MQTT_ACT          
 #define LORAG_ACT      
  
  
 //ESP32 Only
-//#define RXD2 21
-//#define TXD2 22
+#define RXD2 14
+#define TXD2 15
+#define UART_IF Serial1
 
-//#define USE_WIFI    //  You should not use ESP-NOW while WiFi is in use.
+#define USE_WIFI    //  You should not use ESP-NOW while WiFi is in use.
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"
 #define MQTT_ADDR "192.168.0.8"
