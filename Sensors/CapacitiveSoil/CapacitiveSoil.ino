@@ -3,65 +3,28 @@
 //  CAPACITIVE SOIL MOISTURE SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
+//  Connect sensor to the [first] analog pin of the ESP (A0).
 //
-#define READING_ID     51    //Unique integer for each data reading
-#define GTWY_MAC       0x00  //Gateway MAC
-#define SLEEPYTIME     60    //Time to sleep in seconds
+#define CALIB_H 285.0f  //High and Low calibrations
+//#define CALIB_L 485.0f
+#define CALIB_L 350.0f
 
-#define CALIBRATION_MODE 0
-#define CALIB_H 285
-#define CALIB_L 485
-
-#include <ESP8266WiFi.h>
-#include <espnow.h>
-#include "DataReading.h"
-
-
-uint8_t broadcastAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, GTWY_MAC};
-
-void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
-  Serial.print("Last Packet Send Status: ");
-  if (sendStatus == 0) {
-    Serial.println("Delivery success");
-  }
-  else {
-    Serial.println("Delivery fail");
-  }
-  ESP.deepSleep(30e6);
-}
+#include "fdrs_sensor.h"
 
 void setup() {
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-  if (esp_now_init() != 0) {
-    Serial.println("Error initializing ESP-NOW");
-    return;
-  }
-  esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-  esp_now_register_send_cb(OnDataSent);
-  // Register peer
-  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-
-  loadData();
+  beginFDRS();
 }
 void loop() {
-
-}
-void loadData() {
   uint16_t s = analogRead(0);
-  if (!CALIBRATION_MODE) {
-    if (s < CALIB_H) s = CALIB_H;
-    if (s > CALIB_L) s = CALIB_L;
-    s = map(s, CALIB_H, CALIB_L, 100, 0);
-  }
-  Serial.println();
+  float r;
+  if (s < CALIB_H) s = CALIB_H;
+  if (s > CALIB_L) s = CALIB_L;
+  r = map(float(s), CALIB_H, CALIB_L, 100.0f, 0.0f);
   Serial.println(s);
-  DataReading Soil;
-  Soil.d = s;
-  Soil.id = READING_ID;
-  Soil.t = 5;
-  DataReading thePacket[1];
-  thePacket[0] = Soil;
-  esp_now_send(broadcastAddress, (uint8_t *) &thePacket, sizeof(thePacket));
+  Serial.println(r);
+
+  loadFDRS(r, SOIL_T);
+  sendFDRS();
+  sleepFDRS(60);
 }
