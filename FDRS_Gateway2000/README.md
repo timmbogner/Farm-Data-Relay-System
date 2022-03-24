@@ -14,7 +14,7 @@ The companion for this device, connected via serial, takes any data it receives 
 ```
 Splitting the gateway into two devices allows you to use ESP-NOW and WiFi simultaneously without channel conflicts. You can also connect the first device to a computer with a USB-UART adapter and get the data that way, eliminating WiFi altogether.
 
-If you have sensors that are out of range of your first gateway, you can use a gateway as a repeater. First you will set the ESPNOW1 address to that of your first gateway, then you'll direct general ESP-NOW traffic to the ESPNOW1 interface:
+If you have sensors that are out of range of your first gateway, you can use a gateway as a repeater. First set the UNIT_MAC to 0x01, then send general ESP-NOW traffic to the address of the first gateway:
 ```
 #define UNIT_MAC     0x01 
 #define ESPNOWG_ACT  sendESPNOW(0x00);
