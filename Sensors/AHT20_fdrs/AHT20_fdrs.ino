@@ -1,6 +1,6 @@
 //  FARM DATA RELAY SYSTEM
 //
-//  BME280 SENSOR MODULE
+//  AHT20 SENSOR MODULE
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 
