@@ -24,7 +24,7 @@ The following nodes do the same as above, but I added the ability to add an alia
  ```
  
 ![Basic](/FDRS_Gateway2000/Basic_Setup.png)
-![Advanced](/FDRS_Gateway2000/Advanced_Setup_LoRa.png)
+![Advanced](/FDRS_Gateway2000/Advanced_Setup.png)
 ### Sensors
 ```
 typedef struct DataReading {
