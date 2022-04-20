@@ -78,8 +78,8 @@ void getSerial() {
   DynamicJsonDocument doc(24576);
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    Serial.print("parse err: ");
-    Serial.println(incomingString);
+    //Serial.print("parse err: ");
+    //Serial.println(incomingString);
     return;
   } else {
     int s = doc.size();
@@ -175,10 +175,12 @@ void sendSerial() {
     doc[i]["data"] = theData[i].d;
   }
   serializeJson(doc, UART_IF);
-  serializeJson(doc, Serial);
-
   UART_IF.println();
-  Serial.println();
+
+#ifndef ESP8266  
+   serializeJson(doc, Serial);
+   Serial.println();
+#endif
 
 }
 void sendMQTT() {
