@@ -21,9 +21,9 @@ If you have sensors that are out of range of your first gateway, you can use a g
 ```
 ![Basic](/FDRS_Gateway2000/Basic_Setup.png)
 
+![Advanced](/FDRS_Gateway2000/Advanced_Setup.png)
 
-![Basic](/FDRS_Gateway2000/Basic_LoRa_Setup.png)
+![Basic LoRa](/FDRS_Gateway2000/Basic_LoRa_Setup.png)
 
-
-![Basic](/FDRS_Gateway2000/Advanced_Setup_LoRa.png)
+![Advanced LoRa](/FDRS_Gateway2000/Advanced_Setup_LoRa.png)
 
