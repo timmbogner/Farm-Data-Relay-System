@@ -39,6 +39,7 @@ Each sensor in the system sends its data over ESP-NOW as a float 'd' inside of a
 - A way for the sensors to seek out a nearby gateway and pair with it. 
 - The ability to send data in reverse, and have nodes to control irrigation, ventilation, and LED illumination. This will be acheived using a similar pairing technique to the above.
 - More sensor sketches! If you have designed any open source sensor modules for ESP32 or 8266, please contact me and I will provide a link and/or code for your device in this repo.
+- I am going to look into adding an option to change the channel that the system runs on, so that WiFi and ESP-NOW might run together harmoniously.
 - Support for several new devices and protocols: ethernet, nRF24L01, 4G LTE, and the E5 LoRa module from Seeed Studio.
 - Some ability to compress data for more efficient LoRa usage and to avoid using floats. Better documentation/development of the DataReading 'type' attribute will come with this. 
  
