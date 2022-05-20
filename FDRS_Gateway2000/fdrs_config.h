@@ -17,6 +17,7 @@
 #define USE_LORA      
 //#define USE_WIFI    //Used only for MQTT gateway
 
+//#define CREDENTIALS
 
 //ESP32 Only -- Define UART pins and interface.
 #define RXD2 14
@@ -40,3 +41,7 @@
 //866E6 for Europe
 //915E6 for North America
 #define BAND 915E6
+
+#ifdef CREDENTIALS
+#include <credentials.h>
+#endif

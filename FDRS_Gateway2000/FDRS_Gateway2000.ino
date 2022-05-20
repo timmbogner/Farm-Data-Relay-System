@@ -25,7 +25,9 @@
 #include <FastLED.h>
 #endif
 #include "fdrs_functions.h"
-
+//#ifdef CREDENTIALS
+//#include <credentials.h>
+//#endif
 
 void setup() {
 #if defined(ESP8266)
