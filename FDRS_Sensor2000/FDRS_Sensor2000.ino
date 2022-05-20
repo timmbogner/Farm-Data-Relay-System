@@ -18,5 +18,5 @@ void loop() {
   loadFDRS(data1, HUMIDITY_T);
   loadFDRS(data2, TEMP_T);
   sendFDRS();
-  sleepFDRS(5);  //Sleep time in seconds
+  sleepFDRS(10);  //Sleep time in seconds
 }
