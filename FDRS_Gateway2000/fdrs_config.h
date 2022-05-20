@@ -10,22 +10,26 @@
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
   
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     //sendMQTT();
+#define SERIAL_ACT     
 #define MQTT_ACT          
-#define LORAG_ACT      
- 
- 
-//ESP32 Only
+#define LORAG_ACT      sendSerial();
+
+#define USE_LORA      
+//#define USE_WIFI    //Used only for MQTT gateway
+
+
+//ESP32 Only -- Define UART pins and interface.
 #define RXD2 14
 #define TXD2 15
 #define UART_IF Serial1
+#define DEBUG
 
-#define USE_WIFI    //  You should not use ESP-NOW while WiFi is in use.
+//Wifi Configuration -- Needed only if this device is using MQTT
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"
 #define MQTT_ADDR "192.168.0.8"
 
-//#define USE_LORA      
+////LoRa Configuration -- Needed only if using LoRa 
 #define SCK 5
 #define MISO 19
 #define MOSI 27

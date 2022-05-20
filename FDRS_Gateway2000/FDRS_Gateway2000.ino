@@ -32,9 +32,10 @@ void setup() {
   UART_IF.begin(115200);
 #elif defined(ESP32)
   Serial.begin(115200);
-  Serial.println("main terminal");
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
+  DBG("Initializing FDRS Gateway");
+  DBG("Address:" + String (UNIT_MAC, HEX));
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   leds[0] = CRGB::Blue;
@@ -59,11 +60,13 @@ void setup() {
   begin_espnow();
 #endif
 #ifdef USE_LORA
+  DBG("Initializing LoRa!");
   SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DIO0);
   if (!LoRa.begin(BAND)) {
     while (1);
   }
+  DBG(" LoRa initialized.");
 #endif
   //  UART_IF.println(sizeof(DataReading));
 
