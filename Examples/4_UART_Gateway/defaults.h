@@ -32,10 +32,6 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define BAND 915E6
 
 //#define USE_LED
 #define LED_PIN    32
