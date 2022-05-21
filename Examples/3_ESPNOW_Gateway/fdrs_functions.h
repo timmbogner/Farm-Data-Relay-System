@@ -494,5 +494,4 @@ void begin_espnow() {
 
 #endif
   DBG(" ESP-NOW Initialized.");
-DBG(WIFI_NET);
 }

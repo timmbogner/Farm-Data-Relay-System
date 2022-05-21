@@ -6,6 +6,9 @@
 //
 
 #define DEBUG
+
+#define ROLE ESPNOW_GATEWAY
+
 #include "fdrs_config.h"
 #include "DataReading.h"
 #ifdef ESP8266
