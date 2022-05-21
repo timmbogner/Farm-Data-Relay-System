@@ -12,7 +12,7 @@
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
 #define DEBUG
-#define CREDENTIALS  
+#define CREDENTIALS
 #define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
 
 //LoRa Configuration
@@ -22,13 +22,23 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define BAND 915E6   //May be overwritten if CREDENTIALS is set
+
 
 #ifdef CREDENTIALS
 #include <credentials.h>
+#define WIFI_NET mySSID
+#define WIFI_PASS myPASSWORD
+#define MQTT_ADDR MQTT_BROKER
+#define BAND myBAND
+#else
+#define WIFI_NET "Your SSID"
+#define WIFI_PASS "Password"
+#define MQTT_ADDR "192.168.0.8"
+
+//433E6 for Asia
+//866E6 for Europe
+//915E6 for North America
+#define BAND 915E6
 #endif
 
 typedef struct __attribute__((packed)) DataReading {
@@ -97,7 +107,7 @@ void beginFDRS() {
 #ifdef DEBUG
   Serial.begin(115200);
 #endif
-  DBG("FDRS Sensor ID " + String(READING_ID)+ " initializing...");
+  DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
   DBG(" Gateway: " + String (GTWY_MAC, HEX));
 #ifdef POWER_CTRL
   DBG("Powering up the sensor array!");
@@ -136,6 +146,7 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
+  DBG(BAND);
 #ifndef __AVR__
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
@@ -181,9 +192,9 @@ void loadFDRS(float d, uint8_t t) {
   data_count++;
 }
 void sleepFDRS(int sleep_time) {
-DBG("Sleepytime!");
+  DBG("Sleepytime!");
 #ifdef DEEP_SLEEP
-DBG(" Deep sleeping.");
+  DBG(" Deep sleeping.");
 #ifdef ESP32
   esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
   esp_deep_sleep_start();
@@ -192,6 +203,6 @@ DBG(" Deep sleeping.");
   ESP.deepSleep(sleep_time * 1000000);
 #endif
 #endif
-DBG(" Delaying.");
+  DBG(" Delaying.");
   delay(sleep_time * 1000);
 }

@@ -44,4 +44,12 @@
 
 #ifdef CREDENTIALS
 #include <credentials.h>
+#define WIFI_NET mySSID
+#define WIFI_PASS myPASSWORD
+#define MQTT_ADDR MQTT_BROKER
+#define BAND myBAND
+#else
+#define WIFI_NET "Your SSID"
+#define WIFI_PASS "Password"
+#define MQTT_ADDR "192.168.0.8"
 #endif

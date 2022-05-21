@@ -25,10 +25,6 @@
 //#define RXD2 21
 //#define TXD2 22
 
-#define WIFI_NET "Your SSID"
-#define WIFI_PASS "Password"
-#define MQTT_ADDR "192.168.0.8"
-
 //#define USE_LORA      
 #define SCK 5
 #define MISO 19
