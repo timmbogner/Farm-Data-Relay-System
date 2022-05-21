@@ -10,11 +10,14 @@ Gateways can be configured to send an ESP-NOW transmission to the serial port us
 ## Getting Started
 To use FDRS with Node-Red and MQTT you'll need two ESP devices (gateways) that are connected via UART, plus additional ESP or LoRa devices with sensors connected.
 
-  **Sensors** can use the [“fdrs_sensor.h”](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Sensor2000) file to set up the device and send FDRS data via ESP-NOW and/or LoRa. 
+### Sensors
+The [Sensor2000](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Sensor2000) sketch is an example of how a sensor is configured in FDRS. The configuration parameters and functional code are located in the 'fdrs_sensor.h' file, so the user is free to use the main sketch for individual sensor code. 
   
-The two **gateways** are programmed using the instructions [found with the Gateway2000 sketch](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Gateway2000).
- 
-The Node-RED **front-end** can be set up with these nodes to format and send the data to InfluxDB:
+### Gateways
+Gateways are programmed using the instructions [found with the Gateway2000 sketch](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Gateway2000).
+
+ ### Front-end
+The Node-RED front-end can be set up with these nodes to format and send the data to InfluxDB:
   ```
 [{"id":"66d36c0f.cedf94","type":"influxdb out","z":"d7346a99.716ef8","influxdb":"905dd357.34717","name":"","measurement":"DataReading","precision":"","retentionPolicy":"","database":"database","precisionV18FluxV20":"ms","retentionPolicyV18Flux":"","org":"the_organization","bucket":"bkt","x":760,"y":240,"wires":[]},{"id":"93e9822a.3ad59","type":"mqtt in","z":"d7346a99.716ef8","name":"","topic":"esp/fdrs","qos":"2","datatype":"auto","broker":"c513f7e9.760658","nl":false,"rap":true,"rh":0,"x":170,"y":220,"wires":[["d377f9e0.faef98"]]},{"id":"d377f9e0.faef98","type":"json","z":"d7346a99.716ef8","name":"","property":"payload","action":"obj","pretty":false,"x":290,"y":220,"wires":[["ca383562.4014e8"]]},{"id":"ca383562.4014e8","type":"split","z":"d7346a99.716ef8","name":"","splt":"\\n","spltType":"str","arraySplt":1,"arraySpltType":"len","stream":false,"addname":"","x":410,"y":220,"wires":[["6eaba8dd.429e38"]]},{"id":"6eaba8dd.429e38","type":"function","z":"d7346a99.716ef8","name":"Fields","func":"msg.payload = [{\n    data: msg.payload.data\n},{\n    id: msg.payload.id,\n    type: msg.payload.type\n}]\nreturn msg;","outputs":1,"noerr":0,"initialize":"","finalize":"","libs":[],"x":530,"y":220,"wires":[["296d0f4b.37a46","66d36c0f.cedf94"]]},{"id":"296d0f4b.37a46","type":"debug","z":"d7346a99.716ef8","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":670,"y":200,"wires":[]},{"id":"905dd357.34717","type":"influxdb","hostname":"127.0.0.1","port":"8086","protocol":"http","database":"database","name":"","usetls":false,"tls":"d50d0c9f.31e858","influxdbVersion":"2.0","url":"http://localhost:8086","rejectUnauthorized":true},{"id":"c513f7e9.760658","type":"mqtt-broker","name":"","broker":"localhost","port":"1883","clientid":"","usetls":false,"protocolVersion":"4","keepalive":"60","cleansession":true,"birthTopic":"","birthQos":"0","birthPayload":"","birthMsg":{},"closeTopic":"","closeQos":"0","closePayload":"","closeMsg":{},"willTopic":"","willQos":"0","willPayload":"","willMsg":{},"sessionExpiry":""},{"id":"d50d0c9f.31e858","type":"tls-config","name":"","cert":"","key":"","ca":"","certname":"","keyname":"","caname":"","servername":"","verifyservercert":false}]
 ```
