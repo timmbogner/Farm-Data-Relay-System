@@ -19,11 +19,13 @@
 
 #define CREDENTIALS 
 
-//ESP32 Only -- Define UART pins and interface
+#if defined (ESP32)
 #define RXD2 14
 #define TXD2 15
-#define UART_IF Serial1
-#define DEBUG
+#define UART_IF Serial2
+#else 
+#define UART_IF Serial
+#endif
 
 //LoRa Configuration -- Needed only if this device is using LoRa
 #define SCK 5

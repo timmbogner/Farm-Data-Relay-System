@@ -22,9 +22,6 @@
 #define LORA1_ACT 
 #define LORA2_ACT     
 
-//#define RXD2 21
-//#define TXD2 22
-
 //#define USE_LORA      
 #define SCK 5
 #define MISO 19
@@ -42,4 +39,3 @@
 #define NUM_LEDS    4
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE
-#define UART_IF Serial1

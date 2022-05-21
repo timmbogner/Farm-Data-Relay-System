@@ -6,6 +6,10 @@
 //  An example of how to send data using "fdrs_sensor.h".
 //
 
+#define DEBUG
+
+#define ESPNOW_SENSOR
+
 #include "fdrs_sensor.h"
 
 float data1 = 42.069;

@@ -42,4 +42,3 @@
 #define NUM_LEDS    4
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE
-#define UART_IF Serial1

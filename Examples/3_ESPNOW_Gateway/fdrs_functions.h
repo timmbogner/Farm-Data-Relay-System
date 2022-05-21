@@ -1,15 +1,13 @@
-#define DBG(a)
-#ifdef ESP8266
-#define UART_IF Serial
-#else
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
+#else
+#define DBG(a)
 #endif
-#endif
+
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
-  esp_now_peer_info_t peerInfo;
+//  esp_now_peer_info_t peerInfo;
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
