@@ -1,6 +1,6 @@
 # Gateway 2.000
 
-This is the FDRS Multiprotocol Gateway sketch. The device listens for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmits the packets over these interfaces using rules defined in the configuration file.
+This is the FDRS Multiprotocol Gateway sketch. The device listens for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmits the packets over these interfaces using rules defined in the "Actions" section of the configuration file.
 
 The most commonly used configuration tells the device to take any ESP-NOW packet it receives and output the data over the serial port (UART):
 ```
@@ -19,6 +19,11 @@ If you have sensors that are out of range of your first gateway, you can use a g
 #define UNIT_MAC     0x01 
 #define ESPNOWG_ACT  sendESPNOW(0x00);
 ```
+### LoRa
+You can also use LoRa to expand the distances between hops. While ESP-NOW is quick enough to handle a lot of traffic in real-time, LoRa is much slower. For this reason, you must send LoRa data to a buffer and transmit it at standard intervals. 
+
+
+
 ![Basic](/FDRS_Gateway2000/Basic_Setup.png)
 
 ![Advanced](/FDRS_Gateway2000/Advanced_Setup.png)
