@@ -12,7 +12,6 @@
 
 #include <FDRSdefaults.h>
 #include "fdrs_config.h"
-#include "DataReading.h"
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
