@@ -3,8 +3,7 @@
 //  "fdrs_sensor.h"
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//
-#include <FDRSdefaults.h>				   
+//		   
 #define READING_ID    2   //Unique ID for this sensor
 #define GTWY_MAC      0x01 //Address of the nearest gateway
 

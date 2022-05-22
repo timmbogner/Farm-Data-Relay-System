@@ -3,6 +3,10 @@
 //  GATEWAY 2.000 Configuration
 
 #define UNIT_MAC     0x00  // The address of this gateway
+#define ESPNOW1_PEER  0xFD  // ESPNOW1 Address 
+#define ESPNOW2_PEER  0xFE  // ESPNOW2 Address
+#define LORA1_PEER    0xFD  // LoRa1 Address
+#define LORA2_PEER    0xFE  // LoRa2 Address
 
 //Actions -- Define what happens when a packet arrives at each interface:
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
@@ -10,10 +14,14 @@
 #define DEBUG
 #define CREDENTIALS
 
-//#define ESPNOWG_ACT    sendSerial();
-// #define SERIAL_ACT
-// #define MQTT_ACT
+#define ESPNOWG_ACT    sendSerial();
+#define SERIAL_ACT
+#define MQTT_ACT
 #define LORAG_ACT      sendSerial();
+#define ESPNOW1_ACT    
+#define ESPNOW2_ACT                    
+#define LORA1_ACT 
+#define LORA2_ACT 
 
 #define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
