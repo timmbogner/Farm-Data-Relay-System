@@ -29,6 +29,11 @@
 #define WIFI_PASS "Password"
 #define MQTT_ADDR "192.168.0.8"
 
+//433E6 for Asia
+//866E6 for Europe
+//915E6 for North America
+#define BAND 915E6
+
 //#define USE_LORA      
 #define SCK 5
 #define MISO 19
