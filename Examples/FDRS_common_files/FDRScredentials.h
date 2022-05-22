@@ -1,4 +1,4 @@
-#define mySSID "x"  
+#define mySSID ""  
 #define myPASSWORD "" 
 #define myMQTT_BROKER "192.168.0.203" 
 
