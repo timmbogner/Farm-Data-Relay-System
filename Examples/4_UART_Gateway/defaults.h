@@ -25,10 +25,6 @@
 //#define RXD2 21
 //#define TXD2 22
 
-#define WIFI_NET "Your SSID"
-#define WIFI_PASS "Password"
-#define MQTT_ADDR "192.168.0.8"
-
 //#define USE_LORA      
 #define SCK 5
 #define MISO 19
@@ -36,14 +32,9 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define BAND 915E6
 
 //#define USE_LED
 #define LED_PIN    32
 #define NUM_LEDS    4
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE
-#define UART_IF Serial1

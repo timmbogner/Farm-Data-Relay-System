@@ -4,6 +4,11 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
+
+#define DEBUG
+
+#define ROLE ESPNOW_GATEWAY
+
 #include "fdrs_config.h"
 #include "DataReading.h"
 #ifdef ESP8266

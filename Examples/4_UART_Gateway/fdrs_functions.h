@@ -1,10 +1,7 @@
-#define DBG(a)
-#ifdef ESP8266
-#define UART_IF Serial
-#else
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
-#endif
+#else
+#define DBG(a)
 #endif
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);

@@ -11,8 +11,7 @@
 //#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-#define DEBUG
-//#define CREDENTIALS  
+#define DEBUG  
 #define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
 
 //LoRa Configuration
@@ -22,13 +21,22 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define BAND 915E6   //May be overwritten if CREDENTIALS is set
 
 #ifdef CREDENTIALS
 #include <credentials.h>
+#define WIFI_NET mySSID
+#define WIFI_PASS myPASSWORD
+#define MQTT_ADDR MQTT_BROKER
+#define BAND myBAND
+#else
+#define WIFI_NET "Your SSID"
+#define WIFI_PASS "Password"
+#define MQTT_ADDR "192.168.0.8"
+
+//433E6 for Asia
+//866E6 for Europe
+//915E6 for North America
+#define BAND 915E6
 #endif
 
 typedef struct __attribute__((packed)) DataReading {
@@ -74,13 +82,10 @@ typedef struct __attribute__((packed)) DataReading {
 #include <LoRa.h>
 #endif
 
-#define DBG(a)
-#ifdef ESP8266
-#define UART_IF Serial
-#else
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
-#endif
+#else
+#define DBG(a)
 #endif
 
 const uint16_t espnow_size = 250 / sizeof(DataReading);

@@ -19,11 +19,13 @@
 
 #define CREDENTIALS 
 
-//ESP32 Only -- Define UART pins and interface
+#if defined (ESP32)
 #define RXD2 14
 #define TXD2 15
-#define UART_IF Serial1
-#define DEBUG
+#define UART_IF Serial2
+#else 
+#define UART_IF Serial
+#endif
 
 //LoRa Configuration -- Needed only if this device is using LoRa
 #define SCK 5
@@ -32,16 +34,23 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define BAND 915E6
 
 //WiFi Configuration -- Needed only if is using MQTT
+
+
+#ifdef CREDENTIALS
+#include <credentials.h>
+#define WIFI_NET mySSID
+#define WIFI_PASS myPASSWORD
+#define MQTT_ADDR MQTT_BROKER
+#define BAND myBAND
+#else
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"
 #define MQTT_ADDR "192.168.0.8"
 
-#ifdef CREDENTIALS
-#include <credentials.h>
+//433E6 for Asia
+//866E6 for Europe
+//915E6 for North America
+#define BAND 915E6
 #endif

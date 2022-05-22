@@ -5,6 +5,9 @@
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //  An example of how to send data using "fdrs_sensor.h".
 //
+#define DEBUG
+
+#define ROLE LORA_SENSOR
 
 #include "fdrs_sensor.h"
 
