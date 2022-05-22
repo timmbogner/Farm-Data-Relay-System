@@ -1,8 +1,3 @@
-#ifdef DEBUG
-#define DBG(a) (Serial.println(a))
-#else
-#define DBG(a)
-#endif
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -132,9 +127,9 @@ void getLoRa() {
     uint8_t packet[packetSize];
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
-    //    for (int i = 0; i < packetSize; i++) {
-    //      UART_IF.println(packet[i], HEX);
-    //    }
+    for (int i = 0; i < packetSize; i++) {
+      Serial.println(packet[i], HEX);
+    }
     if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
       memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
       memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
@@ -144,6 +139,7 @@ void getLoRa() {
       ln = (packetSize - 5) / sizeof(DataReading);
       newData = 6;
       DBG("Incoming LoRa.");
+      DBG (newData);
 
     }
   }
@@ -472,7 +468,7 @@ void begin_espnow() {
   }
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
-  
+
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
   // Register first peer
@@ -481,7 +477,7 @@ void begin_espnow() {
     DBG("Failed to add peer bcast");
     return;
   }
-   memcpy(peerInfo.peer_addr, ESPNOW1, 6);
+  memcpy(peerInfo.peer_addr, ESPNOW1, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     DBG("Failed to add peer 1");
     return;
@@ -493,5 +489,4 @@ void begin_espnow() {
   }
 #endif
   DBG(" ESP-NOW Initialized.");
-DBG(WIFI_NET);
 }

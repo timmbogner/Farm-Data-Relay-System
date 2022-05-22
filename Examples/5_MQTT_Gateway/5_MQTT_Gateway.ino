@@ -9,6 +9,7 @@
 
 #define ROLE MQTT_GATEWAY
 
+#include <FDRSdefaults.h>
 #include "fdrs_config.h"
 #include "DataReading.h"
 

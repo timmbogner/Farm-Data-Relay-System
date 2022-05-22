@@ -1,3 +1,9 @@
+#ifdef DEBUG
+#define DBG(a) (Serial.println(a))
+#else
+#define DBG(a)
+#endif
+
 #define UNIT_MAC     0xFC  // THIS UNIT
 #define ESPNOW1_PEER  0xFD  // ESPNOW1 Address 
 #define ESPNOW2_PEER  0xFE  // ESPNOW2 Address
@@ -22,9 +28,6 @@
 #define LORA1_ACT 
 #define LORA2_ACT     
 
-//#define RXD2 21
-//#define TXD2 22
-
 //#define USE_LORA      
 #define SCK 5
 #define MISO 19
@@ -33,13 +36,23 @@
 #define RST 14
 #define DIO0 26
 
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define BAND 915E6
-
 //#define USE_LED
 #define LED_PIN    32
 #define NUM_LEDS    4
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+
+#ifdef CREDENTIALS
+#include <FDRScredentials.h>
+#define WIFI_NET mySSID  // ssid of your accesspoint
+#define WIFI_PASS myPASSWORD  // password of access point
+#define MQTT_ADDR myMQTT_BROKER
+#define BAND myBAND
+#define SF mySF
+#else
+#define WIFI_NET "Your SSID"
+#define WIFI_PASS "Password"
+#define MQTT_ADDR "192.168.0.8"
+#define BAND 915E6
+#define SF 7
+#endif

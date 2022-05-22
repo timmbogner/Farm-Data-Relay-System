@@ -4,6 +4,14 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
+
+#define DEBUG
+#define CREDENTIALS
+
+#include <FDRSdefaults.h>
+
+#define ROLE LORA_SENSOR
+
 #define READING_ID    1   //Unique ID for this sensor
 #define GTWY_MAC      0x00 //Address of the nearest gateway
 
@@ -11,9 +19,7 @@
 #define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-#define DEBUG
-#define CREDENTIALS
-#define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+// #define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
 
 //LoRa Configuration
 #define SCK 5
@@ -22,16 +28,6 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-
-#include "defaults.h"
-#ifdef CREDENTIALS
-#include <credentials.h>
-#define WIFI_NET mySSID
-#define WIFI_PASS myPASSWORD
-#define MQTT_ADDR MQTT_BROKER
-#define BAND myBAND
-#define SF mySF
-#endif
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
@@ -74,15 +70,6 @@ typedef struct __attribute__((packed)) DataReading {
 
 #ifdef USE_LORA
 #include <LoRa.h>
-#endif
-
-#define DBG(a)
-#ifdef ESP8266
-#define UART_IF Serial
-#else
-#ifdef DEBUG
-#define DBG(a) (Serial.println(a))
-#endif
 #endif
 
 const uint16_t espnow_size = 250 / sizeof(DataReading);
@@ -139,6 +126,7 @@ void beginFDRS() {
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
   DBG(BAND);
+   DBG(SF);
 #ifndef __AVR__
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif

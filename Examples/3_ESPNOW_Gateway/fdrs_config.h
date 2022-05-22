@@ -2,17 +2,15 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include "defaults.h"
-
-#define UNIT_MAC     0x01  // The address of this gateway
+// #define UNIT_MAC     0x01  // The address of this gateway
 
 //Actions -- Define what happens when a packet arrives at each interface:
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
   
-#define ESPNOWG_ACT   sendESPNOW(0x00); 
-#define SERIAL_ACT     
-#define MQTT_ACT          
-#define LORAG_ACT      
+//#define ESPNOWG_ACT   sendESPNOW(0x00); 
+//#define SERIAL_ACT     
+//#define MQTT_ACT          
+//#define LORAG_ACT      
 
 //#define USE_LORA      
 //#define USE_WIFI    //Used only for MQTT gateway
@@ -38,8 +36,8 @@
 // default.h values are overwritten by the #defines of credentials.h files in the library folder
 #ifdef CREDENTIALS
 #include <credentials.h>
-#define WIFI_NET mySSID
-#define WIFI_PASS myPASSWORD
-#define MQTT_ADDR MQTT_BROKER
-#define BAND myBAND
+#define WIFI_NET my_SSID
+#define WIFI_PASS my_PASSWORD
+#define MQTT_ADDR my_MQTT_BROKER
+#define BAND my_BAND
 #endif

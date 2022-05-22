@@ -22,7 +22,6 @@
 #define RST 14
 #define DIO0 26
 
-#include "defaults.h"
 #ifdef CREDENTIALS
 #include <credentials.h>
 #define WIFI_NET mySSID

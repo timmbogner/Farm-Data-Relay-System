@@ -2,8 +2,6 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include "defaults.h"
-
 //#define UNIT_MAC     0x00  // The address of this gateway
 
 //Actions -- Define what happens when a packet arrives at each interface:
@@ -39,8 +37,8 @@
 // default.h values are overwritten by the #defines of credentials.h files in the library folder
 #ifdef CREDENTIALS
 #include <credentials.h>
-#define WIFI_NET mySSID
-#define WIFI_PASS myPASSWORD
-#define MQTT_ADDR MQTT_BROKER
-#define BAND myBAND
+#define WIFI_NET my_SSID
+#define WIFI_PASS my_PASSWORD
+#define MQTT_ADDR my_MQTT_BROKER
+#define BAND my_BAND
 #endif
