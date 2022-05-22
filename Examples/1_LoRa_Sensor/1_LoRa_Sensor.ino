@@ -5,7 +5,10 @@
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //  An example of how to send data using "fdrs_sensor.h".
 //
+#define DEBUG
+#define CREDENTIALS
 
+#include <FDRSdefaults.h>
 #include "fdrs_sensor.h"
 
 float data1 = 42.069;

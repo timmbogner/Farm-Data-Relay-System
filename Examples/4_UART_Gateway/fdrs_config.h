@@ -10,10 +10,10 @@
 #define DEBUG
 #define CREDENTIALS
 
-// #define ESPNOWG_ACT    sendSerial();
+//#define ESPNOWG_ACT    sendSerial();
 // #define SERIAL_ACT
 // #define MQTT_ACT
-// #define LORAG_ACT      sendSerial();
+#define LORAG_ACT      sendSerial();
 
 #define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway

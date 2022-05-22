@@ -4,15 +4,15 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
+#include <FDRSdefaults.h>				   
 #define READING_ID    2   //Unique ID for this sensor
-#define GTWY_MAC      0x00 //Address of the nearest gateway
+#define GTWY_MAC      0x01 //Address of the nearest gateway
 
 #define USE_ESPNOW
 //#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-#define DEBUG  
-#define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+//#define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
 
 //LoRa Configuration
 #define SCK 5
@@ -68,7 +68,6 @@ typedef struct __attribute__((packed)) DataReading {
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
-uint8_t LoRaAddress[] = {0x42, 0x00};
 
 
 uint32_t wait_time = 0;
@@ -118,6 +117,8 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
+ DBG(BAND);
+   DBG(SF);		
 #ifndef __AVR__
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
@@ -125,6 +126,7 @@ void beginFDRS() {
   if (!LoRa.begin(BAND)) {
     while (1);
   }
+			  LoRa.setSpreadingFactor(SF);				  
   DBG(" LoRa Initialized.");
 #endif
 }

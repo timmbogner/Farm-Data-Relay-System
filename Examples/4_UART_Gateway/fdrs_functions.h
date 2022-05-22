@@ -131,16 +131,20 @@ void getLoRa() {
       Serial.println(packet[i], HEX);
     }
     if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
+      DBG("Packet for me");
       memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
       memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
-      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) newData = 7;     //Check if it is from a registered sender
+      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) {
+        newData = 7;     //Check if it is from a registered sender
+        DBG("From Registred sender");
+      }
       else if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) newData = 8;
       else newData = 6;
-       DBG (newData);
+      DBG (newData);
       ln = (packetSize - 5) / sizeof(DataReading);
       newData = 6;
       DBG("Incoming LoRa.");
-     
+
 
     }
   }

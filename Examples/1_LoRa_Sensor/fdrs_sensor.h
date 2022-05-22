@@ -5,9 +5,6 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 
-#define DEBUG
-#define CREDENTIALS
-
 #include <FDRSdefaults.h>
 
 #define ROLE LORA_SENSOR
@@ -75,7 +72,6 @@ typedef struct __attribute__((packed)) DataReading {
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
-uint8_t LoRaAddress[] = {0x42, 0x00};
 
 
 uint32_t wait_time = 0;
@@ -141,7 +137,7 @@ void beginFDRS() {
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
 #ifdef USE_LORA
   uint8_t pkt[5 + (len * sizeof(DataReading))];
-  memcpy(&pkt, mac, 3);
+  memcpy(&pkt, mac, 3);  // 
   memcpy(&pkt[3], &LoRaAddress, 2);
   memcpy(&pkt[5], packet, len * sizeof(DataReading));
   LoRa.beginPacket();
