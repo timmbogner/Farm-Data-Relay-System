@@ -44,11 +44,11 @@
 
 #ifdef CREDENTIALS
 #include <FDRScredentials.h>
-#define WIFI_NET mySSID  // ssid of your accesspoint
-#define WIFI_PASS myPASSWORD  // password of access point
-#define MQTT_ADDR myMQTT_BROKER
-#define BAND myBAND
-#define SF mySF
+#define WIFI_NET my_SSID  // ssid of your accesspoint
+#define WIFI_PASS my_PASSWORD  // password of access point
+#define MQTT_ADDR my_MQTT_BROKER
+#define BAND my_BAND
+#define SF my_SF
 #else
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"

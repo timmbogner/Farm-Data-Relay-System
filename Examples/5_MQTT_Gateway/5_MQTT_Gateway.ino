@@ -6,6 +6,7 @@
 //
 
 #define DEBUG
+#define CREDENTIALS
 
 #define ROLE MQTT_GATEWAY
 
