@@ -22,14 +22,6 @@
 #define RST 14
 #define DIO0 26
 
-#ifdef CREDENTIALS
-#include <credentials.h>
-#define WIFI_NET mySSID
-#define WIFI_PASS myPASSWORD
-#define MQTT_ADDR MQTT_BROKER
-#define BAND myBAND
-#endif
-
 typedef struct __attribute__((packed)) DataReading {
   float d;
   uint16_t id;
@@ -71,12 +63,6 @@ typedef struct __attribute__((packed)) DataReading {
 
 #ifdef USE_LORA
 #include <LoRa.h>
-#endif
-
-#ifdef DEBUG
-#define DBG(a) (Serial.println(a))
-#else
-#define DBG(a)
 #endif
 
 const uint16_t espnow_size = 250 / sizeof(DataReading);

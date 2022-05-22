@@ -5,7 +5,9 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 
+#define CREDENTIALS 
 #define DEBUG
+
 #define ROLE ESPNOW_GATEWAY
 
 #include <FDRSdefaults.h>

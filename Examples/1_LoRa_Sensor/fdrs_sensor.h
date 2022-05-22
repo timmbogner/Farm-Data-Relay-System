@@ -19,7 +19,7 @@
 #define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-// #define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+#define MAC_PREFIX    0xAA, 0xBB, 0xCC, 0xDD, 0xEE
 
 //LoRa Configuration
 #define SCK 5

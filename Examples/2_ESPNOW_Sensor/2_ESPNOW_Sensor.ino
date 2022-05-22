@@ -7,6 +7,7 @@
 //
 
 #define DEBUG
+#define CREDENTIALS
 
 #define ESPNOW_SENSOR
 

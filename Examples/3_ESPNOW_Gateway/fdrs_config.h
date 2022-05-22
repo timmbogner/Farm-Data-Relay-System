@@ -15,7 +15,6 @@
 //#define USE_LORA      
 //#define USE_WIFI    //Used only for MQTT gateway
 
-#define CREDENTIALS 
 
 #if defined (ESP32)
 #define RXD2 14
@@ -32,12 +31,3 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
-
-// default.h values are overwritten by the #defines of credentials.h files in the library folder
-#ifdef CREDENTIALS
-#include <credentials.h>
-#define WIFI_NET my_SSID
-#define WIFI_PASS my_PASSWORD
-#define MQTT_ADDR my_MQTT_BROKER
-#define BAND my_BAND
-#endif

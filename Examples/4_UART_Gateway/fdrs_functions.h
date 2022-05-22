@@ -136,10 +136,11 @@ void getLoRa() {
       if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) newData = 7;     //Check if it is from a registered sender
       else if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) newData = 8;
       else newData = 6;
+       DBG (newData);
       ln = (packetSize - 5) / sizeof(DataReading);
       newData = 6;
       DBG("Incoming LoRa.");
-      DBG (newData);
+     
 
     }
   }
