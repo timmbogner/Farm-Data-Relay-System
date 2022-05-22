@@ -8,8 +8,6 @@
 #define CREDENTIALS 
 #define DEBUG
 
-#define ROLE ESPNOW_GATEWAY
-
 #include <FDRSdefaults.h>
 #include "fdrs_config.h"
 #ifdef ESP8266

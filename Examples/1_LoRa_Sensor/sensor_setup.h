@@ -1,6 +1,6 @@
 
 #define READING_ID    1   //Unique ID for this sensor
-#define GTWY_MAC      0x00 //Address of the nearest gateway
+#define GTWY_MAC      0x04 //Address of the nearest gateway
 
 //#define USE_ESPNOW
 #define USE_LORA

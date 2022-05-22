@@ -7,8 +7,6 @@
 #define DEBUG
 #define CREDENTIALS
 
-#define ROLE UART_GATEWAY
-
 #include <FDRSdefaults.h>
 #include "fdrs_config.h"
 #ifdef ESP8266

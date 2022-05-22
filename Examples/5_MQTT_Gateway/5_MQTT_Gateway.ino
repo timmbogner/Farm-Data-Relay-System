@@ -8,11 +8,8 @@
 #define DEBUG
 #define CREDENTIALS
 
-#define ROLE MQTT_GATEWAY
-
 #include <FDRSdefaults.h>
 #include "fdrs_config.h"
-#include "DataReading.h"
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -33,7 +30,6 @@
 #include <FastLED.h>
 #endif
 #include "fdrs_functions.h"
-
 
 void setup() {
 #if defined(ESP8266)
