@@ -1,0 +1,11 @@
+Please copy the "FDRS_common_files"  directory to your Arduino library directory
+add a file "FDRScredentials.h" to this directory with this content:
+
+#define mySSID ""  
+#define myPASSWORD "" 
+#define myMQTT_BROKER "192.168.0.203" 
+
+#define myBAND 433.2E6
+#define mySF 7
+
+Fill in your stuff and save it
