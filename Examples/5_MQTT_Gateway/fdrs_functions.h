@@ -214,7 +214,7 @@ void sendMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish("esp/fdrs", (char*) outgoingString.c_str());
+  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
 #endif
 }
 
@@ -435,7 +435,7 @@ void releaseMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish("esp/fdrs", (char*) outgoingString.c_str());
+  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
   lenMQTT = 0;
 #endif
 }
@@ -446,7 +446,7 @@ void reconnect() {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY")) {
       // Subscribe
-      client.subscribe("esp/fdrs");
+      client.subscribe(TOPIC_COMMAND);
     } else {
       DBG("Connecting MQTT.");
       delay(5000);

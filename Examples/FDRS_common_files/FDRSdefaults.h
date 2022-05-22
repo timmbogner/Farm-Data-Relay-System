@@ -4,12 +4,6 @@
 #define DBG(a)
 #endif
 
-#define UNIT_MAC     0xFC  // THIS UNIT
-#define ESPNOW1_PEER  0xFD  // ESPNOW1 Address 
-#define ESPNOW2_PEER  0xFE  // ESPNOW2 Address
-#define LORA1_PEER    0xFD  // LoRa1 Address
-#define LORA2_PEER    0xFE  // LoRa2 Address
-
 #define ESPNOW1_DELAY  0
 #define ESPNOW2_DELAY  0
 #define ESPNOWG_DELAY  0
@@ -18,15 +12,7 @@
 #define LORAG_DELAY    1000
 #define LORA1_DELAY    1000
 #define LORA2_DELAY    1000
-
-#define ESPNOW1_ACT    
-#define ESPNOW2_ACT    
-#define ESPNOWG_ACT    
-#define SERIAL_ACT     
-#define MQTT_ACT       
-#define LORAG_ACT   
-#define LORA1_ACT 
-#define LORA2_ACT     
+  
 
 //#define USE_LORA      
 #define SCK 5
@@ -35,12 +21,13 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
+uint8_t LoRaAddress[] = {0x42, 0x00};  //Do not touch!!!
 
 //#define USE_LED
 #define LED_PIN    32
 #define NUM_LEDS    4
 
-#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // do not touch!
 
 #ifdef CREDENTIALS
 #include <FDRScredentials.h>
@@ -56,3 +43,32 @@
 #define BAND 915E6
 #define SF 7
 #endif
+
+#define STATUS_T    0  // Status 
+#define TEMP_T      1  // Temperature 
+#define TEMP2_T     2  // Temperature #2
+#define HUMIDITY_T  3  // Relative Humidity 
+#define PRESSURE_T  4  // Atmospheric Pressure 
+#define LIGHT_T     5  // Light (lux) 
+#define SOIL_T      6  // Soil Moisture 
+#define SOIL2_T     7  // Soil Moisture #2 
+#define SOILR_T      8 // Soil Resistance 
+#define SOILR2_T     9 // Soil Resistance #2 
+#define OXYGEN_T    10 // Oxygen 
+#define CO2_T       11 // Carbon Dioxide
+#define WINDSPD_T   12 // Wind Speed
+#define WINDHDG_T   13 // Wind Direction
+#define RAINFALL_T  14 // Rainfall
+#define MOTION_T    15 // Motion
+#define VOLTAGE_T   16 // Voltage
+#define VOLTAGE2_T  17 // Voltage #2
+#define CURRENT_T   18 // Current
+#define CURRENT2_T  19 // Current #2
+#define IT_T        20 // Iterations
+
+
+#define TOPIC_DATA "FDRS/DATA"
+#define TOPIC_STATUS "FDRS/STATUS"
+#define TOPIC_COMMAND "FDRS/COMMAND" 
+
+

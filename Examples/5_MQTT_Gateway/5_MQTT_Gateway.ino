@@ -73,7 +73,7 @@ void setup() {
 #endif
   //  UART_IF.println(sizeof(DataReading));
 
-   client.publish("esp/fdrs/status", "FDRS initialized");
+   client.publish(TOPIC_STATUS, "FDRS initialized");
 
 }
 

@@ -9,8 +9,6 @@
 #define DEBUG
 #define CREDENTIALS
 
-#define ESPNOW_SENSOR
-
 #include <FDRSdefaults.h>
 #include "fdrs_sensor.h"
 

@@ -2,9 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#define UNIT_MAC     0x00  // The address of this gateway
-
-#define UNIT_MAC     0x01  // The address of this gateway
+#define UNIT_MAC     0x05  // The address of this gateway
 #define ESPNOW1_PEER  0xFD  // ESPNOW1 Address 
 #define ESPNOW2_PEER  0xFE  // ESPNOW2 Address
 #define LORA1_PEER    0xFD  // LoRa1 Address
