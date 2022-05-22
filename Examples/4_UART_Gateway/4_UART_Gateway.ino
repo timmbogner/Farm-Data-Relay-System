@@ -69,6 +69,7 @@ void setup() {
   if (!LoRa.begin(BAND)) {
     while (1);
   }
+  LoRa.setSpreadingFactor(SF);
   DBG(" LoRa initialized.");
 #endif
   //  UART_IF.println(sizeof(DataReading));

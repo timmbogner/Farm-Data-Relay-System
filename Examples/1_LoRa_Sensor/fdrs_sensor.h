@@ -30,6 +30,7 @@
 #define WIFI_PASS myPASSWORD
 #define MQTT_ADDR MQTT_BROKER
 #define BAND myBAND
+#define SF mySF 
 #else
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"
@@ -154,6 +155,7 @@ void beginFDRS() {
   if (!LoRa.begin(BAND)) {
     while (1);
   }
+  LoRa.setSpreadingFactor(SF);
   DBG(" LoRa Initialized.");
 #endif
 }

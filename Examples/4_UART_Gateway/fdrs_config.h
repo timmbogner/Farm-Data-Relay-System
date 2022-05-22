@@ -44,6 +44,7 @@
 #define WIFI_PASS myPASSWORD
 #define MQTT_ADDR MQTT_BROKER
 #define BAND myBAND
+#define SF mySF 
 #else
 #define WIFI_NET "Your SSID"
 #define WIFI_PASS "Password"
