@@ -48,13 +48,13 @@ void setup() {
   delay(10);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    DBG("Connecting to Wifi...");
+    DBG("Connecting to WiFi...");
     delay(500);
   }
   DBG("WiFi Connected");
   client.setServer(mqtt_server, 1883);
   if (!client.connected()) {
-    DBG("Connecting mqtt...");
+    DBG("Connecting MQTT...");
     reconnect();
   }
   DBG("MQTT Connected");
@@ -71,8 +71,8 @@ void setup() {
   }
   DBG(" LoRa initialized.");
 #endif
-  //  UART_IF.println(sizeof(DataReading));
-
+  
+  //DBG(sizeof(DataReading));
    client.publish(TOPIC_STATUS, "FDRS initialized");
 
 }

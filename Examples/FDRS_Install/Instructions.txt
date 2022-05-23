@@ -1,0 +1,2 @@
+Please copy this directory into your Arduino "libraries" directory.
+Edit the "fdrs_credentials.h" with your WiFi info, LoRa band, etc.
