@@ -8,7 +8,7 @@
 #define DEBUG
 #define CREDENTIALS
 
-#include <FDRSdefaults.h>
+#include <fdrs_defaults.h>
 #include "fdrs_config.h"
 
 #ifdef ESP8266

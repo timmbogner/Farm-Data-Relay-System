@@ -5,11 +5,12 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 
-#define CREDENTIALS 
 #define DEBUG
+#define CREDENTIALS
 
-#include <FDRSdefaults.h>
+#include <fdrs_defaults.h>
 #include "fdrs_config.h"
+
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -32,12 +33,11 @@
 
 void setup() {
 #if defined(ESP8266)
-  UART_IF.begin(115200);
+  Serial.begin(115200);
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
-  DBG("Initializing FDRS Gateway");
   DBG("Address:" + String (UNIT_MAC, HEX));
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -48,14 +48,16 @@ void setup() {
   delay(10);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    DBG("Connecting to Wifi...");
+    DBG("Connecting to WiFi...");
     delay(500);
   }
+  DBG("WiFi Connected");
   client.setServer(mqtt_server, 1883);
   if (!client.connected()) {
-    DBG("Connecting mqtt...");
+    DBG("Connecting MQTT...");
     reconnect();
   }
+  DBG("MQTT Connected");
   client.setCallback(mqtt_callback);
 #else
   begin_espnow();
@@ -69,7 +71,9 @@ void setup() {
   }
   DBG(" LoRa initialized.");
 #endif
-  //  UART_IF.println(sizeof(DataReading));
+  
+  //DBG(sizeof(DataReading));
+   client.publish(TOPIC_STATUS, "FDRS initialized");
 
 }
 
@@ -113,7 +117,7 @@ void loop() {
   getLoRa();
 #ifdef USE_WIFI
   if (!client.connected()) {
-    Serial.println("Connecting mqtt...");
+    DBG("Connecting MQTT...");
     reconnect();
   }
   client.loop();
