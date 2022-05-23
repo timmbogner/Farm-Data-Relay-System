@@ -30,7 +30,7 @@ uint8_t LoRaAddress[] = {0x42, 0x00};  //Do not touch!!!
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // do not touch!
 
 #ifdef CREDENTIALS
-#include <FDRScredentials.h>
+#include <fdrs_credentials.h>
 #define WIFI_NET my_SSID  // ssid of your accesspoint
 #define WIFI_PASS my_PASSWORD  // password of access point
 #define MQTT_ADDR my_MQTT_BROKER
