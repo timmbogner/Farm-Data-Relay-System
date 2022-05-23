@@ -5,12 +5,11 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 
+#define CREDENTIALS 
 #define DEBUG
 
-#define ROLE ESPNOW_GATEWAY
-
+#include <FDRSdefaults.h>
 #include "fdrs_config.h"
-#include "DataReading.h"
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -30,9 +29,6 @@
 #include <FastLED.h>
 #endif
 #include "fdrs_functions.h"
-//#ifdef CREDENTIALS
-//#include <credentials.h>
-//#endif
 
 void setup() {
 #if defined(ESP8266)

@@ -5,10 +5,10 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 #define DEBUG
+#define CREDENTIALS
 
-#define ROLE UART_GATEWAY
+#include <FDRSdefaults.h>
 #include "fdrs_config.h"
-#include "DataReading.h"
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -64,11 +64,13 @@ void setup() {
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
   DBG(BAND);
+  DBG(SF);
   SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DIO0);
   if (!LoRa.begin(BAND)) {
     while (1);
   }
+  LoRa.setSpreadingFactor(SF);
   DBG(" LoRa initialized.");
 #endif
   //  UART_IF.println(sizeof(DataReading));

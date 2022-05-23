@@ -3,6 +3,14 @@
 #else
 #define DBG(a)
 #endif
+
+typedef struct __attribute__((packed)) DataReading {
+  float d;
+  uint16_t id;
+  uint8_t t;
+
+} DataReading;
+
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -206,7 +214,7 @@ void sendMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish("esp/fdrs", (char*) outgoingString.c_str());
+  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
 #endif
 }
 
@@ -427,7 +435,7 @@ void releaseMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish("esp/fdrs", (char*) outgoingString.c_str());
+  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
   lenMQTT = 0;
 #endif
 }
@@ -438,7 +446,7 @@ void reconnect() {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY")) {
       // Subscribe
-      client.subscribe("esp/fdrs");
+      client.subscribe(TOPIC_COMMAND);
     } else {
       DBG("Connecting MQTT.");
       delay(5000);
