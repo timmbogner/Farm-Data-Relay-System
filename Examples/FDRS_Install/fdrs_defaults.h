@@ -4,6 +4,11 @@
 #define DBG(a)
 #endif
 
+
+#define my_BAND 433.2E6
+#define my_SF 7
+#define my_MQTT_BROKER "192.168.0.203" 
+
 #define ESPNOW1_DELAY  0
 #define ESPNOW2_DELAY  0
 #define ESPNOWG_DELAY  0
