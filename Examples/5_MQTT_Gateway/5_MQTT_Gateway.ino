@@ -8,7 +8,6 @@
 #define DEBUG
 #define CREDENTIALS
 
-#include <fdrs_defaults.h>
 #include "fdrs_config.h"
 
 #ifdef ESP8266
@@ -49,6 +48,8 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     DBG("Connecting to WiFi...");
+    DBG(FDRS_WIFI_SSID);
+
     delay(500);
   }
   DBG("WiFi Connected");
@@ -66,9 +67,10 @@ void setup() {
   DBG("Initializing LoRa!");
   SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(BAND)) {
+  if (!LoRa.begin(FDRS_BAND)) {
     while (1);
   }
+  LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa initialized.");
 #endif
   
@@ -78,38 +80,54 @@ void setup() {
 }
 
 void loop() {
+  #ifdef ESPNOWG_DELAY
   if (millis() > timeESPNOWG) {
     timeESPNOWG += ESPNOWG_DELAY;
     if  (lenESPNOWG > 0) releaseESPNOW(0);
   }
+  #endif
+  #ifdef ESPNOW1_DELAY
   if (millis() > timeESPNOW1) {
     timeESPNOW1 += ESPNOW1_DELAY;
     if (lenESPNOW1 > 0)   releaseESPNOW(1);
   }
+  #endif
+  #ifdef ESPNOW2_DELAY
   if (millis() > timeESPNOW2) {
     timeESPNOW2 += ESPNOW2_DELAY;
     if (lenESPNOW2 > 0) releaseESPNOW(2);
   }
+  #endif
+  #ifdef SERIAL_DELAY
   if (millis() > timeSERIAL) {
     timeSERIAL  += SERIAL_DELAY;
     if (lenSERIAL  > 0) releaseSerial();
   }
+  #endif
+  #ifdef MQTT_DELAY
   if (millis() > timeMQTT) {
     timeMQTT += MQTT_DELAY;
     if (lenMQTT    > 0) releaseMQTT();
   }
+  #endif
+  #ifdef LORAG_DELAY
   if (millis() > timeLORAG) {
     timeLORAG += LORAG_DELAY;
     if (lenLORAG    > 0) releaseLoRa(0);
   }
+  #endif
+  #ifdef LORA1_DELAY
   if (millis() > timeLORA1) {
     timeLORA1 += LORA1_DELAY;
     if (lenLORA1    > 0) releaseLoRa(1);
   }
+  #endif
+  #ifdef LORA2_DELAY
   if (millis() > timeLORA2) {
     timeLORA2 += LORA2_DELAY;
     if (lenLORA2    > 0) releaseLoRa(2);
   }
+  #endif
 
   while (UART_IF.available()) {
     getSerial();

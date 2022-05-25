@@ -3,6 +3,24 @@
 #else
 #define DBG(a)
 #endif
+#if defined (ESP32)
+#define UART_IF Serial1
+#else
+#define UART_IF Serial
+#endif
+#ifdef GLOBALS
+#define FDRS_WIFI_SSID GLOBAL_SSID
+#define FDRS_WIFI_PASS GLOBAL_PASS
+#define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
+#define FDRS_BAND GLOBAL_BAND
+#define FDRS_SF GLOBAL_SF
+#else
+#define FDRS_WIFI_SSID WIFI_SSID
+#define FDRS_WIFI_PASS WIFI_PASS
+#define FDRS_MQTT_ADDR MQTT_ADDR
+#define FDRS_BAND BAND
+#define FDRS_SF SF
+#endif
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
@@ -14,15 +32,31 @@ typedef struct __attribute__((packed)) DataReading {
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
-//  esp_now_peer_info_t peerInfo;
+
+#ifdef ESP32
+esp_now_peer_info_t peerInfo;
+#endif
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
-uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
-uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_PEER};
 uint8_t incMAC[6];
+
+#ifdef ESPNOW1_PEER
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
+#else
+uint8_t ESPNOW1[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#endif
+#ifdef ESPNOW2_PEER
+uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_PEER};
+#else
+uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#endif
+
+#ifdef USE_LORA
 uint8_t LoRa1[] =         {mac_prefix[3], mac_prefix[4], LORA1_PEER};
 uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
+//uint8_t LoRaAddress[] = {0x42, 0x00};
+#endif
 
 DataReading theData[256];
 uint8_t ln;
@@ -59,9 +93,9 @@ CRGB leds[NUM_LEDS];
 #endif
 #ifdef USE_WIFI
 PubSubClient client(espClient);
-const char* ssid = WIFI_NET;
-const char* password = WIFI_PASS;
-const char* mqtt_server = MQTT_ADDR;
+const char* ssid = FDRS_WIFI_SSID;
+const char* password = FDRS_WIFI_PASS;
+const char* mqtt_server = FDRS_MQTT_ADDR;
 #endif
 
 
@@ -456,7 +490,6 @@ void reconnect() {
 }
 void begin_espnow() {
   DBG("Initializing ESP-NOW!");
-
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
@@ -469,8 +502,12 @@ void begin_espnow() {
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
   // Register peers
+#ifdef ESPNOW1_PEER
   esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+#endif
+#ifdef ESPNOW2_PEER
   esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+#endif
 #elif defined(ESP32)
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
@@ -479,7 +516,7 @@ void begin_espnow() {
   }
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
-  
+
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
   // Register first peer
@@ -489,18 +526,20 @@ void begin_espnow() {
     DBG("Failed to add peer bcast");
     return;
   }
-   memcpy(peerInfo.peer_addr, ESPNOW1, 6);
+#ifdef ESPNOW1_PEER
+  memcpy(peerInfo.peer_addr, ESPNOW1, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     DBG("Failed to add peer 1");
     return;
   }
+#endif
+#ifdef ESPNOW2_PEER
   memcpy(peerInfo.peer_addr, ESPNOW2, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     DBG("Failed to add peer 2");
     return;
   }
-
+#endif
 #endif
   DBG(" ESP-NOW Initialized.");
-DBG(WIFI_NET);
 }

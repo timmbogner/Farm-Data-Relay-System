@@ -1,3 +1,3 @@
 Please copy this directory into your Arduino "libraries" directory.
 Edit the files in your libraries folder according to your needs with your WiFi info, LoRa band, etc.
-!!Never edit them here!!!
+Never edit them here!!!
