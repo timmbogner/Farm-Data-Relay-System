@@ -49,7 +49,7 @@ Each sensor in the system sends its data over ESP-NOW as a float 'd' inside of a
 ## Thank you
 ...very much for checking out my project! I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
 
-If you have any extra money, please consider [supporting me](https://www.buymeacoffee.com/TimmB). I'm a farmer, landscaper, and grocery store clerk by occupation, so donations would help me to spend more time developing farm gadgets. 
+If you have any extra money, **please consider [supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer, landscaper, and grocery store clerk by occupation, so donations would help me to spend more time developing farm gadgets. 
 
 Development of this project would not have been possible without the gracious support of my former employer, **Sola Gratia Farm** of **Urbana, IL, USA**.  Sola Gratia is a community-based farm dedicated to growing high-quality produce and sharing it with those in need. Thank you!
   
