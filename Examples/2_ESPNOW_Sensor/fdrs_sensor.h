@@ -19,6 +19,12 @@
 #include <LoRa.h>
 #endif
 
+#ifdef DEBUG
+#define DBG(a) (Serial.println(a))
+#else
+#define DBG(a)
+#endif
+
 typedef struct __attribute__((packed)) DataReading {
   float d;
   uint16_t id;

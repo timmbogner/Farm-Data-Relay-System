@@ -8,7 +8,7 @@
 #define DEBUG
 #define CREDENTIALS
 
-#include <fdrs_defaults.h>
+#include <fdrs_globals.h>
 #include "fdrs_config.h"
 
 #ifdef ESP8266
@@ -73,7 +73,6 @@ void setup() {
 #endif
   
   //DBG(sizeof(DataReading));
-   client.publish(TOPIC_STATUS, "FDRS initialized");
 
 }
 

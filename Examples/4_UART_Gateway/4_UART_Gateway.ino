@@ -8,7 +8,6 @@
 #define DEBUG
 #define CREDENTIALS
 
-#include <fdrs_defaults.h>
 #include "fdrs_config.h"
 
 #ifdef ESP8266
@@ -66,14 +65,13 @@ void setup() {
   DBG("Initializing LoRa!");
   SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(BAND)) {
+  if (!LoRa.begin(GLOBAL_BAND)) {
     while (1);
   }
   DBG(" LoRa initialized.");
 #endif
   
   //DBG(sizeof(DataReading));
-   client.publish(TOPIC_STATUS, "FDRS initialized");
 
 }
 

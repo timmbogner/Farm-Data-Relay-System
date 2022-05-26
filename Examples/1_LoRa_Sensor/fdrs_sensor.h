@@ -13,6 +13,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #endif
+
 #ifdef USE_LORA
 #include <LoRa.h>
 #endif
@@ -29,31 +30,7 @@
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
-#endif
-
-#define STATUS_T    0  // Status 
-#define TEMP_T      1  // Temperature 
-#define TEMP2_T     2  // Temperature #2
-#define HUMIDITY_T  3  // Relative Humidity 
-#define PRESSURE_T  4  // Atmospheric Pressure 
-#define LIGHT_T     5  // Light (lux) 
-#define SOIL_T      6  // Soil Moisture 
-#define SOIL2_T     7  // Soil Moisture #2 
-#define SOILR_T      8 // Soil Resistance 
-#define SOILR2_T     9 // Soil Resistance #2 
-#define OXYGEN_T    10 // Oxygen 
-#define CO2_T       11 // Carbon Dioxide
-#define WINDSPD_T   12 // Wind Speed
-#define WINDHDG_T   13 // Wind Direction
-#define RAINFALL_T  14 // Rainfall
-#define MOTION_T    15 // Motion
-#define VOLTAGE_T   16 // Voltage
-#define VOLTAGE2_T  17 // Voltage #2
-#define CURRENT_T   18 // Current
-#define CURRENT2_T  19 // Current #2
-#define IT_T        20 // Iterations
-#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
-
+#endif		  
 typedef struct __attribute__((packed)) DataReading {
   float d;
   uint16_t id;
@@ -64,7 +41,7 @@ typedef struct __attribute__((packed)) DataReading {
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
-uint8_t LoRaAddress[] = {0x42, 0x00};
+
 
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
@@ -113,8 +90,8 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  DBG(BAND);
-  DBG(SF);
+  DBG(FDRS_BAND);
+   DBG(SF);
 #ifndef __AVR__
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
@@ -129,7 +106,7 @@ void beginFDRS() {
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
 #ifdef USE_LORA
   uint8_t pkt[5 + (len * sizeof(DataReading))];
-  memcpy(&pkt, mac, 3);  //
+  memcpy(&pkt, mac, 3);  // 
   memcpy(&pkt[3], &LoRaAddress, 2);
   memcpy(&pkt[5], packet, len * sizeof(DataReading));
   LoRa.beginPacket();
