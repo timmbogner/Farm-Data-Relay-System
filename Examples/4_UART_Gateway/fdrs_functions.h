@@ -140,9 +140,10 @@ void getLoRa() {
     uint8_t packet[packetSize];
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
-    for (int i = 0; i < packetSize; i++) {
+    /*for (int i = 0; i < packetSize; i++) {
       Serial.println(packet[i], HEX);
     }
+    */
     if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
       DBG("Packet for me");
       memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet

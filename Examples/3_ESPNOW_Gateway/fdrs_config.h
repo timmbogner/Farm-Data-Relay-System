@@ -39,3 +39,13 @@
 #define SS 18
 #define RST 14
 #define DIO0 26
+
+// Buffer Delays - in milliseconds
+#define ESPNOW1_DELAY  0
+#define ESPNOW2_DELAY  0
+#define ESPNOWG_DELAY  0
+#define SERIAL_DELAY   0
+#define MQTT_DELAY     0
+#define LORAG_DELAY    1000
+#define LORA1_DELAY    1000
+#define LORA2_DELAY    1000

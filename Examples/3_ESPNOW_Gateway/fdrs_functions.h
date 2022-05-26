@@ -4,6 +4,20 @@
 #define DBG(a)
 #endif
 
+#if defined (ESP32)
+#define UART_IF Serial1
+#else
+#define UART_IF Serial
+#endif
+
+#ifdef GLOBALS
+#define FDRS_BAND GLOBAL_BAND
+#define FDRS_SF GLOBAL_SF
+#else
+#define FDRS_BAND BAND
+#define FDRS_SF SF
+#endif
+
 typedef struct __attribute__((packed)) DataReading {
   float d;
   uint16_t id;

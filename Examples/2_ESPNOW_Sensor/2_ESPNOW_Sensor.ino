@@ -9,7 +9,7 @@
 #define DEBUG
 #define CREDENTIALS
 
-#include <FDRSdefaults.h>
+#include <fdrs_globals.h>
 #include "fdrs_sensor.h"
 
 float data1;
