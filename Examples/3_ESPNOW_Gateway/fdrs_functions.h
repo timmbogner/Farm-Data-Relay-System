@@ -4,12 +4,6 @@
 #define DBG(a)
 #endif
 
-#if defined (ESP32)
-#define UART_IF Serial1
-#else
-#define UART_IF Serial
-#endif
-
 #ifdef GLOBALS
 #define FDRS_BAND GLOBAL_BAND
 #define FDRS_SF GLOBAL_SF

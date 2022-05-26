@@ -10,13 +10,13 @@
 //Actions -- Define what happens when a packet arrives at each interface:
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
 
-#define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     //sendMQTT();    
+#define ESPNOWG_ACT    
+#define SERIAL_ACT     sendMQTT();    
 #define MQTT_ACT          
-#define LORAG_ACT      sendSerial();
+#define LORAG_ACT
 
 //#define USE_LORA
-//#define USE_WIFI    //Used only for MQTT gateway
+#define USE_WIFI    //Used only for MQTT gateway
 
 #define WIFI_SSID   "Your SSID"
 #define WIFI_PASS   "Your Password"

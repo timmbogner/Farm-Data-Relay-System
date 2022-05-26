@@ -18,9 +18,9 @@
 #define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
 
-//#define WIFI_SSID   "Your SSID"
-//#define WIFI_PASS   "Your Password"
-//#define MQTT_ADDR   "192.168.0.8"
+#define WIFI_SSID   "Your SSID"
+#define WIFI_PASS   "Your Password"
+#define MQTT_ADDR   "192.168.0.8"
 
 // Peer addresses
 #define ESPNOW1_PEER  0x04  // ESPNOW1 Address 
@@ -34,9 +34,13 @@
 #define LORA1_ACT 
 #define LORA2_ACT 
 
-//Pins for UART data interface (ESP32 only)
+#if defined (ESP32)
 #define RXD2 14
 #define TXD2 15
+#define UART_IF Serial2
+#else 
+#define UART_IF Serial
+#endif
 
 //LoRa Configuration -- Needed only if using LoRa
 #define SCK 5

@@ -4,7 +4,7 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
-#include "sensor_setup.h"
+#include "sensor_config.h"
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -18,6 +18,19 @@
 #include <LoRa.h>
 #endif
 
+#ifdef GLOBALS
+#define FDRS_BAND GLOBAL_BAND
+#define FDRS_SF GLOBAL_SF
+#else
+#define FDRS_BAND BAND
+#define FDRS_SF SF
+#endif
+
+#ifdef DEBUG
+#define DBG(a) (Serial.println(a))
+#else
+#define DBG(a)
+#endif		  
 typedef struct __attribute__((packed)) DataReading {
   float d;
   uint16_t id;
@@ -77,16 +90,16 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  DBG(GLOBAL_BAND);
+  DBG(FDRS_BAND);
    DBG(SF);
 #ifndef __AVR__
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
   LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(BAND)) {
+  if (!LoRa.begin(FDRS_BAND)) {
     while (1);
   }
-  LoRa.setSpreadingFactor(SF);
+  LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa Initialized.");
 #endif
 }
