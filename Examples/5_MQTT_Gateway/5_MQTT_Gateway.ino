@@ -5,11 +5,7 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 
-#define DEBUG
-#define CREDENTIALS
-
 #include "fdrs_config.h"
-
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -75,8 +71,9 @@ void setup() {
 #endif
   
   //DBG(sizeof(DataReading));
+#ifdef USE_WIFI
    client.publish(TOPIC_STATUS, "FDRS initialized");
-
+#endif
 }
 
 void loop() {

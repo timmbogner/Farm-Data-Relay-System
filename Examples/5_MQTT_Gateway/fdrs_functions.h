@@ -3,11 +3,13 @@
 #else
 #define DBG(a)
 #endif
+
 #if defined (ESP32)
 #define UART_IF Serial1
 #else
 #define UART_IF Serial
 #endif
+
 #ifdef GLOBALS
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #define FDRS_WIFI_PASS GLOBAL_PASS
@@ -21,6 +23,8 @@
 #define FDRS_BAND BAND
 #define FDRS_SF SF
 #endif
+
+#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
