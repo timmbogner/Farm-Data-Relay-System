@@ -13,7 +13,7 @@
 #define ESPNOWG_ACT    
 #define SERIAL_ACT     sendMQTT();    
 #define MQTT_ACT          
-#define LORAG_ACT
+#define LORAG_ACT      
 
 //#define USE_LORA
 #define USE_WIFI    //Used only for MQTT gateway

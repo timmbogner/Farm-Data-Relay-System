@@ -11,7 +11,7 @@
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
 
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     //sendMQTT();    
+#define SERIAL_ACT         
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
 
@@ -34,13 +34,9 @@
 #define LORA1_ACT 
 #define LORA2_ACT 
 
-#if defined (ESP32)
+//Pins for UART data interface (ESP32 only)
 #define RXD2 14
 #define TXD2 15
-#define UART_IF Serial2
-#else 
-#define UART_IF Serial
-#endif
 
 //LoRa Configuration -- Needed only if using LoRa
 #define SCK 5
@@ -52,18 +48,18 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-//#define BAND 915E6
-//#define SF 7
+#define BAND 915E6
+#define SF 7
 
 // Buffer Delays - in milliseconds
-#define ESPNOW1_DELAY  0
-#define ESPNOW2_DELAY  0
-#define ESPNOWG_DELAY  0
-#define SERIAL_DELAY   0
-#define MQTT_DELAY     0
-#define LORAG_DELAY    1000
-#define LORA1_DELAY    1000
-#define LORA2_DELAY    1000
+//#define ESPNOW1_DELAY  0
+//#define ESPNOW2_DELAY  0
+//#define ESPNOWG_DELAY  0
+//#define SERIAL_DELAY   0
+//#define MQTT_DELAY     0
+//#define LORAG_DELAY    1000
+//#define LORA1_DELAY    1000
+//#define LORA2_DELAY    1000
 //#define USE_LED    //Not yet fully implemented
 #define LED_PIN    32
 #define NUM_LEDS    4

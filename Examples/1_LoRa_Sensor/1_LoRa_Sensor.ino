@@ -25,8 +25,7 @@ void loop() {
 }
 
 float readTemp() {
-   // return 42.069;
-  return 42.5;
+  return 42.069;
 }
 
 float readHum() {

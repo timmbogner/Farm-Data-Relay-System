@@ -115,11 +115,11 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
   memcpy(&theData, incomingData, sizeof(theData));
   memcpy(&incMAC, mac, sizeof(incMAC));
+  DBG("Incoming ESP-NOW.");
+  ln = len / sizeof(DataReading);
   if (memcmp(&incMAC, &ESPNOW1, 6) == 0) newData = 1;
   else if (memcmp(&incMAC, &ESPNOW2, 6) == 0) newData = 2;
   else newData = 3;
-  ln = len / sizeof(DataReading);
-  DBG("Incoming ESP-NOW.");
 }
 void getSerial() {
   String incomingString =  UART_IF.readStringUntil('\n');
