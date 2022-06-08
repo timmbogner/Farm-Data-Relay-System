@@ -6,10 +6,6 @@
 //  An example of how to send data using "fdrs_sensor.h".
 //
 
-#define DEBUG
-#define CREDENTIALS
-
-#include <FDRSdefaults.h>
 #include "fdrs_sensor.h"
 
 float data1;
