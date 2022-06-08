@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include <fdrs_globals.h> //Uncomment if you install the globals file
+//#include <fdrs_globals.h> //Uncomment if you install the globals file
 #define DEBUG
 
 #define UNIT_MAC     0x04  // The address of this gateway

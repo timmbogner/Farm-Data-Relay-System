@@ -2,8 +2,8 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include <fdrs_globals.h> //Uncomment if you install the globals file
-#define DEBUG
+//#include <fdrs_globals.h> //Uncomment if you install the globals file
+#define DEBUG  //Enable debugging information over serial
 
 #define UNIT_MAC     0x00  // The address of this gateway
 
@@ -16,17 +16,17 @@
 #define LORAG_ACT      
 
 //#define USE_LORA
-#define USE_WIFI    //Used only for MQTT gateway
+#define USE_WIFI      //Used only for MQTT gateway
 
 #define WIFI_SSID   "Your SSID"
 #define WIFI_PASS   "Your Password"
 #define MQTT_ADDR   "192.168.0.8"
 
 // Peer addresses
-#define ESPNOW1_PEER  0x04  // ESPNOW1 Address 
-#define ESPNOW2_PEER  0x05  // ESPNOW2 Address
-#define LORA1_PEER    0x04  // LoRa1 Address
-#define LORA2_PEER    0x05  // LoRa2 Address
+#define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
+#define ESPNOW2_PEER  0x0F  // ESPNOW2 Address
+#define LORA1_PEER    0x0E  // LoRa1 Address
+#define LORA2_PEER    0x0F  // LoRa2 Address
 
 // Peer Actions
 #define ESPNOW1_ACT    
@@ -51,15 +51,17 @@
 #define BAND 915E6
 #define SF 7
 
-// Buffer Delays - in milliseconds
+// Buffer Delays - in milliseconds - Uncomment to enable any buffer
+
 //#define ESPNOW1_DELAY  0
 //#define ESPNOW2_DELAY  0
 //#define ESPNOWG_DELAY  0
 //#define SERIAL_DELAY   0
 //#define MQTT_DELAY     0
-//#define LORAG_DELAY    1000
+#define LORAG_DELAY    1000
 //#define LORA1_DELAY    1000
 //#define LORA2_DELAY    1000
+
 //#define USE_LED    //Not yet fully implemented
 #define LED_PIN    32
 #define NUM_LEDS    4

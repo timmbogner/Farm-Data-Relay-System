@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include <fdrs_globals.h> //Uncomment if you install the globals file
+//#include <fdrs_globals.h> //Uncomment if you install the globals file
 #define DEBUG
 
 #define UNIT_MAC     0x00  // The address of this gateway
@@ -10,10 +10,10 @@
 //Actions -- Define what happens when a packet arrives at each interface:
 //Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
 
-#define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     //sendMQTT();    
+#define ESPNOWG_ACT    sendESPNOW(0x04);
+#define SERIAL_ACT         
 #define MQTT_ACT          
-#define LORAG_ACT      sendSerial();
+#define LORAG_ACT      
 
 //#define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
