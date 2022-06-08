@@ -57,7 +57,7 @@
 //#define ESPNOWG_DELAY  0
 //#define SERIAL_DELAY   0
 //#define MQTT_DELAY     0
-//#define LORAG_DELAY    1000
+#define LORAG_DELAY    1000
 //#define LORA1_DELAY    1000
 //#define LORA2_DELAY    1000
 //#define USE_LED    //Not yet fully implemented
