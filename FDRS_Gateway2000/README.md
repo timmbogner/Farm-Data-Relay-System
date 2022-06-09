@@ -2,7 +2,16 @@
 The FDRS Gateway listens for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmits the packets over these interfaces using rules defined in the "Actions" section of the configuration file.
 
 ## Actions
-Actions define how the gateway reacts to a packet recieved via each data source. An action may be comprised of one or multiple commands separated by (and terminated with) semicolons.
+Actions define how the gateway reacts to a packet received via each data source. An action may consist of one or multiple commands separated by (and terminated with) semicolons.
+
+The following commands re-send data instantaneously: ```sendESPNOW(MAC)```, ```sendSerial()```, and ```sendMQTT()```.
+
+The following commands send data to buffers to be released at an interval: ```bufferLoRa(interface)```, ```bufferESPNOW(interface)```, ```bufferSerial()```, and ```bufferMQTT()```.
+
+In the following example, the gateway is set to take any ESP-NOW packet it receives and send it first over the serial port, then re-transmit via ESP-NOW it to another gaweway with the address 0x01:
+```
+#define ESPNOWG_ACT sendSerial(); sendESPNOW(0x01);
+```
 
 ## Options
 ### ```#define UNIT_MAC (0xNN)```
@@ -26,9 +35,11 @@ This option initializes FastLED! I haven't developed this very much, perhaps you
 ### Routing
 In addition to reacting to packets from general (unknown) ESP-NOW and LoRa devices, the gateway can also listen for traffic from a specific peer's device address (MAC) and react differently than it would to general traffic. This can be used to 'propel' packets upstream or downstream and allows the user to define different paths for data originating from either direction. The user can define up to two peer addresses each for the ESP-NOW and LoRa interfaces (ESPNOW1 & ESPNOW2 and LORA1 & LORA2).
 ### Buffers
-Each peer also has a send buffer associated with it. Buffers are enabled by uncommenting their cooresponding DELAY macro (ex: ```#define LORAG_DELAY 1000```). When enabled, the gateway will automatically send the buffer contents at the interval specified. Buffers can hold a maximum of 256 DataReadings. 
+Each peer also has a send buffer associated with it. Buffers are enabled by uncommenting their corresponding DELAY macro (ex: ```#define LORAG_DELAY 1000```). When enabled, the gateway will automatically send the buffer contents at the interval specified. 
 
-While ESP-NOW is quick enough to handle a lot of traffic in real-time, LoRa is much slower. For this reason, you must send LoRa data to a buffer and transmit it at standard intervals. Since buffers are mandatory, a LoRa repeater always needs to be configured using a LoRa peer.
+While ESP-NOW is quick enough to handle a lot of traffic in real-time, LoRa is much slower. For this reason, you must send LoRa data to a buffer. Since buffers are mandatory, a LoRa repeater always needs to be configured using a LoRa peer.
+
+Buffers can hold a maximum of 256 DataReadings. 
 
 
 
@@ -41,4 +52,3 @@ While ESP-NOW is quick enough to handle a lot of traffic in real-time, LoRa is m
 ![Basic LoRa](/FDRS_Gateway2000/Basic_LoRa_Setup.png)
 
 ![Advanced LoRa](/FDRS_Gateway2000/Advanced_Setup_LoRa.png)
-
