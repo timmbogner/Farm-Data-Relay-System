@@ -35,9 +35,9 @@
 #define WIFI_PASS   "Your Password"
 #define MQTT_ADDR   "192.168.0.8"
 // MQTT Topics
-#define TOPIC_DATA "FDRS/DATA"
-#define TOPIC_STATUS "FDRS/STATUS"
-#define TOPIC_COMMAND "FDRS/COMMAND" 
+#define TOPIC_DATA "fdrs/data"
+#define TOPIC_STATUS "fdrs/status"
+#define TOPIC_COMMAND "fdrs/command" 
 
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14

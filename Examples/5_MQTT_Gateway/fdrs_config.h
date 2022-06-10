@@ -3,12 +3,13 @@
 //  GATEWAY 2.000 Configuration
 
 //#include <fdrs_globals.h> //Uncomment if you install the globals file
-#define DEBUG  //Enable debugging information over serial
+#define DEBUG             //Enable debugging information over serial
 
-#define UNIT_MAC     0x00  // The address of this gateway
+#define UNIT_MAC     0x05  // The address of this gateway
 
 //Actions -- Define what happens when a packet arrives at each interface:
-//Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
+//Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(),
+// bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
 
 #define ESPNOWG_ACT    
 #define SERIAL_ACT     sendMQTT();    
@@ -17,10 +18,6 @@
 
 //#define USE_LORA
 #define USE_WIFI      //Used only for MQTT gateway
-
-#define WIFI_SSID   "Your SSID"
-#define WIFI_PASS   "Your Password"
-#define MQTT_ADDR   "192.168.0.8"
 
 // Peer addresses
 #define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
@@ -66,7 +63,11 @@
 #define LED_PIN    32
 #define NUM_LEDS    4
 
+//WiFi and MQTT Credentials -- Needed only for MQTT gateway
+#define WIFI_SSID   "Your SSID"  
+#define WIFI_PASS   "Your Password"
+#define MQTT_ADDR   "192.168.0.8"
 // MQTT Topics
-#define TOPIC_DATA "FDRS/DATA"
-#define TOPIC_STATUS "FDRS/STATUS"
-#define TOPIC_COMMAND "FDRS/COMMAND" 
+#define TOPIC_DATA "fdrs/data"
+#define TOPIC_STATUS "fdrs/status"
+#define TOPIC_COMMAND "fdrs/command" 
