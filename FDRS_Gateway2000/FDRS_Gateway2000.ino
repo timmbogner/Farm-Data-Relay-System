@@ -2,10 +2,10 @@
 //
 //  GATEWAY 2.000
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
+
 #include "fdrs_config.h"
-#include "DataReading.h"
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -25,18 +25,14 @@
 #include <FastLED.h>
 #endif
 #include "fdrs_functions.h"
-//#ifdef CREDENTIALS
-//#include <credentials.h>
-//#endif
 
 void setup() {
 #if defined(ESP8266)
-  UART_IF.begin(115200);
+  Serial.begin(115200);
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
-  DBG("Initializing FDRS Gateway");
   DBG("Address:" + String (UNIT_MAC, HEX));
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -47,16 +43,18 @@ void setup() {
   delay(10);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.println("Connecting to Wifi...");
+    DBG("Connecting to WiFi...");
+    DBG(FDRS_WIFI_SSID);
 
     delay(500);
   }
+  DBG("WiFi Connected");
   client.setServer(mqtt_server, 1883);
-  //client.setServer("192.168.137.249", 1883);
   if (!client.connected()) {
-    Serial.println("Connecting mqtt...");
+    DBG("Connecting MQTT...");
     reconnect();
   }
+  DBG("MQTT Connected");
   client.setCallback(mqtt_callback);
 #else
   begin_espnow();
@@ -65,48 +63,68 @@ void setup() {
   DBG("Initializing LoRa!");
   SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(BAND)) {
+  if (!LoRa.begin(FDRS_BAND)) {
     while (1);
   }
+  LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa initialized.");
 #endif
-  //  UART_IF.println(sizeof(DataReading));
-
+  
+  //DBG(sizeof(DataReading));
+#ifdef USE_WIFI
+   client.publish(TOPIC_STATUS, "FDRS initialized");
+#endif
 }
 
 void loop() {
+  #ifdef ESPNOWG_DELAY
   if (millis() > timeESPNOWG) {
     timeESPNOWG += ESPNOWG_DELAY;
     if  (lenESPNOWG > 0) releaseESPNOW(0);
   }
+  #endif
+  #ifdef ESPNOW1_DELAY
   if (millis() > timeESPNOW1) {
     timeESPNOW1 += ESPNOW1_DELAY;
     if (lenESPNOW1 > 0)   releaseESPNOW(1);
   }
+  #endif
+  #ifdef ESPNOW2_DELAY
   if (millis() > timeESPNOW2) {
     timeESPNOW2 += ESPNOW2_DELAY;
     if (lenESPNOW2 > 0) releaseESPNOW(2);
   }
+  #endif
+  #ifdef SERIAL_DELAY
   if (millis() > timeSERIAL) {
     timeSERIAL  += SERIAL_DELAY;
     if (lenSERIAL  > 0) releaseSerial();
   }
+  #endif
+  #ifdef MQTT_DELAY
   if (millis() > timeMQTT) {
     timeMQTT += MQTT_DELAY;
     if (lenMQTT    > 0) releaseMQTT();
   }
+  #endif
+  #ifdef LORAG_DELAY
   if (millis() > timeLORAG) {
     timeLORAG += LORAG_DELAY;
     if (lenLORAG    > 0) releaseLoRa(0);
   }
+  #endif
+  #ifdef LORA1_DELAY
   if (millis() > timeLORA1) {
     timeLORA1 += LORA1_DELAY;
     if (lenLORA1    > 0) releaseLoRa(1);
   }
+  #endif
+  #ifdef LORA2_DELAY
   if (millis() > timeLORA2) {
     timeLORA2 += LORA2_DELAY;
     if (lenLORA2    > 0) releaseLoRa(2);
   }
+  #endif
 
   while (UART_IF.available()) {
     getSerial();
@@ -114,7 +132,7 @@ void loop() {
   getLoRa();
 #ifdef USE_WIFI
   if (!client.connected()) {
-    Serial.println("Connecting mqtt...");
+    DBG("Connecting MQTT...");
     reconnect();
   }
   client.loop();
