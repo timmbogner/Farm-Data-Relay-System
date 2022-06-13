@@ -8,7 +8,7 @@ The following commands re-send data instantaneously: ```sendESPNOW(MAC)```, ```s
 
 The following commands send data to buffers to be released at an interval: ```bufferLoRa(interface)```, ```bufferESPNOW(interface)```, ```bufferSerial()```, and ```bufferMQTT()```.
 
-In the following example, the gateway is set to take any ESP-NOW packet it receives and send it first over the serial port, then re-transmit via ESP-NOW it to another gateway with the address 0x01:
+In the following example, the gateway is set to take any ESP-NOW packet it receives and send it first over the serial port, then re-transmit it via ESP-NOW to another gateway with the address 0x01:
 ```
 #define ESPNOWG_ACT sendSerial(); sendESPNOW(0x01);
 ```
