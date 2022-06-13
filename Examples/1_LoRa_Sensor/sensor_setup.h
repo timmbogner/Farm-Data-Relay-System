@@ -1,7 +1,7 @@
 //  FARM DATA RELAY SYSTEM
 //
 //  Sensor Configuration
-//  (Previously known as 'Sensor_setup.h')
+//  (In the future this file will be known as 'sensor_config.h')
 //
 
 //#include <fdrs_globals.h> //Uncomment if you install the globals file
