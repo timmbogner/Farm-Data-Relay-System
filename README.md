@@ -11,8 +11,8 @@ Using an assigned MAC address scheme allows for the whole system to be configure
 Sensors gather data and send it to a gateway via ESP-NOW or LoRa. 
   
 ### [Gateways](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Gateway2000)
-Gateways are programmed to receive data over a variety of protocols and pass it on to other devices using the same or different protocols. 
-
+Gateways listen for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmit the packets using one or more of the same interfaces.
+  
  ### Front-end
 The Node-RED front-end can be set up with these nodes to format and send the data to InfluxDB:
   ```
