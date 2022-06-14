@@ -25,9 +25,9 @@ Enables/disables ESP-NOW.
 ### ```#define USE_LORA```
 Enables/disables LoRa.
 ### ```#define DEEP_SLEEP```
-If enabled, device will enter deep-sleep when the sleepFDRS() command is used.
+If enabled, device will enter deep-sleep when the sleepFDRS() command is used. If using ESP8266, be sure that you connect the WAKE pin (GPIO 16) to RST or your device will not wake up. 
 ### ```#define POWER_CTRL (pin)```
-IF defined, Power control will bring a GPIO pin high within beginFDRS(). This is useful for powering sensors while running on battery.
+IF defined, power control will bring a GPIO pin high within beginFDRS(). This is useful for powering sensors while running on battery.
 ## Type Definitions 
 ```
 #define STATUS_T    0  // Status 
