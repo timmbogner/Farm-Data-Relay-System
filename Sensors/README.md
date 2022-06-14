@@ -1,13 +1,13 @@
 # FDRS Sensors
 
-| Sensor Name | Library | Link/Datasheet |
+| Sensor Name | Maker/Datasheet | Library |
 | --- | --- | --- |
-| AHT20  |  |
-| BME280  | |
-| BMP280 |
-| DHT22 |
-| DS18B20 |
-| LilyGo HiGrow |
+| AHT20  | [ASAIR](http://www.aosong.com/userfiles/files/media/Data%20Sheet%20AHT20.pdf) | [Adafruit](https://github.com/adafruit/Adafruit_AHTX0) |
+| BME280  | [Bosch](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf) | [Adafruit](https://github.com/adafruit/Adafruit_BME280_Library)  |
+| BMP280 | [Bosch](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp280-ds001.pdf) | [Adafruit](https://github.com/adafruit/Adafruit_BMP280_Library)  |
+| DHT22 | [Aosong](https://www.sparkfun.com/datasheets/Sensors/Temperature/DHT22.pdf) |[beegee-tokyo](https://github.com/beegee-tokyo/DHTesp)  |
+| DS18B20 | [Dallas](https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf) | [milesburton](https://github.com/adafruit/Adafruit_AHTX0)  |
+| LilyGo HiGrow | TTGO
 | Multifunction ESP8266 Sensor Board |
 | Motion Detector | 
 | Tipping Bucket Rain Gauge |
