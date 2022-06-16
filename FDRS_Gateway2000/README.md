@@ -6,9 +6,9 @@ Actions define how the gateway reacts to a packet received via each data source.
 
 The following commands re-send data instantaneously: ```sendESPNOW(MAC)```, ```sendSerial()```, and ```sendMQTT()```.
 
-The following commands send data to buffers to be released at an interval: ```bufferLoRa(interface)```, ```bufferESPNOW(interface)```, ```bufferSerial()```, and ```bufferMQTT()```.
+These commands send data to buffers to be released at an interval: ```bufferLoRa(interface)```, ```bufferESPNOW(interface)```, ```bufferSerial()```, and ```bufferMQTT()```.
 
-In the following example, the gateway is set to take any ESP-NOW packet it receives and send it first over the serial port, then re-transmit it via ESP-NOW to another gateway with the address 0x01:
+In this example, the gateway is set to take any ESP-NOW packet it receives and send it first over the serial port, then re-transmit it via ESP-NOW to another gateway with the address 0x01:
 ```
 #define ESPNOWG_ACT sendSerial(); sendESPNOW(0x01);
 ```
