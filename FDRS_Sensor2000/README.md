@@ -52,3 +52,12 @@ IF defined, power control will bring a GPIO pin high within beginFDRS(). This is
 #define CURRENT2_T  19 // Current #2
 #define IT_T        20 // Iterations
 ```
+## Under the hood
+```
+typedef struct __attribute__((packed)) DataReading {
+  float d;
+  uint16_t id;
+  uint8_t t;
+} DataReading;
+```
+Each sensor in the system sends its data over ESP-NOW or LoRa as a float 'd' inside of a structure called a DataReading. Its global sensor address is represented by an integer 'id', and each type of reading is represented by a single byte 't'.  If a sensor or gateway needs to send multiple DataReadings, then they are sent in an array. A single DataReading.id may have readings of multiple types ('t') associated with it.
