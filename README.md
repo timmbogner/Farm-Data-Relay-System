@@ -21,15 +21,7 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
  
 ![Basic](/FDRS_Gateway2000/Basic_Setup.png)
 ![Advanced](/FDRS_Gateway2000/Advanced_Setup.png)
-### Sensors
-```
-typedef struct DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
-} DataReading;
-```
-Each sensor in the system sends its data over ESP-NOW as a float 'd' inside of a structure called a DataReading. Its global sensor address is represented by an integer 'id', and each type is represented by a single byte 't'.  If a sensor module needs to send multiple types of readings, then they are sent in an array of DataReadings. A single DataReading.id may have readings of multiple types associated with it.
+
 ## Future Plans
  A few things that I intend to add are:
 - A way for the sensors to seek out a nearby gateway and pair with it. 
