@@ -3,7 +3,7 @@
 
 The Farm Data Relay System is an easy way to collect data from remote sensors without relying on WiFi. It is based around the ESP-NOW protocol, which is readily available on ESP32 and ESP8266 microcontroller boards. The system can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage. 
 
-Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. Every wireless gateway is assigned a single-byte identifier, known as the UNIT_MAC. This, along with a set, 5-byte prefix is assigned to the MAC address of the ESP at boot. 
+Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. Every wireless gateway is assigned a single-byte identifier, known as the UNIT_MAC. This along with a set, 5-byte prefix, is assigned to the MAC address of the ESP at boot. 
 
 ## Getting Started
 
@@ -33,7 +33,7 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
 ## Thank you
 ...very much for checking out my project! I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
 
-If you have any extra money, **please consider [supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
+If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
   
 A huge thanks to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ).
   
