@@ -2,7 +2,7 @@
 //
 //  AHT20 SENSOR MODULE
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 
 #include <Adafruit_AHTX0.h>
 #include "fdrs_sensor.h"
