@@ -30,13 +30,11 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
 - Some ability to compress data for more efficient LoRa usage and to avoid using floats. Better documentation/development of the DataReading 'type' attribute will come with this. 
  
 ## Thank you
-...very much for checking out my project! I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
+**...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com. If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
 
-If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
+A huge thank you to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). FDRS was a roughly-hewn stone when Andreas first contacted me. and his guidance was instrumental in creating the "diamond" it is today. 
   
-A huge thanks to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ).
-  
-[**Random Nerd Tutorials**](https://randomnerdtutorials.com/) was also an indispensable source of ESP knowledge, especially at the beginning of this project.
+[**Random Nerd Tutorials**](https://randomnerdtutorials.com/) was also an indispensable source of ESP knowledge. If you are a beginner and trying to learn more about   microcontrollers, I highly reccomend starting there.
   
   
 Development of this project would not have been possible without the support of my former employer, **Sola Gratia Farm** of **Urbana, IL, USA**.  Sola Gratia is a community-based farm dedicated to growing high-quality produce and sharing it with those in need. Thank you.
