@@ -29,6 +29,7 @@ If enabled, device will enter deep-sleep when the sleepFDRS() command is used. I
 ### ```#define POWER_CTRL (pin)```
 IF defined, power control will bring a GPIO pin high within beginFDRS(). This is useful for powering sensors while running on battery.
 ## Type Definitions 
+For the moment, my thought is to reserve the first two bits of the type. I might use them in the future to indicate the data size or type (bool, char,  int, float, etc?). This leaves us with 64 possible type definitions. If you have more types to add, please get in touch!
 ```
 #define STATUS_T    0  // Status 
 #define TEMP_T      1  // Temperature 
