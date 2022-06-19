@@ -32,7 +32,7 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
 ## Thank you
 **...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com. If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
 
-A huge thank you to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). FDRS was a roughly-hewn stone when Andreas first contacted me. and his guidance was instrumental in creating the "diamond" you see today. 
+Many thanks go to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). His insight and ideas took this project from a roughly-hewn stone to the "diamond" you see today. 
   
 [**Random Nerd Tutorials**](https://randomnerdtutorials.com/) was also an indispensable source of ESP knowledge. If you are a beginner and trying to learn more about   microcontrollers, I highly reccomend starting there.
   
