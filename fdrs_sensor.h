@@ -84,10 +84,9 @@ public:
   void send();
 
 private:
+
   uint8_t _gtwy_mac;
   const uint16_t _espnow_size;
-
-  uint8_t _gtwyAddress[3];
   uint8_t _reading_id;
   uint8_t _data_count;
   DataReading *fdrsData;
@@ -101,7 +100,7 @@ class FDRS_EspNow: public FDRSBase{
 public:
 
   FDRS_EspNow(uint8_t gtwy_mac, uint8_t reading_id);
-  
+
 private:
 
   uint8_t _gatewayAddress[ESP_GATEWAY_ADDRESS_SIZE];

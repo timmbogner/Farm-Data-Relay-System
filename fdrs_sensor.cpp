@@ -15,15 +15,7 @@ FDRSBase::FDRSBase(uint8_t gtwy_mac,uint8_t reading_id):
                 _reading_id(reading_id),
                 _data_count(0)
 {
-
-
-    //lora
-    _gtwyAddress[0] = prefix[3];
-    _gtwyAddress[1] = prefix[4];
-    _gtwyAddress[2] = _gtwy_mac;
-
     fdrsData = new DataReading[_espnow_size];
-
 }
 
 FDRSBase::~FDRSBase(){
@@ -140,7 +132,9 @@ void FDRS_EspNow::transmit(DataReading *fdrsData, uint8_t _data_count){
 
 #ifdef USE_LORA
 
-FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac, uint8_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf): 
+FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac, 
+                    uint8_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck,
+                    uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf): 
                 FDRSBase(gtwy_mac,reading_id),
                      _miso(miso),
                      _mosi(mosi),
