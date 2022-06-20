@@ -110,10 +110,22 @@ private:
 
 class FDRSLoRa: public FDRSBase{
 public:
-  FDRSLoRa(uint8_t gtwy_mac, uint8_t reading_id);
+  FDRSLoRa(uint8_t gtwy_mac, uint8_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf);
 private:
 
   uint8_t _gatewayAddress[LORA_GATEWAY_ADDRESS_SIZE];
+  uint8_t _miso;
+  uint8_t _mosi;
+  uint8_t _sck;
+  uint8_t _ss;
+  uint8_t _rst;
+  uint8_t _dio0;
+  uint32_t _band;
+  uint8_t _sf;
+
+  void buildPacket(uint8_t* mac, DataReading * packet, uint8_t len);
+
+
   void transmit(DataReading *fdrsData, uint8_t _data_count) override;
   void init(void) override;
 
