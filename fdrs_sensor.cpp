@@ -138,6 +138,8 @@ void FDRS_EspNow::transmit(DataReading *fdrsData, uint8_t _data_count){
     DBG(" ESP-NOW sent.");
 }
 
+#ifdef USE_LORA
+
 FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac, uint8_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf): 
                 FDRSBase(gtwy_mac,reading_id),
                      _miso(miso),
@@ -185,3 +187,5 @@ void FDRSLoRa::transmit(DataReading *fdrsData, uint8_t _data_count){
     buildPacket(_gatewayAddress, fdrsData, _data_count);
     DBG(" LoRa sent.");
 }
+
+#endif
