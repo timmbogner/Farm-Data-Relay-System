@@ -36,7 +36,6 @@ void FDRSBase::begin() {
 
     init();
 
-
 }
 
 void FDRSBase::send(void) {
@@ -86,7 +85,6 @@ FDRS_EspNow::FDRS_EspNow(uint8_t gtwy_mac,uint8_t reading_id):
     memcpy(_gatewayAddress,MAC_PREFIX,5);
     _gatewayAddress[5] = gtwy_mac;
 
-
 }
 
 
@@ -121,7 +119,6 @@ void FDRS_EspNow::init(void){
     }
 #endif
   DBG(" ESP-NOW Initialized.");
-
 }
 
 void FDRS_EspNow::transmit(DataReading *fdrsData, uint8_t _data_count){
