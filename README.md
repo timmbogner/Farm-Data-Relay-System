@@ -9,6 +9,7 @@ Using an assigned MAC address scheme allows for the whole system to be configure
 
 ### Dependencies
 [LoRa library](https://github.com/sandeepmistry/arduino-LoRa)
+
 The dependency can be removed by commenting out the `#define USE_LORA` in `fdrs_sensor.h`
 
 ### [Sensors](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Sensor2000)
