@@ -1,4 +1,5 @@
 #ifndef __FDRS_TYPES_H__
+#define __FDRS_TYPES_H__
 
 #include <stdint.h>
 
