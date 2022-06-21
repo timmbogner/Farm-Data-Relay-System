@@ -9,36 +9,27 @@ uint8_t newData = 0;
 uint8_t ln = 0;
 DataReading theData[256];
 
-DataReading ESPNOWGbuffer[256];
-uint16_t lenESPNOWG = 0;
-uint32_t timeESPNOWG = 0;
+DataReadingBuffer_t ESPNOWGbuffer;
 
-DataReading ESPNOW1buffer[256];
-uint16_t lenESPNOW1 = 0;
+DataReadingBuffer_t ESPNOW1buffer;
 uint32_t timeESPNOW1 = 0;
 
-DataReading ESPNOW2buffer[256];
-uint16_t lenESPNOW2 = 0;
+DataReadingBuffer_t ESPNOW2buffer;
 uint32_t timeESPNOW2 = 0;
 
-DataReading SERIALbuffer[256];
-uint16_t lenSERIAL = 0;
+DataReadingBuffer_t SERIALbuffer;
 uint32_t timeSERIAL = 0;
 
-DataReading MQTTbuffer[256];
-uint8_t lenMQTT = 0;
+DataReadingBuffer_t MQTTbuffer;
 uint32_t timeMQTT = 0;
 
-DataReading LORAGbuffer[256];
-uint8_t lenLORAG = 0;
+DataReadingBuffer_t LORAGbuffer;
 uint32_t timeLORAG = 0;
 
-DataReading LORA1buffer[256];
-uint8_t lenLORA1 = 0;
+DataReadingBuffer_t LORA1buffer;
 uint32_t timeLORA1 = 0;
 
-DataReading LORA2buffer[256];
-uint8_t lenLORA2 = 0;
+DataReadingBuffer_t LORA2buffer;
 uint32_t timeLORA2 = 0;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -234,47 +225,47 @@ void bufferESPNOW(uint8_t interface) {
 
   switch (interface) {
     case 0:
-        memcpy(&ESPNOWGbuffer[lenESPNOWG],&theData[0],ln);
-        lenESPNOWG +=  ln;       
+        memcpy(&ESPNOWGbuffer.buffer[eSPNOWGbuffer.len],&theData[0],ln);
+        eSPNOWGbuffer.len +=  ln;       
         break;
     case 1:
-        memcpy(&ESPNOW1buffer[lenESPNOW2],&theData[0],ln);
-        lenESPNOW2 +=  ln;
+        memcpy(&ESPNOW1buffer.buffer[eSPNOW1buffer.len],&theData[0],ln);
+        eSPNOW1buffer.len +=  ln;
         break;
     case 2:
-        memcpy(&ESPNOW2buffer[lenESPNOW2],&theData[0],ln);
-        lenESPNOW2 +=  ln;
+        memcpy(&ESPNOW2buffer.buffer[eSPNOW2buffer.len],&theData[0],ln);
+        eSPNOW2buffer.len +=  ln;
         break;
     }
 }
 
 void bufferSerial() {
     DBG("Buffering Serial.");
-    memcpy(&SERIALbuffer[lenSERIAL],&theData[0],ln);
-    lenSERIAL += ln;
-    //UART_IF.println("SENDSERIAL:" + String(lenSERIAL) + " ");
+    memcpy(&SERIALbuffer.buffer[sERIALbuffer.len],&theData[0],ln);
+    sERIALbuffer.len += ln;
+    //UART_IF.println("SENDSERIAL:" + String(sERIALbuffer.len) + " ");
 }
 
 void bufferMQTT() {
     DBG("Buffering MQTT.");
-    memcpy(&MQTTbuffer[lenMQTT],&theData[0],ln);
-    lenMQTT += ln;
+    memcpy(&MQTTbuffer.buffer[mQTTbuffer.len],&theData[0],ln);
+    mQTTbuffer.len += ln;
 }
 
 void bufferLoRa(uint8_t interface) {
   DBG("Buffering LoRa.");
   switch (interface) {
     case 0:
-        memcpy(&LORAGbuffer[lenLORAG],&theData[0],ln);
-        lenLORAG += ln;
+        memcpy(&LORAGbuffer.buffer[lORAGbuffer.len],&theData[0],ln);
+        lORAGbuffer.len += ln;
       break;
     case 1:
-        memcpy(&LORA1buffer[lenLORA1],&theData[0],ln);
-        lenLORA1 += ln;
+        memcpy(&LORA1buffer.buffer[lORA1buffer.len],&theData[0],ln);
+        lORA1buffer.len += ln;
         break;
     case 2:
-        memcpy(&LORA2buffer[lenLORA2],&theData[0],ln);
-        lenLORA2 += ln;
+        memcpy(&LORA2buffer.buffer[lORA2buffer.len],&theData[0],ln);
+        lORA2buffer.len += ln;
         break;
   }
 }
@@ -300,13 +291,13 @@ void releaseESPNOW(uint8_t interface) {
     DBG("Releasing ESP-NOW.");
     switch (interface) {
         case 0:
-            espSend(broadcast_mac,ESPNOWGbuffer,&lenESPNOWG);    
+            espSend(broadcast_mac,ESPNOWGbuffer.buffer,&eSPNOWGbuffer.len);    
             break;
         case 1:
-            espSend(ESPNOW1,ESPNOW1buffer,&lenESPNOW1);
+            espSend(ESPNOW1,ESPNOW1buffer.buffer,&eSPNOW1buffer.len);
             break;
         case 2:
-            espSend(ESPNOW2,ESPNOW2buffer,&lenESPNOW2);
+            espSend(ESPNOW2,ESPNOW2buffer.buffer,&eSPNOW2buffer.len);
             break;
     }
 }
@@ -350,13 +341,13 @@ void releaseLoRa(uint8_t interface) {
 
     switch (interface) {
     case 0:     
-        LoRaSend(broadcast_mac,LORAGbuffer,&lenLORAG); 
+        LoRaSend(broadcast_mac,LORAGbuffer.buffer,&lORAGbuffer.len); 
         break;
     case 1:
-        LoRaSend(LoRa1,LORA1buffer,&lenLORA1); 
+        LoRaSend(LoRa1,LORA1buffer.buffer,&lORA1buffer.len); 
         break;
     case 2:
-        LoRaSend(LoRa2,LORA2buffer,&lenLORA2); 
+        LoRaSend(LoRa2,LORA2buffer.buffer,&lORA2buffer.len); 
         break;
     }
 #endif
@@ -365,29 +356,29 @@ void releaseLoRa(uint8_t interface) {
 void releaseSerial() {
     DBG("Releasing Serial.");
     DynamicJsonDocument doc(24576);
-    for (int i = 0; i < lenSERIAL; i++) {
-        doc[i]["id"]   = SERIALbuffer[i].id;
-        doc[i]["type"] = SERIALbuffer[i].t;
-        doc[i]["data"] = SERIALbuffer[i].d;
+    for (int i = 0; i < sERIALbuffer.len; i++) {
+        doc[i]["id"]   = SERIALbuffer.buffer[i].id;
+        doc[i]["type"] = SERIALbuffer.buffer[i].t;
+        doc[i]["data"] = SERIALbuffer.buffer[i].d;
     }
     serializeJson(doc, UART_IF);
     UART_IF.println();
-    lenSERIAL = 0;
+    sERIALbuffer.len = 0;
 }
 
 void releaseMQTT() {
 #ifdef USE_WIFI
     DBG("Releasing MQTT.");
     DynamicJsonDocument doc(24576);
-    for (int i = 0; i < lenMQTT; i++) {
-        doc[i]["id"]   = MQTTbuffer[i].id;
-        doc[i]["type"] = MQTTbuffer[i].t;
-        doc[i]["data"] = MQTTbuffer[i].d;
+    for (int i = 0; i < mQTTbuffer.len; i++) {
+        doc[i]["id"]   = MQTTbuffer.buffer[i].id;
+        doc[i]["type"] = MQTTbuffer.buffer[i].t;
+        doc[i]["data"] = MQTTbuffer.buffer[i].d;
     }
     String outgoingString;
     serializeJson(doc, outgoingString);
     client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
-    lenMQTT = 0;
+    mQTTbuffer.len = 0;
 #endif
 }
 
@@ -406,7 +397,6 @@ void reconnect() {
     }
 #endif
 }
-
 
 void begin_espnow() {
     DBG("Initializing ESP-NOW!");

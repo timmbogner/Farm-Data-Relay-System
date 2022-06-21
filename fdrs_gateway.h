@@ -106,4 +106,6 @@ void releaseMQTT();
 
 void reconnect();
 
+void begin_espnow();
+
 #endif
