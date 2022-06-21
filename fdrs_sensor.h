@@ -9,6 +9,8 @@
 #ifndef  __FDRS_SENSOR__H__
 #define __FDRS_SENSOR__H__
 
+#include "fdrs_types.h"
+
 #define USE_LORA
 
 #if defined(ESP8266)
@@ -66,12 +68,6 @@ extern const uint8_t prefix[5];
 
 #define ESP_GATEWAY_ADDRESS_SIZE 6
 #define LORA_GATEWAY_ADDRESS_SIZE 3
-
-typedef struct __attribute__((packed)) DataReading {
-  float data;
-  uint16_t id;
-  uint8_t type;
-} DataReading;
 
 class FDRSBase{
 public:
