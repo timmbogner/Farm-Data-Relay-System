@@ -6,8 +6,40 @@
 #define USE_WIFI
 
 uint8_t newData = 0;
-uint8_t ln;
+uint8_t ln = 0;
 DataReading theData[256];
+
+DataReading ESPNOWGbuffer[256];
+uint16_t lenESPNOWG = 0;
+uint32_t timeESPNOWG = 0;
+
+DataReading ESPNOW1buffer[256];
+uint16_t lenESPNOW1 = 0;
+uint32_t timeESPNOW1 = 0;
+
+DataReading ESPNOW2buffer[256];
+uint16_t lenESPNOW2 = 0;
+uint32_t timeESPNOW2 = 0;
+
+DataReading SERIALbuffer[256];
+uint16_t lenSERIAL = 0;
+uint32_t timeSERIAL = 0;
+
+DataReading MQTTbuffer[256];
+uint8_t lenMQTT = 0;
+uint32_t timeMQTT = 0;
+
+DataReading LORAGbuffer[256];
+uint8_t lenLORAG = 0;
+uint32_t timeLORAG = 0;
+
+DataReading LORA1buffer[256];
+uint8_t lenLORA1 = 0;
+uint32_t timeLORA1 = 0;
+
+DataReading LORA2buffer[256];
+uint8_t lenLORA2 = 0;
+uint32_t timeLORA2 = 0;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 
@@ -136,7 +168,6 @@ void getLoRa() {
 #endif
 }
 
-
 void sendESPNOW(uint8_t address) {
   DBG("Sending ESP-NOW.");
   uint8_t NEWPEER[] = {MAC_PREFIX, address};
@@ -198,4 +229,246 @@ void sendMQTT() {
 #endif
 }
 
+void bufferESPNOW(uint8_t interface) {
+  DBG("Buffering ESP-NOW.");
+
+  switch (interface) {
+    case 0:
+        memcpy(&ESPNOWGbuffer[lenESPNOWG],&theData[0],ln);
+        lenESPNOWG +=  ln;       
+        break;
+    case 1:
+        memcpy(&ESPNOW1buffer[lenESPNOW2],&theData[0],ln);
+        lenESPNOW2 +=  ln;
+        break;
+    case 2:
+        memcpy(&ESPNOW2buffer[lenESPNOW2],&theData[0],ln);
+        lenESPNOW2 +=  ln;
+        break;
+    }
+}
+
+void bufferSerial() {
+    DBG("Buffering Serial.");
+    memcpy(&SERIALbuffer[lenSERIAL],&theData[0],ln);
+    lenSERIAL += ln;
+    //UART_IF.println("SENDSERIAL:" + String(lenSERIAL) + " ");
+}
+
+void bufferMQTT() {
+    DBG("Buffering MQTT.");
+    memcpy(&MQTTbuffer[lenMQTT],&theData[0],ln);
+    lenMQTT += ln;
+}
+
+void bufferLoRa(uint8_t interface) {
+  DBG("Buffering LoRa.");
+  switch (interface) {
+    case 0:
+        memcpy(&LORAGbuffer[lenLORAG],&theData[0],ln);
+        lenLORAG += ln;
+      break;
+    case 1:
+        memcpy(&LORA1buffer[lenLORA1],&theData[0],ln);
+        lenLORA1 += ln;
+        break;
+    case 2:
+        memcpy(&LORA2buffer[lenLORA2],&theData[0],ln);
+        lenLORA2 += ln;
+        break;
+  }
+}
+
+
+void espSend(uint8_t *mac,DataReading *buffer, uint16_t *len){
+
+    DataReading thePacket[espnow_size];
+    int j = 0;
+    for (int i = 0; i < *len; i++) {
+        if ( j > espnow_size) {
+            j = 0;
+            esp_now_send(mac, (uint8_t *) &thePacket, sizeof(thePacket));
+        }
+        thePacket[j] = buffer[i];
+        j++;
+    }
+    esp_now_send(mac, (uint8_t *) &thePacket, j * sizeof(DataReading));
+    *len = 0;
+}
+
+void releaseESPNOW(uint8_t interface) {
+    DBG("Releasing ESP-NOW.");
+    switch (interface) {
+        case 0:
+            espSend(broadcast_mac,ESPNOWGbuffer,&lenESPNOWG);    
+            break;
+        case 1:
+            espSend(ESPNOW1,ESPNOW1buffer,&lenESPNOW1);
+            break;
+        case 2:
+            espSend(ESPNOW2,ESPNOW2buffer,&lenESPNOW2);
+            break;
+    }
+}
+
+
+void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
+#ifdef USE_LORA    
+  DBG("Transmitting LoRa.");
+
+  uint8_t pkt[5 + (len * sizeof(DataReading))];
+  memcpy(&pkt, mac, 3);
+  memcpy(&pkt[3], &selfAddress[4], 2);
+  memcpy(&pkt[5], packet, len * sizeof(DataReading));
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+  LoRa.endPacket();
+#endif
+}
+
+
+void LoRaSend(uint8_t *mac,DataReading *buffer, uint16_t *len){
+
+    DataReading thePacket[espnow_size];
+    int j = 0;
+    for (int i = 0; i < *len; i++) {
+        if ( j > espnow_size) {
+            j = 0;
+            transmitLoRa(mac, thePacket, j);
+        }
+        thePacket[j] = buffer[i];
+        j++;
+    }
+    transmitLoRa(broadcast_mac, thePacket, j);
+    *len = 0;
+}
+
+
+void releaseLoRa(uint8_t interface) {
+#ifdef USE_LORA
+  DBG("Releasing LoRa.");
+
+    switch (interface) {
+    case 0:     
+        LoRaSend(broadcast_mac,LORAGbuffer,&lenLORAG); 
+        break;
+    case 1:
+        LoRaSend(LoRa1,LORA1buffer,&lenLORA1); 
+        break;
+    case 2:
+        LoRaSend(LoRa2,LORA2buffer,&lenLORA2); 
+        break;
+    }
+#endif
+}
+
+void releaseSerial() {
+    DBG("Releasing Serial.");
+    DynamicJsonDocument doc(24576);
+    for (int i = 0; i < lenSERIAL; i++) {
+        doc[i]["id"]   = SERIALbuffer[i].id;
+        doc[i]["type"] = SERIALbuffer[i].t;
+        doc[i]["data"] = SERIALbuffer[i].d;
+    }
+    serializeJson(doc, UART_IF);
+    UART_IF.println();
+    lenSERIAL = 0;
+}
+
+void releaseMQTT() {
+#ifdef USE_WIFI
+    DBG("Releasing MQTT.");
+    DynamicJsonDocument doc(24576);
+    for (int i = 0; i < lenMQTT; i++) {
+        doc[i]["id"]   = MQTTbuffer[i].id;
+        doc[i]["type"] = MQTTbuffer[i].t;
+        doc[i]["data"] = MQTTbuffer[i].d;
+    }
+    String outgoingString;
+    serializeJson(doc, outgoingString);
+    client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
+    lenMQTT = 0;
+#endif
+}
+
+void reconnect() {
+#ifdef USE_WIFI
+    // Loop until reconnected
+    while (!client.connected()) {
+    // Attempt to connect
+        if (client.connect("FDRS_GATEWAY")) {
+            // Subscribe
+            client.subscribe(TOPIC_COMMAND);
+            break;
+        }
+        DBG("Connecting MQTT.");
+        delay(5000);
+    }
+#endif
+}
+
+
+void begin_espnow() {
+    DBG("Initializing ESP-NOW!");
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
+#if defined(ESP8266)
+    wifi_set_macaddr(STATION_IF, selfAddress);
+    if (esp_now_init() != 0) {
+        return;
+    }
+
+    esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+    esp_now_register_send_cb(ESP8266OnDataSent);
+    esp_now_register_recv_cb(ESP8266OnDataRecv);
+
+    // Register peers
+    #ifdef ESPNOW1_PEER
+    esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+    #endif
+
+    #ifdef ESPNOW2_PEER
+    esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+    #endif
+
+#elif defined(ESP32)
+    esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
+    
+    if(esp_now_init() != ESP_OK) {
+        DBG("Error initializing ESP-NOW");
+        return;
+    }
+
+    esp_now_register_send_cb(ESP32OnDataSent);
+    esp_now_register_recv_cb(ESP32OnDataRecv);
+
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    // Register first peer
+
+    memcpy(peerInfo.peer_addr, broadcast_mac, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        DBG("Failed to add peer bcast");
+        return;
+    }
+#ifdef ESPNOW1_PEER
+    memcpy(peerInfo.peer_addr, ESPNOW1, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        DBG("Failed to add peer 1");
+        return;
+    }
+#endif
+
+#ifdef ESPNOW2_PEER
+    memcpy(peerInfo.peer_addr, ESPNOW2, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        DBG("Failed to add peer 2");
+        return;
+    }
+#endif
+
+#endif
+    DBG(" ESP-NOW Initialized.");
+}
 
