@@ -1,3 +1,6 @@
+#ifndef __FDRS_GATEWAY_H__
+#define __FDRS_GATEWAY_H__
+
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
 #else
@@ -417,3 +420,5 @@ void begin_espnow() {
 #endif
   DBG(" ESP-NOW Initialized.");
 }
+
+#endif
