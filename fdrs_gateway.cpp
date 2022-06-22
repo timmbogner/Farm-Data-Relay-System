@@ -1,13 +1,17 @@
 #include "fdrs_gateway.h"
 
 // #define ESP8266
-#define ESP32
+// #define ESP32
 
-#define USE_WIFI
+// #define USE_WIFI
+
+bool ESP_FDRSGateWay::is_init = false;
+std::vector<DataReading_t> FDRSGateWayBase::_data;
+std::vector<FDRSGateWayBase*> FDRSGateWayBase::_object_list;
 
 uint8_t newData = 0;
 uint8_t ln = 0;
-DataReading theData[256];
+DataReading_t theData[256];
 
 DataReadingBuffer_t ESPNOWGbuffer;
 
@@ -34,13 +38,41 @@ uint32_t timeLORA2 = 0;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 
+void ESP_FDRSGateWay::OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len){
+
+
+    DataReading_t data;
+
+    memcpy(&data, incomingData, sizeof(theData));
+
+    FDRSGateWayBase::add_data(&data);
+
+    // TODO: doe something about this newData
+    // memcpy(&theData, incomingData, sizeof(theData));
+    // memcpy(&incMAC, mac, sizeof(incMAC));
+    // DBG("Incoming ESP-NOW.");
+    // ln = len / sizeof(DataReading_t);
+
+    // if (memcmp(&incMAC, &ESPNOW1, 6) == 0){
+    //     newData = 1;
+    //     return;
+    // }
+
+    // if (memcmp(&incMAC, &ESPNOW2, 6) == 0){
+    //     newData = 2;
+    //     return;
+    // } 
+
+    // newData = 3;
+}
+
 #if defined(ESP8266)
 void ESP8266OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
 }
 
 void ESP8266OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len) {
-    OnDataRecv((uint8_t*)mac,*(const uint8_t *)incomingData,len);
+    ESP_FDRSGateWay::OnDataRecv((uint8_t*)mac,*(const uint8_t *)incomingData,len);
 }
 #endif
 
@@ -50,29 +82,9 @@ void ESP32OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 void ESP32OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-    OnDataRecv((uint8_t*)mac,incomingData,len)
+    ESP_FDRSGateWay::OnDataRecv((uint8_t*)mac,incomingData,len);
 }
 #endif
-
-void OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len){
-
-    memcpy(&theData, incomingData, sizeof(theData));
-    memcpy(&incMAC, mac, sizeof(incMAC));
-    DBG("Incoming ESP-NOW.");
-    ln = len / sizeof(DataReading);
-
-    if (memcmp(&incMAC, &ESPNOW1, 6) == 0){
-        newData = 1;
-        return;
-    }
-
-    if (memcmp(&incMAC, &ESPNOW2, 6) == 0){
-        newData = 2;
-        return;
-    } 
-
-    newData = 3;
-}
 
 void getSerial() {
   String incomingString =  UART_IF.readStringUntil('\n');
@@ -89,8 +101,8 @@ void getSerial() {
     //UART_IF.println(s);
     for (int i = 0; i < s; i++) {
         theData[i].id = doc[i]["id"];
-        theData[i].t = doc[i]["type"];
-        theData[i].d = doc[i]["data"];
+        theData[i].type = doc[i]["type"];
+        theData[i].data = doc[i]["data"];
     }
     ln = s;
     newData = 4;
@@ -115,49 +127,49 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
     //UART_IF.println(s);
     for (int i = 0; i < s; i++) {
         theData[i].id = doc[i]["id"];
-        theData[i].t = doc[i]["type"];
-        theData[i].d = doc[i]["data"];
+        theData[i].type = doc[i]["type"];
+        theData[i].data = doc[i]["data"];
     }
     ln = s;
     newData = 5;
     DBG("Incoming MQTT.");
 }
 
-void getLoRa() {
-#ifdef USE_LORA
-    int packetSize = LoRa.parsePacket();
-    if (packetSize== 0) {
-        return;
-    }
-    uint8_t packet[packetSize];
-    uint8_t incLORAMAC[2];
-    LoRa.readBytes((uint8_t *)&packet, packetSize);
-    //    for (int i = 0; i < packetSize; i++) {
-    //      UART_IF.println(packet[i], HEX);
-    //    }
+// void getLoRa() {
+// #ifdef USE_LORA
+//     int packetSize = LoRa.parsePacket();
+//     if (packetSize== 0) {
+//         return;
+//     }
+//     uint8_t packet[packetSize];
+//     uint8_t incLORAMAC[2];
+//     LoRa.readBytes((uint8_t *)&packet, packetSize);
+//     //    for (int i = 0; i < packetSize; i++) {
+//     //      UART_IF.println(packet[i], HEX);
+//     //    }
 
-    //Check if addressed to this device
-    if (memcmp(&packet, &selfAddress[3], 3) != 0) { 
-        return;    
-    }
+//     //Check if addressed to this device
+//     if (memcmp(&packet, &selfAddress[3], 3) != 0) { 
+//         return;    
+//     }
 
-    memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
-    memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
+//     memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
+//     memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
 
-    //Check if it is from a registered sender
-    if(memcmp(&incLORAMAC, &LoRa1, 2) == 0){ 
-        newData = 7;
-    }     
-    else if(memcmp(&incLORAMAC, &LoRa2, 2) == 0){
-        newData = 8;
-    }
+//     //Check if it is from a registered sender
+//     if(memcmp(&incLORAMAC, &LoRa1, 2) == 0){ 
+//         newData = 7;
+//     }     
+//     else if(memcmp(&incLORAMAC, &LoRa2, 2) == 0){
+//         newData = 8;
+//     }
 
-    newData = 6;
-    ln = (packetSize - 5) / sizeof(DataReading);
+//     newData = 6;
+//     ln = (packetSize - 5) / sizeof(DataReading_t);
     
-    DBG("Incoming LoRa.");
-#endif
-}
+//     DBG("Incoming LoRa.");
+// #endif
+// }
 
 void sendESPNOW(uint8_t address) {
   DBG("Sending ESP-NOW.");
@@ -174,7 +186,7 @@ void sendESPNOW(uint8_t address) {
   }
 #endif
 
-  DataReading thePacket[ln];
+  DataReading_t thePacket[ln];
   int j = 0;
   for (int i = 0; i < ln; i++) {
     if ( j > espnow_size) {
@@ -184,7 +196,7 @@ void sendESPNOW(uint8_t address) {
     thePacket[j] = theData[i];
     j++;
   }
-  esp_now_send(NEWPEER, (uint8_t *) &thePacket, j * sizeof(DataReading));
+  esp_now_send(NEWPEER, (uint8_t *) &thePacket, j * sizeof(DataReading_t));
   esp_now_del_peer(NEWPEER);
 }
 
@@ -193,8 +205,8 @@ void sendSerial() {
     DynamicJsonDocument doc(24576);
     for (int i = 0; i < ln; i++) {
         doc[i]["id"]   = theData[i].id;
-        doc[i]["type"] = theData[i].t;
-        doc[i]["data"] = theData[i].d;
+        doc[i]["type"] = theData[i].type;
+        doc[i]["data"] = theData[i].data;
     }
     serializeJson(doc, UART_IF);
     UART_IF.println();
@@ -211,8 +223,8 @@ void sendMQTT() {
     DynamicJsonDocument doc(24576);
     for (int i = 0; i < ln; i++) {
         doc[i]["id"]   = theData[i].id;
-        doc[i]["type"] = theData[i].t;
-        doc[i]["data"] = theData[i].d;
+        doc[i]["type"] = theData[i].type;
+        doc[i]["data"] = theData[i].data;
     }
     String outgoingString;
     serializeJson(doc, outgoingString);
@@ -225,55 +237,55 @@ void bufferESPNOW(uint8_t interface) {
 
   switch (interface) {
     case 0:
-        memcpy(&ESPNOWGbuffer.buffer[eSPNOWGbuffer.len],&theData[0],ln);
-        eSPNOWGbuffer.len +=  ln;       
+        memcpy(&ESPNOWGbuffer.buffer[ESPNOWGbuffer.len],&theData[0],ln);
+        ESPNOWGbuffer.len +=  ln;       
         break;
     case 1:
-        memcpy(&ESPNOW1buffer.buffer[eSPNOW1buffer.len],&theData[0],ln);
-        eSPNOW1buffer.len +=  ln;
+        memcpy(&ESPNOW1buffer.buffer[ESPNOW1buffer.len],&theData[0],ln);
+        ESPNOW1buffer.len +=  ln;
         break;
     case 2:
-        memcpy(&ESPNOW2buffer.buffer[eSPNOW2buffer.len],&theData[0],ln);
-        eSPNOW2buffer.len +=  ln;
+        memcpy(&ESPNOW2buffer.buffer[ESPNOW2buffer.len],&theData[0],ln);
+        ESPNOW2buffer.len +=  ln;
         break;
     }
 }
 
 void bufferSerial() {
     DBG("Buffering Serial.");
-    memcpy(&SERIALbuffer.buffer[sERIALbuffer.len],&theData[0],ln);
-    sERIALbuffer.len += ln;
-    //UART_IF.println("SENDSERIAL:" + String(sERIALbuffer.len) + " ");
+    memcpy(&SERIALbuffer.buffer[SERIALbuffer.len],&theData[0],ln);
+    SERIALbuffer.len += ln;
+    //UART_IF.println("SENDSERIAL:" + String(SERIALbuffer.len) + " ");
 }
 
 void bufferMQTT() {
     DBG("Buffering MQTT.");
-    memcpy(&MQTTbuffer.buffer[mQTTbuffer.len],&theData[0],ln);
-    mQTTbuffer.len += ln;
+    memcpy(&MQTTbuffer.buffer[MQTTbuffer.len],&theData[0],ln);
+    MQTTbuffer.len += ln;
 }
 
 void bufferLoRa(uint8_t interface) {
   DBG("Buffering LoRa.");
   switch (interface) {
     case 0:
-        memcpy(&LORAGbuffer.buffer[lORAGbuffer.len],&theData[0],ln);
-        lORAGbuffer.len += ln;
+        memcpy(&LORAGbuffer.buffer[LORAGbuffer.len],&theData[0],ln);
+        LORAGbuffer.len += ln;
       break;
     case 1:
-        memcpy(&LORA1buffer.buffer[lORA1buffer.len],&theData[0],ln);
-        lORA1buffer.len += ln;
+        memcpy(&LORA1buffer.buffer[LORA1buffer.len],&theData[0],ln);
+        LORA1buffer.len += ln;
         break;
     case 2:
-        memcpy(&LORA2buffer.buffer[lORA2buffer.len],&theData[0],ln);
-        lORA2buffer.len += ln;
+        memcpy(&LORA2buffer.buffer[LORA2buffer.len],&theData[0],ln);
+        LORA2buffer.len += ln;
         break;
   }
 }
 
 
-void espSend(uint8_t *mac,DataReading *buffer, uint16_t *len){
+void espSend(uint8_t *mac,DataReading_t *buffer, uint16_t *len){
 
-    DataReading thePacket[espnow_size];
+    DataReading_t thePacket[espnow_size];
     int j = 0;
     for (int i = 0; i < *len; i++) {
         if ( j > espnow_size) {
@@ -283,7 +295,7 @@ void espSend(uint8_t *mac,DataReading *buffer, uint16_t *len){
         thePacket[j] = buffer[i];
         j++;
     }
-    esp_now_send(mac, (uint8_t *) &thePacket, j * sizeof(DataReading));
+    esp_now_send(mac, (uint8_t *) &thePacket, j * sizeof(DataReading_t));
     *len = 0;
 }
 
@@ -291,94 +303,94 @@ void releaseESPNOW(uint8_t interface) {
     DBG("Releasing ESP-NOW.");
     switch (interface) {
         case 0:
-            espSend(broadcast_mac,ESPNOWGbuffer.buffer,&eSPNOWGbuffer.len);    
+            //espSend(broadcast_mac,ESPNOWGbuffer.buffer,&ESPNOWGbuffer.len);    
             break;
         case 1:
-            espSend(ESPNOW1,ESPNOW1buffer.buffer,&eSPNOW1buffer.len);
+            //espSend(ESPNOW1,ESPNOW1buffer.buffer,&ESPNOW1buffer.len);
             break;
         case 2:
-            espSend(ESPNOW2,ESPNOW2buffer.buffer,&eSPNOW2buffer.len);
+            //espSend(ESPNOW2,ESPNOW2buffer.buffer,&ESPNOW2buffer.len);
             break;
     }
 }
 
 
-void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
-#ifdef USE_LORA    
-  DBG("Transmitting LoRa.");
+// void transmitLoRa(uint8_t* mac, DataReading_t * packet, uint8_t len) {
+// #ifdef USE_LORA    
+//   DBG("Transmitting LoRa.");
 
-  uint8_t pkt[5 + (len * sizeof(DataReading))];
-  memcpy(&pkt, mac, 3);
-  memcpy(&pkt[3], &selfAddress[4], 2);
-  memcpy(&pkt[5], packet, len * sizeof(DataReading));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
-#endif
-}
-
-
-void LoRaSend(uint8_t *mac,DataReading *buffer, uint16_t *len){
-
-    DataReading thePacket[espnow_size];
-    int j = 0;
-    for (int i = 0; i < *len; i++) {
-        if ( j > espnow_size) {
-            j = 0;
-            transmitLoRa(mac, thePacket, j);
-        }
-        thePacket[j] = buffer[i];
-        j++;
-    }
-    transmitLoRa(broadcast_mac, thePacket, j);
-    *len = 0;
-}
+//   uint8_t pkt[5 + (len * sizeof(DataReading_t))];
+//   memcpy(&pkt, mac, 3);
+//   memcpy(&pkt[3], &selfAddress[4], 2);
+//   memcpy(&pkt[5], packet, len * sizeof(DataReading_t));
+//   LoRa.beginPacket();
+//   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+//   LoRa.endPacket();
+// #endif
+// }
 
 
-void releaseLoRa(uint8_t interface) {
-#ifdef USE_LORA
-  DBG("Releasing LoRa.");
+// void LoRaSend(uint8_t *mac,DataReading_t *buffer, uint16_t *len){
 
-    switch (interface) {
-    case 0:     
-        LoRaSend(broadcast_mac,LORAGbuffer.buffer,&lORAGbuffer.len); 
-        break;
-    case 1:
-        LoRaSend(LoRa1,LORA1buffer.buffer,&lORA1buffer.len); 
-        break;
-    case 2:
-        LoRaSend(LoRa2,LORA2buffer.buffer,&lORA2buffer.len); 
-        break;
-    }
-#endif
-}
+//     DataReading_t thePacket[espnow_size];
+//     int j = 0;
+//     for (int i = 0; i < *len; i++) {
+//         if ( j > espnow_size) {
+//             j = 0;
+//             transmitLoRa(mac, thePacket, j);
+//         }
+//         thePacket[j] = buffer[i];
+//         j++;
+//     }
+//     transmitLoRa(broadcast_mac, thePacket, j);
+//     *len = 0;
+// }
+
+
+// void releaseLoRa(uint8_t interface) {
+// #ifdef USE_LORA
+//   DBG("Releasing LoRa.");
+
+//     switch (interface) {
+//     case 0:     
+//         LoRaSend(broadcast_mac,LORAGbuffer.buffer,&LORAGbuffer.len); 
+//         break;
+//     case 1:
+//         LoRaSend(LoRa1,LORA1buffer.buffer,&LORA1buffer.len); 
+//         break;
+//     case 2:
+//         LoRaSend(LoRa2,LORA2buffer.buffer,&LORA2buffer.len); 
+//         break;
+//     }
+// #endif
+// }
 
 void releaseSerial() {
     DBG("Releasing Serial.");
     DynamicJsonDocument doc(24576);
-    for (int i = 0; i < sERIALbuffer.len; i++) {
+    for (int i = 0; i < SERIALbuffer.len; i++) {
         doc[i]["id"]   = SERIALbuffer.buffer[i].id;
-        doc[i]["type"] = SERIALbuffer.buffer[i].t;
-        doc[i]["data"] = SERIALbuffer.buffer[i].d;
+        doc[i]["type"] = SERIALbuffer.buffer[i].type;
+        doc[i]["data"] = SERIALbuffer.buffer[i].data;
     }
     serializeJson(doc, UART_IF);
     UART_IF.println();
-    sERIALbuffer.len = 0;
+    SERIALbuffer.len = 0;
 }
 
 void releaseMQTT() {
 #ifdef USE_WIFI
     DBG("Releasing MQTT.");
     DynamicJsonDocument doc(24576);
-    for (int i = 0; i < mQTTbuffer.len; i++) {
+    for (int i = 0; i < MQTTbuffer.len; i++) {
         doc[i]["id"]   = MQTTbuffer.buffer[i].id;
-        doc[i]["type"] = MQTTbuffer.buffer[i].t;
-        doc[i]["data"] = MQTTbuffer.buffer[i].d;
+        doc[i]["type"] = MQTTbuffer.buffer[i].type;
+        doc[i]["data"] = MQTTbuffer.buffer[i].data;
     }
     String outgoingString;
     serializeJson(doc, outgoingString);
     client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
-    mQTTbuffer.len = 0;
+    MQTTbuffer.len = 0;
 #endif
 }
 
@@ -398,13 +410,78 @@ void reconnect() {
 #endif
 }
 
-void begin_espnow() {
-    DBG("Initializing ESP-NOW!");
+FDRSGateWayBase::FDRSGateWayBase(uint32_t send_delay): _send_delay(send_delay){
+    _object_list.push_back(this);
+}
+
+FDRSGateWayBase::~FDRSGateWayBase(){
+    if(_object_list.size() == 0){
+        return;
+    }
+    _object_list.erase(std::find(_object_list.begin(),_object_list.end(),this));
+}
+
+
+void FDRSGateWayBase::release(void){
+
+    // FDRSGateWayBase::_data;
+    // FDRSGateWayBase::_object_list;
+
+    for(int i =0; i < _object_list.size();i++){
+        _object_list[i]->send(_data);
+    }
+
+}
+
+
+void FDRSGateWayBase::add_data(DataReading_t *data){
+    _data.push_back(*data);
+}
+
+ESP_FDRSGateWay::ESP_FDRSGateWay(uint8_t broadcast_mac[6],uint8_t inturnal_mac[5], uint32_t send_delay) : FDRSGateWayBase(send_delay){
+
+    memcpy(_broadcast_mac,broadcast_mac,6);
+    memcpy(_inturnal_mac,inturnal_mac,6);
+
+}
+
+void ESP_FDRSGateWay::init(void){
+
+#if defined(ESP8266)
+    wifi_set_macaddr(STATION_IF, _inturnal_mac);
+#endif
+
+#if defined(ESP32)
+    esp_wifi_set_mac(WIFI_IF_STA, &_inturnal_mac[0]);
+#endif
+
+    ESP_FDRSGateWay::setup();
+
+#if defined(ESP32)
+    esp_now_peer_info_t peerInfo;
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    // Register first peer
+    memcpy(peerInfo.peer_addr, _broadcast_mac, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        DBG("Failed to add peer bcast");
+        return;
+    }
+#endif
+
+}
+
+void ESP_FDRSGateWay::setup(void){
+    if(is_init){
+        return;
+    }
+    is_init = true;
+    
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
-    // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
+
 #if defined(ESP8266)
-    wifi_set_macaddr(STATION_IF, selfAddress);
+    
     if (esp_now_init() != 0) {
         return;
     }
@@ -412,18 +489,10 @@ void begin_espnow() {
     esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
     esp_now_register_send_cb(ESP8266OnDataSent);
     esp_now_register_recv_cb(ESP8266OnDataRecv);
+#endif
 
-    // Register peers
-    #ifdef ESPNOW1_PEER
-    esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-    #endif
-
-    #ifdef ESPNOW2_PEER
-    esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-    #endif
-
-#elif defined(ESP32)
-    esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
+#if defined(ESP32)
+    
     
     if(esp_now_init() != ESP_OK) {
         DBG("Error initializing ESP-NOW");
@@ -433,32 +502,57 @@ void begin_espnow() {
     esp_now_register_send_cb(ESP32OnDataSent);
     esp_now_register_recv_cb(ESP32OnDataRecv);
 
+#endif
+
+    DBG("ESP-NOW Initialized.");
+
+}
+
+void ESP_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
+#if defined(ESP8266)
+    esp_now_add_peer(peer_mac, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+#endif
+
+#if defined(ESP32)
+    esp_now_peer_info_t peerInfo;
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
-    // Register first peer
-
-    memcpy(peerInfo.peer_addr, broadcast_mac, 6);
-    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        DBG("Failed to add peer bcast");
-        return;
-    }
-#ifdef ESPNOW1_PEER
-    memcpy(peerInfo.peer_addr, ESPNOW1, 6);
+    memcpy(peerInfo.peer_addr, peer_mac, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) {
         DBG("Failed to add peer 1");
         return;
     }
 #endif
 
-#ifdef ESPNOW2_PEER
-    memcpy(peerInfo.peer_addr, ESPNOW2, 6);
-    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        DBG("Failed to add peer 2");
-        return;
-    }
-#endif
+}
 
-#endif
-    DBG(" ESP-NOW Initialized.");
+void ESP_FDRSGateWay::send(std::vector<DataReading_t> data){
+
+    const uint8_t espnow_size = 250 / sizeof(DataReading_t);
+
+    //add unknow peers
+    uint8_t n = data.size() / espnow_size;
+    uint8_t m = data.size() % espnow_size;
+    int i = 0;
+
+    DataReading_t buffer1[n];
+    for(i = 0; i < n; i++){
+        buffer1[i] = data[i];
+    }
+
+    esp_now_send(mac, (uint8_t *) buffer1, n * sizeof(DataReading_t));
+
+    for(i = 0; i < m; i++){
+        buffer1[i] = data[i + n];
+    }
+
+    esp_now_send(mac, (uint8_t *) buffer1, m * sizeof(DataReading_t));
+
+
+    //do send loop
+
+    //remove unknow peers
+
+
 }
 

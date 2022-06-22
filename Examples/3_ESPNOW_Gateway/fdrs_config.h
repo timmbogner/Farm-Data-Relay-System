@@ -5,6 +5,7 @@
 //#include <fdrs_globals.h> //Uncomment if you install the globals file
 #define DEBUG
 
+
 #define UNIT_MAC     0x03  // The address of this gateway
 
 //Actions -- Define what happens when a packet arrives at each interface:
@@ -19,8 +20,7 @@
 //#define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses
-#define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
-#define ESPNOW2_PEER  0x0F  // ESPNOW2 Address
+
 #define LORA1_PEER    0x0E  // LoRa1 Address
 #define LORA2_PEER    0x0F  // LoRa2 Address
 

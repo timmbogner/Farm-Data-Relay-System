@@ -24,16 +24,36 @@
 #ifdef USE_LED
 #include <FastLED.h>
 #endif
-#include "fdrs_functions.h"
+#include "fdrs_gateway.h"
+#include "fdrs_config.h"
+
+uint8_t newData = 0;
+
+#define ESPNOW_PEER_1  0x0E  // ESPNOW1 Address 
+#define ESPNOW_PEER_2  0x0F  // ESPNOW2 Address
+
+uint8_t broadcast_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t selfAddress[6] =   {MAC_PREFIX, UNIT_MAC};
+
+
+#ifdef ESPNOW_PEER_1
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW_PEER_1};
+#else
+uint8_t ESPNOW1[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#endif
+#ifdef ESPNOW_PEER_2
+uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW_PEER_2};
+#else
+uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#endif
+
+
+
+
+ESP_FDRSGateWay ESPNow(broadcast_mac,selfAddress,1000);
 
 void setup() {
-#if defined(ESP8266)
-  Serial.begin(115200);
-#elif defined(ESP32)
-  Serial.begin(115200);
-  UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
-#endif
-  DBG("Address:" + String (UNIT_MAC, HEX));
+
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   leds[0] = CRGB::Blue;
@@ -57,18 +77,29 @@ void setup() {
   DBG("MQTT Connected");
   client.setCallback(mqtt_callback);
 #else
-  begin_espnow();
+  ESPNow.init();
+
+#ifdef ESPNOW_PEER_1
+  ESPNow.add_peer(ESPNOW1);
 #endif
-#ifdef USE_LORA
-  DBG("Initializing LoRa!");
-  SPI.begin(SCK, MISO, MOSI, SS);
-  LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(FDRS_BAND)) {
-    while (1);
-  }
-  LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa initialized.");
+
+#ifdef ESPNOW_PEER_2
+  ESPNow.add_peer(ESPNOW2);
 #endif
+
+
+#endif
+
+// #ifdef USE_LORA
+//   DBG("Initializing LoRa!");
+//   SPI.begin(SCK, MISO, MOSI, SS);
+//   LoRa.setPins(SS, RST, DIO0);
+//   if (!LoRa.begin(FDRS_BAND)) {
+//     while (1);
+//   }
+//   LoRa.setSpreadingFactor(FDRS_SF);
+//   DBG(" LoRa initialized.");
+// #endif
   
   //DBG(sizeof(DataReading));
 #ifdef USE_WIFI
@@ -107,24 +138,25 @@ void loop() {
     if (lenMQTT    > 0) releaseMQTT();
   }
   #endif
-  #ifdef LORAG_DELAY
-  if (millis() > timeLORAG) {
-    timeLORAG += LORAG_DELAY;
-    if (lenLORAG    > 0) releaseLoRa(0);
-  }
-  #endif
-  #ifdef LORA1_DELAY
-  if (millis() > timeLORA1) {
-    timeLORA1 += LORA1_DELAY;
-    if (lenLORA1    > 0) releaseLoRa(1);
-  }
-  #endif
-  #ifdef LORA2_DELAY
-  if (millis() > timeLORA2) {
-    timeLORA2 += LORA2_DELAY;
-    if (lenLORA2    > 0) releaseLoRa(2);
-  }
-  #endif
+
+  // #ifdef LORAG_DELAY
+  // if (millis() > timeLORAG) {
+  //   timeLORAG += LORAG_DELAY;
+  //   if (lenLORAG    > 0) releaseLoRa(0);
+  // }
+  // #endif
+  // #ifdef LORA1_DELAY
+  // if (millis() > timeLORA1) {
+  //   timeLORA1 += LORA1_DELAY;
+  //   if (lenLORA1    > 0) releaseLoRa(1);
+  // }
+  // #endif
+  // #ifdef LORA2_DELAY
+  // if (millis() > timeLORA2) {
+  //   timeLORA2 += LORA2_DELAY;
+  //   if (lenLORA2    > 0) releaseLoRa(2);
+  // }
+  // #endif
 
   while (UART_IF.available()) {
     getSerial();

@@ -2,6 +2,14 @@
 #define __FDRS_GATEWAY_H__
 
 #include "fdrs_types.h"
+#include <string.h>
+#include <vector>
+#include <memory>
+#include <algorithm>
+#include <esp_now.h>
+#include <WiFi.h>
+#include <esp_wifi.h>
+#include "ArduinoJson.h"
 
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
@@ -35,34 +43,30 @@
 
 
 
-const uint8_t espnow_size = 250 / sizeof(DataReading);
-const uint8_t lora_size   = 256 / sizeof(DataReading);
-const uint8_t mac_prefix[] = {MAC_PREFIX};
+const uint8_t espnow_size = 250 / sizeof(DataReading_t);
+const uint8_t lora_size   = 256 / sizeof(DataReading_t);
+// const uint8_t mac_prefix[] = {MAC_PREFIX};
 
-#ifdef ESP32
-esp_now_peer_info_t peerInfo;
-#endif
+// uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+// uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
+// uint8_t incMAC[6];
 
-uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
-uint8_t incMAC[6];
+// #ifdef ESPNOW1_PEER
+// uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
+// #else
+// uint8_t ESPNOW1[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+// #endif
+// #ifdef ESPNOW2_PEER
+// uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_PEER};
+// #else
+// uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+// #endif
 
-#ifdef ESPNOW1_PEER
-uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
-#else
-uint8_t ESPNOW1[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-#endif
-#ifdef ESPNOW2_PEER
-uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_PEER};
-#else
-uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-#endif
-
-#ifdef USE_LORA
-uint8_t LoRa1[] =         {mac_prefix[3], mac_prefix[4], LORA1_PEER};
-uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
-//uint8_t LoRaAddress[] = {0x42, 0x00};
-#endif
+// #ifdef USE_LORA
+// uint8_t LoRa1[] =         {mac_prefix[3], mac_prefix[4], LORA1_PEER};
+// uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
+// //uint8_t LoRaAddress[] = {0x42, 0x00};
+// #endif
 
 
 WiFiClient espClient;
@@ -92,11 +96,11 @@ void bufferESPNOW(uint8_t interface);
 
 void bufferSerial();
 
-void bufferLoRa(uint8_t interface)
+void bufferLoRa(uint8_t interface);
 
 void releaseESPNOW(uint8_t interface);
 
-void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len);
+void transmitLoRa(uint8_t* mac, DataReading_t * packet, uint8_t len);
 
 void releaseLoRa(uint8_t interface);
 
@@ -107,5 +111,48 @@ void releaseMQTT();
 void reconnect();
 
 void begin_espnow();
+
+
+class FDRSGateWayBase{
+public:
+
+    FDRSGateWayBase(uint32_t send_delay);
+    ~FDRSGateWayBase();
+
+    static void add_data(DataReading_t *data);
+
+    void release(void);
+
+private:
+    uint32_t _send_delay;
+    static uint32_t peer_id;
+    static std::vector<DataReading_t> _data;
+    static std::vector<FDRSGateWayBase*> _object_list;
+
+    virtual void send(std::vector<DataReading_t> data) = 0;
+};
+
+class ESP_FDRSGateWay: public FDRSGateWayBase{
+public:
+    ESP_FDRSGateWay(uint8_t broadcast_mac[6],uint8_t inturnal_mac[5], uint32_t send_delay);
+
+    void init(void);
+
+    void add_peer(uint8_t peer_mac[6]);
+    static void OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len);
+
+private:
+
+    static bool is_init;
+    uint32_t _send_delay;
+    uint8_t _broadcast_mac[6];
+    uint8_t _inturnal_mac[6];
+    std::vector<uint8_t[6]> peer_list;
+
+    static void setup(void);
+
+    virtual void send(std::vector<DataReading_t> data) override;
+
+};
 
 #endif
