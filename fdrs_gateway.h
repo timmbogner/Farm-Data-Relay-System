@@ -10,6 +10,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include "ArduinoJson.h"
+#include "PubSubClient.h"
 
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
@@ -86,8 +87,6 @@ void mqtt_callback(char* topic, byte * message, unsigned int length);
 
 void getLoRa();
 
-void sendESPNOW(uint8_t address);
-
 void sendSerial();
 
 void sendMQTT();
@@ -97,8 +96,6 @@ void bufferESPNOW(uint8_t interface);
 void bufferSerial();
 
 void bufferLoRa(uint8_t interface);
-
-void releaseESPNOW(uint8_t interface);
 
 void transmitLoRa(uint8_t* mac, DataReading_t * packet, uint8_t len);
 
@@ -110,14 +107,14 @@ void releaseMQTT();
 
 void reconnect();
 
-void begin_espnow();
-
 
 class FDRSGateWayBase{
 public:
 
     FDRSGateWayBase(uint32_t send_delay);
     ~FDRSGateWayBase();
+
+    virtual void init(void) = 0;
 
     static void add_data(DataReading_t *data);
 
@@ -136,7 +133,7 @@ class ESP_FDRSGateWay: public FDRSGateWayBase{
 public:
     ESP_FDRSGateWay(uint8_t broadcast_mac[6],uint8_t inturnal_mac[5], uint32_t send_delay);
 
-    void init(void);
+    void init(void) override;
 
     void add_peer(uint8_t peer_mac[6]);
     void remove_peer(uint8_t peer_mac[6]);
@@ -153,10 +150,44 @@ private:
 
     static void setup(void);
 
-    virtual void send(std::vector<DataReading_t> data) override;
+    void send(std::vector<DataReading_t> data) override;
 
     void list_peer(uint8_t peer_mac[6]);
     void unlist_peer(uint8_t peer_mac[6]);
+
+};
+
+
+class MQTT_FDRSGateWay: public FDRSGateWayBase{
+
+public:
+
+    MQTT_FDRSGateWay(uint32_t send_delay, char *ssid, char *password,char *server,int port = 1883);
+    ~MQTT_FDRSGateWay(void);
+
+    void init(void) override;
+
+private:
+    #define TOPIC_DATA "fdrs/data"
+    #define TOPIC_STATUS "fdrs/status"
+    #define TOPIC_COMMAND "fdrs/command"
+
+    static void mqtt_callback(char* topic, byte * message, unsigned int length);
+
+    char *_ssid;
+    char *_password;
+    char *_server;
+    int _port;
+    WiFiClient espClient;
+    PubSubClient *_client;
+
+    static bool is_init;
+
+    static void setup(void);
+
+    void reconnect();
+    void send(std::vector<DataReading_t> data) override;
+
 
 };
 

@@ -27,8 +27,6 @@
 #include "fdrs_gateway.h"
 #include "fdrs_config.h"
 
-extern uint8_t newData;
-
 #define ESPNOW_PEER_1  0x0E  // ESPNOW1 Address 
 #define ESPNOW_PEER_2  0x0F  // ESPNOW2 Address
 
@@ -172,33 +170,33 @@ void loop() {
   }
   client.loop();
 #endif
-  if (newData) {
-    switch (newData) {
-      case 1:     //ESP-NOW #1
-        ESPNOW1_ACT
-        break;
-      case 2:     //ESP-NOW #2
-        ESPNOW2_ACT
-        break;
-      case 3:     //ESP-NOW General
-        ESPNOWG_ACT
-        break;
-      case 4:     //Serial
-        SERIAL_ACT
-        break;
-      case 5:     //MQTT
-        MQTT_ACT
-        break;
-      case 6:     //LoRa General
-        LORAG_ACT
-        break;
-      case 7:     //LoRa #1
-        LORA1_ACT
-        break;
-      case 8:     //LoRa #2
-        LORA2_ACT
-        break;
-    }
-    newData = 0;
-  }
+  // if (newData) {
+  //   switch (newData) {
+  //     case 1:     //ESP-NOW #1
+  //       ESPNOW1_ACT
+  //       break;
+  //     case 2:     //ESP-NOW #2
+  //       ESPNOW2_ACT
+  //       break;
+  //     case 3:     //ESP-NOW General
+  //       ESPNOWG_ACT
+  //       break;
+  //     case 4:     //Serial
+  //       SERIAL_ACT
+  //       break;
+  //     case 5:     //MQTT
+  //       MQTT_ACT
+  //       break;
+  //     case 6:     //LoRa General
+  //       LORAG_ACT
+  //       break;
+  //     case 7:     //LoRa #1
+  //       LORA1_ACT
+  //       break;
+  //     case 8:     //LoRa #2
+  //       LORA2_ACT
+  //       break;
+  //   }
+  //   newData = 0;
+  // }
 }

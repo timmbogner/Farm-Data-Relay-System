@@ -5,23 +5,18 @@
 
 // #define USE_WIFI
 
-bool ESP_FDRSGateWay::is_init = false;
 std::vector<DataReading_t> FDRSGateWayBase::_data;
 std::vector<FDRSGateWayBase*> FDRSGateWayBase::_object_list;
+
+bool ESP_FDRSGateWay::is_init = false;
 std::vector<ESP_Peer_t> ESP_FDRSGateWay::peer_list;
 std::vector<ESP_Peer_t> ESP_FDRSGateWay::unknow_peer;
+
+bool MQTT_FDRSGateWay::is_init = false;
 
 uint8_t newData = 0;
 uint8_t ln = 0;
 DataReading_t theData[256];
-
-DataReadingBuffer_t ESPNOWGbuffer;
-
-DataReadingBuffer_t ESPNOW1buffer;
-uint32_t timeESPNOW1 = 0;
-
-DataReadingBuffer_t ESPNOW2buffer;
-uint32_t timeESPNOW2 = 0;
 
 DataReadingBuffer_t SERIALbuffer;
 uint32_t timeSERIAL = 0;
@@ -174,34 +169,7 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 // #endif
 // }
 
-void sendESPNOW(uint8_t address) {
-  DBG("Sending ESP-NOW.");
-  uint8_t NEWPEER[] = {MAC_PREFIX, address};
-#if defined(ESP32)
-  esp_now_peer_info_t peerInfo;
-  peerInfo.ifidx = WIFI_IF_STA;
-  peerInfo.channel = 0;
-  peerInfo.encrypt = false;
-  memcpy(peerInfo.peer_addr, NEWPEER, 6);
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer");
-    return;
-  }
-#endif
 
-  DataReading_t thePacket[ln];
-  int j = 0;
-  for (int i = 0; i < ln; i++) {
-    if ( j > espnow_size) {
-      j = 0;
-      esp_now_send(NEWPEER, (uint8_t *) &thePacket, sizeof(thePacket));
-    }
-    thePacket[j] = theData[i];
-    j++;
-  }
-  esp_now_send(NEWPEER, (uint8_t *) &thePacket, j * sizeof(DataReading_t));
-  esp_now_del_peer(NEWPEER);
-}
 
 void sendSerial() {
     DBG("Sending Serial.");
@@ -235,24 +203,6 @@ void sendMQTT() {
 #endif
 }
 
-void bufferESPNOW(uint8_t interface) {
-  DBG("Buffering ESP-NOW.");
-
-  switch (interface) {
-    case 0:
-        memcpy(&ESPNOWGbuffer.buffer[ESPNOWGbuffer.len],&theData[0],ln);
-        ESPNOWGbuffer.len +=  ln;       
-        break;
-    case 1:
-        memcpy(&ESPNOW1buffer.buffer[ESPNOW1buffer.len],&theData[0],ln);
-        ESPNOW1buffer.len +=  ln;
-        break;
-    case 2:
-        memcpy(&ESPNOW2buffer.buffer[ESPNOW2buffer.len],&theData[0],ln);
-        ESPNOW2buffer.len +=  ln;
-        break;
-    }
-}
 
 void bufferSerial() {
     DBG("Buffering Serial.");
@@ -283,38 +233,6 @@ void bufferLoRa(uint8_t interface) {
         LORA2buffer.len += ln;
         break;
   }
-}
-
-
-void espSend(uint8_t *mac,DataReading_t *buffer, uint16_t *len){
-
-    DataReading_t thePacket[espnow_size];
-    int j = 0;
-    for (int i = 0; i < *len; i++) {
-        if ( j > espnow_size) {
-            j = 0;
-            esp_now_send(mac, (uint8_t *) &thePacket, sizeof(thePacket));
-        }
-        thePacket[j] = buffer[i];
-        j++;
-    }
-    esp_now_send(mac, (uint8_t *) &thePacket, j * sizeof(DataReading_t));
-    *len = 0;
-}
-
-void releaseESPNOW(uint8_t interface) {
-    DBG("Releasing ESP-NOW.");
-    switch (interface) {
-        case 0:
-            //espSend(broadcast_mac,ESPNOWGbuffer.buffer,&ESPNOWGbuffer.len);    
-            break;
-        case 1:
-            //espSend(ESPNOW1,ESPNOW1buffer.buffer,&ESPNOW1buffer.len);
-            break;
-        case 2:
-            //espSend(ESPNOW2,ESPNOW2buffer.buffer,&ESPNOW2buffer.len);
-            break;
-    }
 }
 
 
@@ -424,24 +342,22 @@ FDRSGateWayBase::~FDRSGateWayBase(){
     _object_list.erase(std::find(_object_list.begin(),_object_list.end(),this));
 }
 
-
 void FDRSGateWayBase::release(void){
-
-    // FDRSGateWayBase::_data;
-    // FDRSGateWayBase::_object_list;
 
     for(int i =0; i < _object_list.size();i++){
         _object_list[i]->send(_data);
     }
+    _data.clear();
 
 }
-
 
 void FDRSGateWayBase::add_data(DataReading_t *data){
     _data.push_back(*data);
 }
 
-ESP_FDRSGateWay::ESP_FDRSGateWay(uint8_t broadcast_mac[6],uint8_t inturnal_mac[5], uint32_t send_delay) : FDRSGateWayBase(send_delay){
+ESP_FDRSGateWay::ESP_FDRSGateWay(uint8_t broadcast_mac[6],uint8_t inturnal_mac[5], uint32_t send_delay) : 
+                                FDRSGateWayBase(send_delay)
+{
 
     memcpy(_broadcast_mac,broadcast_mac,6);
     memcpy(_inturnal_mac,inturnal_mac,6);
@@ -604,3 +520,104 @@ void ESP_FDRSGateWay::send(std::vector<DataReading_t> data){
     
 }
 
+
+
+MQTT_FDRSGateWay::MQTT_FDRSGateWay(uint32_t send_delay,char *ssid, char *password,char *server,int port):
+                                    FDRSGateWayBase(send_delay),
+                                    _ssid(ssid),
+                                    _password(password),
+                                    _server(server),
+                                    _port(port)
+{
+
+    _client = new PubSubClient(espClient);
+
+}
+
+MQTT_FDRSGateWay::~MQTT_FDRSGateWay(void){
+    delete _client;
+}
+
+void MQTT_FDRSGateWay::mqtt_callback(char* topic, byte * message, unsigned int length){
+
+    //No point in reading topics that are not data.
+    if(strcmp(TOPIC_DATA,topic) != 0){
+        return;
+    }
+
+    String incomingString;
+    DBG(topic);
+    for (int i = 0; i < length; i++) {
+        incomingString += (char)message[i];
+    }
+    StaticJsonDocument<2048> doc;
+    DeserializationError error = deserializeJson(doc, incomingString);
+    if (error) {    // Test if parsing succeeds.
+        DBG("json parse err");
+        DBG(incomingString);
+        return;
+    }
+    int s = doc.size();
+    //UART_IF.println(s);
+    DataReading_t data;
+    memset(&data,0,sizeof(DataReading_t));
+    for (int i = 0; i < s; i++) {
+        data.id = doc[i]["id"];
+        data.type = doc[i]["type"];
+        data.data = doc[i]["data"];
+        FDRSGateWayBase::add_data(&data);
+        memset(&data,0,sizeof(DataReading_t));
+    }
+    ln = s;
+    newData = 5;
+    DBG("Incoming MQTT.");
+    
+}
+
+void MQTT_FDRSGateWay::init(void){
+    delay(10);
+    WiFi.begin(_ssid, _password);
+    while (WiFi.status() != WL_CONNECTED) {
+        DBG("Connecting to WiFi... ");
+        DBG(_ssid);
+
+        delay(500);
+    }
+    DBG("WiFi Connected");
+    _client->setServer(_server, _port);
+    if (!_client->connected()) {
+        DBG("Connecting MQTT...");
+        reconnect();
+    }
+    DBG("MQTT Connected");
+    _client->setCallback(MQTT_FDRSGateWay::mqtt_callback);
+}
+
+void MQTT_FDRSGateWay::reconnect() {
+    // Loop until reconnected
+    while (!_client->connected()) {
+    // Attempt to connect
+        if (_client->connect("FDRS_GATEWAY")) {
+            // Subscribe
+            _client->subscribe(TOPIC_COMMAND);
+            break;
+        }
+        DBG("Connecting MQTT.");
+        delay(5000);
+    }
+}
+
+void MQTT_FDRSGateWay::send(std::vector<DataReading_t> data) {
+
+    DBG("Releasing MQTT.");
+    DynamicJsonDocument doc(24576);
+    for (int i = 0; i < data.size(); i++) {
+        doc[i]["id"]   = data[i].id;
+        doc[i]["type"] = data[i].type;
+        doc[i]["data"] = data[i].data;
+    }
+    String outgoingString;
+    serializeJson(doc, outgoingString);
+    _client->publish(TOPIC_DATA, (char*) outgoingString.c_str());
+
+}
