@@ -203,7 +203,6 @@ void sendMQTT() {
 #endif
 }
 
-
 void bufferSerial() {
     DBG("Buffering Serial.");
     memcpy(&SERIALbuffer.buffer[SERIALbuffer.len],&theData[0],ln);
@@ -520,9 +519,7 @@ void ESP_FDRSGateWay::send(std::vector<DataReading_t> data){
     
 }
 
-
-
-MQTT_FDRSGateWay::MQTT_FDRSGateWay(uint32_t send_delay,char *ssid, char *password,char *server,int port):
+MQTT_FDRSGateWay::MQTT_FDRSGateWay(uint32_t send_delay, const char *ssid, const char *password, const char *server,int port):
                                     FDRSGateWayBase(send_delay),
                                     _ssid(ssid),
                                     _password(password),
@@ -591,6 +588,8 @@ void MQTT_FDRSGateWay::init(void){
     }
     DBG("MQTT Connected");
     _client->setCallback(MQTT_FDRSGateWay::mqtt_callback);
+
+    _client->publish(TOPIC_STATUS, "FDRS initialized");
 }
 
 void MQTT_FDRSGateWay::reconnect() {
@@ -620,4 +619,7 @@ void MQTT_FDRSGateWay::send(std::vector<DataReading_t> data) {
     serializeJson(doc, outgoingString);
     _client->publish(TOPIC_DATA, (char*) outgoingString.c_str());
 
+    reconnect();
+    _client->loop();
+    
 }

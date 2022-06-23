@@ -114,8 +114,6 @@ public:
     FDRSGateWayBase(uint32_t send_delay);
     ~FDRSGateWayBase();
 
-    virtual void init(void) = 0;
-
     static void add_data(DataReading_t *data);
 
     void release(void);
@@ -133,7 +131,7 @@ class ESP_FDRSGateWay: public FDRSGateWayBase{
 public:
     ESP_FDRSGateWay(uint8_t broadcast_mac[6],uint8_t inturnal_mac[5], uint32_t send_delay);
 
-    void init(void) override;
+    void init(void);
 
     void add_peer(uint8_t peer_mac[6]);
     void remove_peer(uint8_t peer_mac[6]);
@@ -142,7 +140,6 @@ public:
 private:
 
     static bool is_init;
-    uint32_t _send_delay;
     uint8_t _broadcast_mac[6];
     uint8_t _inturnal_mac[6];
     static std::vector<ESP_Peer_t> peer_list;
@@ -162,10 +159,10 @@ class MQTT_FDRSGateWay: public FDRSGateWayBase{
 
 public:
 
-    MQTT_FDRSGateWay(uint32_t send_delay, char *ssid, char *password,char *server,int port = 1883);
+    MQTT_FDRSGateWay(uint32_t send_delay, const char *ssid, const char *password, const char *server,int port = 1883);
     ~MQTT_FDRSGateWay(void);
 
-    void init(void) override;
+    void init(void);
 
 private:
     #define TOPIC_DATA "fdrs/data"
@@ -174,9 +171,9 @@ private:
 
     static void mqtt_callback(char* topic, byte * message, unsigned int length);
 
-    char *_ssid;
-    char *_password;
-    char *_server;
+    const char *_ssid;
+    const char *_password;
+    const char *_server;
     int _port;
     WiFiClient espClient;
     PubSubClient *_client;

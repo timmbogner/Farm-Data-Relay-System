@@ -33,6 +33,7 @@
 #define WIFI_SSID   "Your SSID"  
 #define WIFI_PASS   "Your Password"
 #define MQTT_ADDR   "192.168.0.8"
+#define MQTT_PORT   1883
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"
 #define TOPIC_STATUS "fdrs/status"
