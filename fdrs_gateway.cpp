@@ -84,54 +84,7 @@ void ESP32OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) 
 }
 #endif
 
-void getSerial() {
-  String incomingString =  UART_IF.readStringUntil('\n');
-  DynamicJsonDocument doc(24576);
-  DeserializationError error = deserializeJson(doc, incomingString);
-    // Test if parsing succeeds.
-    if (error) {    
-    // DBG("json parse err");
-    // DBG(incomingString);
-        return;
-    }
 
-    int s = doc.size();
-    //UART_IF.println(s);
-    for (int i = 0; i < s; i++) {
-        theData[i].id = doc[i]["id"];
-        theData[i].type = doc[i]["type"];
-        theData[i].data = doc[i]["data"];
-    }
-    ln = s;
-    newData = 4;
-    DBG("Incoming Serial.");
-}
-
-
-void mqtt_callback(char* topic, byte * message, unsigned int length) {
-    String incomingString;
-    DBG(topic);
-    for (int i = 0; i < length; i++) {
-        incomingString += (char)message[i];
-    }
-    StaticJsonDocument<2048> doc;
-    DeserializationError error = deserializeJson(doc, incomingString);
-    if (error) {    // Test if parsing succeeds.
-        DBG("json parse err");
-        DBG(incomingString);
-        return;
-    }
-    int s = doc.size();
-    //UART_IF.println(s);
-    for (int i = 0; i < s; i++) {
-        theData[i].id = doc[i]["id"];
-        theData[i].type = doc[i]["type"];
-        theData[i].data = doc[i]["data"];
-    }
-    ln = s;
-    newData = 5;
-    DBG("Incoming MQTT.");
-}
 
 // void getLoRa() {
 // #ifdef USE_LORA
@@ -169,72 +122,6 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 // #endif
 // }
 
-
-
-void sendSerial() {
-    DBG("Sending Serial.");
-    DynamicJsonDocument doc(24576);
-    for (int i = 0; i < ln; i++) {
-        doc[i]["id"]   = theData[i].id;
-        doc[i]["type"] = theData[i].type;
-        doc[i]["data"] = theData[i].data;
-    }
-    serializeJson(doc, UART_IF);
-    UART_IF.println();
-
-    #ifndef ESP8266
-    serializeJson(doc, Serial);
-    Serial.println();
-    #endif
-}
-
-void sendMQTT() {
-#ifdef USE_WIFI
-    DBG("Sending MQTT.");
-    DynamicJsonDocument doc(24576);
-    for (int i = 0; i < ln; i++) {
-        doc[i]["id"]   = theData[i].id;
-        doc[i]["type"] = theData[i].type;
-        doc[i]["data"] = theData[i].data;
-    }
-    String outgoingString;
-    serializeJson(doc, outgoingString);
-    client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
-#endif
-}
-
-void bufferSerial() {
-    DBG("Buffering Serial.");
-    memcpy(&SERIALbuffer.buffer[SERIALbuffer.len],&theData[0],ln);
-    SERIALbuffer.len += ln;
-    //UART_IF.println("SENDSERIAL:" + String(SERIALbuffer.len) + " ");
-}
-
-void bufferMQTT() {
-    DBG("Buffering MQTT.");
-    memcpy(&MQTTbuffer.buffer[MQTTbuffer.len],&theData[0],ln);
-    MQTTbuffer.len += ln;
-}
-
-void bufferLoRa(uint8_t interface) {
-  DBG("Buffering LoRa.");
-  switch (interface) {
-    case 0:
-        memcpy(&LORAGbuffer.buffer[LORAGbuffer.len],&theData[0],ln);
-        LORAGbuffer.len += ln;
-      break;
-    case 1:
-        memcpy(&LORA1buffer.buffer[LORA1buffer.len],&theData[0],ln);
-        LORA1buffer.len += ln;
-        break;
-    case 2:
-        memcpy(&LORA2buffer.buffer[LORA2buffer.len],&theData[0],ln);
-        LORA2buffer.len += ln;
-        break;
-  }
-}
-
-
 // void transmitLoRa(uint8_t* mac, DataReading_t * packet, uint8_t len) {
 // #ifdef USE_LORA    
 //   DBG("Transmitting LoRa.");
@@ -248,7 +135,6 @@ void bufferLoRa(uint8_t interface) {
 //   LoRa.endPacket();
 // #endif
 // }
-
 
 // void LoRaSend(uint8_t *mac,DataReading_t *buffer, uint16_t *len){
 
@@ -265,7 +151,6 @@ void bufferLoRa(uint8_t interface) {
 //     transmitLoRa(broadcast_mac, thePacket, j);
 //     *len = 0;
 // }
-
 
 // void releaseLoRa(uint8_t interface) {
 // #ifdef USE_LORA
@@ -285,6 +170,71 @@ void bufferLoRa(uint8_t interface) {
 // #endif
 // }
 
+void bufferLoRa(uint8_t interface) {
+  DBG("Buffering LoRa.");
+  switch (interface) {
+    case 0:
+        memcpy(&LORAGbuffer.buffer[LORAGbuffer.len],&theData[0],ln);
+        LORAGbuffer.len += ln;
+      break;
+    case 1:
+        memcpy(&LORA1buffer.buffer[LORA1buffer.len],&theData[0],ln);
+        LORA1buffer.len += ln;
+        break;
+    case 2:
+        memcpy(&LORA2buffer.buffer[LORA2buffer.len],&theData[0],ln);
+        LORA2buffer.len += ln;
+        break;
+  }
+}
+
+void getSerial() {
+  String incomingString =  UART_IF.readStringUntil('\n');
+  DynamicJsonDocument doc(24576);
+  DeserializationError error = deserializeJson(doc, incomingString);
+    // Test if parsing succeeds.
+    if (error) {    
+    // DBG("json parse err");
+    // DBG(incomingString);
+        return;
+    }
+
+    int s = doc.size();
+    //UART_IF.println(s);
+    for (int i = 0; i < s; i++) {
+        theData[i].id = doc[i]["id"];
+        theData[i].type = doc[i]["type"];
+        theData[i].data = doc[i]["data"];
+    }
+    ln = s;
+    newData = 4;
+    DBG("Incoming Serial.");
+}
+
+void sendSerial() {
+    DBG("Sending Serial.");
+    DynamicJsonDocument doc(24576);
+    for (int i = 0; i < ln; i++) {
+        doc[i]["id"]   = theData[i].id;
+        doc[i]["type"] = theData[i].type;
+        doc[i]["data"] = theData[i].data;
+    }
+    serializeJson(doc, UART_IF);
+    UART_IF.println();
+
+    #ifndef ESP8266
+    serializeJson(doc, Serial);
+    Serial.println();
+    #endif
+}
+
+void bufferSerial() {
+    DBG("Buffering Serial.");
+    memcpy(&SERIALbuffer.buffer[SERIALbuffer.len],&theData[0],ln);
+    SERIALbuffer.len += ln;
+    //UART_IF.println("SENDSERIAL:" + String(SERIALbuffer.len) + " ");
+}
+
 void releaseSerial() {
     DBG("Releasing Serial.");
     DynamicJsonDocument doc(24576);
@@ -296,38 +246,6 @@ void releaseSerial() {
     serializeJson(doc, UART_IF);
     UART_IF.println();
     SERIALbuffer.len = 0;
-}
-
-void releaseMQTT() {
-#ifdef USE_WIFI
-    DBG("Releasing MQTT.");
-    DynamicJsonDocument doc(24576);
-    for (int i = 0; i < MQTTbuffer.len; i++) {
-        doc[i]["id"]   = MQTTbuffer.buffer[i].id;
-        doc[i]["type"] = MQTTbuffer.buffer[i].type;
-        doc[i]["data"] = MQTTbuffer.buffer[i].data;
-    }
-    String outgoingString;
-    serializeJson(doc, outgoingString);
-    client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
-    MQTTbuffer.len = 0;
-#endif
-}
-
-void reconnect() {
-#ifdef USE_WIFI
-    // Loop until reconnected
-    while (!client.connected()) {
-    // Attempt to connect
-        if (client.connect("FDRS_GATEWAY")) {
-            // Subscribe
-            client.subscribe(TOPIC_COMMAND);
-            break;
-        }
-        DBG("Connecting MQTT.");
-        delay(5000);
-    }
-#endif
 }
 
 FDRSGateWayBase::FDRSGateWayBase(uint32_t send_delay): _send_delay(send_delay){

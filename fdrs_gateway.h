@@ -82,19 +82,7 @@ const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
 #endif
 
-void getSerial(void);
-
-void mqtt_callback(char* topic, byte * message, unsigned int length);
-
 void getLoRa();
-
-void sendSerial();
-
-void sendMQTT();
-
-void bufferESPNOW(uint8_t interface);
-
-void bufferSerial();
 
 void bufferLoRa(uint8_t interface);
 
@@ -102,11 +90,13 @@ void transmitLoRa(uint8_t* mac, DataReading_t * packet, uint8_t len);
 
 void releaseLoRa(uint8_t interface);
 
+void getSerial(void);
+
+void sendSerial();
+
+void bufferSerial();
+
 void releaseSerial();
-
-void releaseMQTT();
-
-void reconnect();
 
 
 class FDRSGateWayBase{
