@@ -11,6 +11,7 @@
 #include <esp_wifi.h>
 #include "ArduinoJson.h"
 #include "PubSubClient.h"
+#include "LoRa.h"
 
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
