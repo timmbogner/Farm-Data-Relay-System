@@ -11,6 +11,15 @@
 
 #include "fdrs_types.h"
 
+//1 to enable debugging prints. 0 disables the debugging prints
+#define ENABLE_DEBUG 1 
+
+#if ENABLE_DEBUG == 1
+#ifndef DEBUG
+#define DEBUG
+#endif
+#endif
+
 #define USE_LORA
 
 #if defined(ESP8266)
