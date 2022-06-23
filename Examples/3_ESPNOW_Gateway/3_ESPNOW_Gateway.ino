@@ -27,7 +27,7 @@
 #include "fdrs_gateway.h"
 #include "fdrs_config.h"
 
-uint8_t newData = 0;
+extern uint8_t newData;
 
 #define ESPNOW_PEER_1  0x0E  // ESPNOW1 Address 
 #define ESPNOW_PEER_2  0x0F  // ESPNOW2 Address
@@ -108,6 +108,9 @@ void setup() {
 }
 
 void loop() {
+
+  ESPNow.release();
+
   #ifdef ESPNOWG_DELAY
   if (millis() > timeESPNOWG) {
     timeESPNOWG += ESPNOWG_DELAY;
@@ -161,7 +164,7 @@ void loop() {
   while (UART_IF.available()) {
     getSerial();
   }
-  getLoRa();
+  // getLoRa();
 #ifdef USE_WIFI
   if (!client.connected()) {
     DBG("Connecting MQTT...");

@@ -69,7 +69,7 @@ const uint8_t lora_size   = 256 / sizeof(DataReading_t);
 // #endif
 
 
-WiFiClient espClient;
+//WiFiClient espClient;
 #ifdef USE_LED
 CRGB leds[NUM_LEDS];
 #endif
@@ -139,6 +139,7 @@ public:
     void init(void);
 
     void add_peer(uint8_t peer_mac[6]);
+    void remove_peer(uint8_t peer_mac[6]);
     static void OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len);
 
 private:
@@ -147,11 +148,15 @@ private:
     uint32_t _send_delay;
     uint8_t _broadcast_mac[6];
     uint8_t _inturnal_mac[6];
-    std::vector<uint8_t[6]> peer_list;
+    static std::vector<ESP_Peer_t> peer_list;
+    static std::vector<ESP_Peer_t> unknow_peer;
 
     static void setup(void);
 
     virtual void send(std::vector<DataReading_t> data) override;
+
+    void list_peer(uint8_t peer_mac[6]);
+    void unlist_peer(uint8_t peer_mac[6]);
 
 };
 

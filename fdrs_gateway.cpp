@@ -8,6 +8,8 @@
 bool ESP_FDRSGateWay::is_init = false;
 std::vector<DataReading_t> FDRSGateWayBase::_data;
 std::vector<FDRSGateWayBase*> FDRSGateWayBase::_object_list;
+std::vector<ESP_Peer_t> ESP_FDRSGateWay::peer_list;
+std::vector<ESP_Peer_t> ESP_FDRSGateWay::unknow_peer;
 
 uint8_t newData = 0;
 uint8_t ln = 0;
@@ -43,27 +45,28 @@ void ESP_FDRSGateWay::OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int
 
     DataReading_t data;
 
-    memcpy(&data, incomingData, sizeof(theData));
+    //memcpy(&data, incomingData, sizeof(theData));
 
-    FDRSGateWayBase::add_data(&data);
+    uint32_t i = 0;
+    
+    
+    uint8_t d = len / sizeof(DataReading_t);
 
-    // TODO: doe something about this newData
-    // memcpy(&theData, incomingData, sizeof(theData));
-    // memcpy(&incMAC, mac, sizeof(incMAC));
-    // DBG("Incoming ESP-NOW.");
-    // ln = len / sizeof(DataReading_t);
+    for(i = 0; i < d; i++){
+        memcpy(&data,&incomingData[i*sizeof(DataReading_t)],sizeof(DataReading_t));
+        FDRSGateWayBase::add_data(&data);
+        memset(&data,0,sizeof(DataReading_t));
+    }
 
-    // if (memcmp(&incMAC, &ESPNOW1, 6) == 0){
-    //     newData = 1;
-    //     return;
-    // }
+    for(uint32_t i = 0; i < peer_list.size();i++){
+        if(memcmp(peer_list[i]._data(),mac,6) == 0){
+            return;
+        }  
+    }
 
-    // if (memcmp(&incMAC, &ESPNOW2, 6) == 0){
-    //     newData = 2;
-    //     return;
-    // } 
-
-    // newData = 3;
+    ESP_Peer_t peer;
+    peer._copy(mac);
+    unknow_peer.push_back(peer);
 }
 
 #if defined(ESP8266)
@@ -509,6 +512,40 @@ void ESP_FDRSGateWay::setup(void){
 }
 
 void ESP_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
+
+    uint32_t i = 0;
+
+    for(uint32_t i = 0; i < peer_list.size();i++){
+        if(memcmp(peer_list[i]._data(),peer_mac,6) == 0){
+            return;
+        }  
+    }
+
+    list_peer(peer_mac);
+
+    ESP_Peer_t peer;
+    peer._copy(peer_mac);
+    //esp_now_del_peer(NEWPEER);
+
+    peer_list.push_back(peer);
+
+}
+
+void ESP_FDRSGateWay::remove_peer(uint8_t peer_mac[6]){
+
+    unlist_peer(peer_mac);
+
+    if(peer_list.size() == 0){
+        return;
+    }
+    ESP_Peer_t peer;
+    peer._copy(peer_mac);
+    //peer_list.erase(std::find(peer_list.begin(),peer_list.end(),peer));
+
+}
+
+void ESP_FDRSGateWay::list_peer(uint8_t peer_mac[6]){
+
 #if defined(ESP8266)
     esp_now_add_peer(peer_mac, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #endif
@@ -523,36 +560,47 @@ void ESP_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
         return;
     }
 #endif
+    
+}
 
+void ESP_FDRSGateWay::unlist_peer(uint8_t peer_mac[6]){
+
+    esp_now_del_peer(peer_mac);
+    
 }
 
 void ESP_FDRSGateWay::send(std::vector<DataReading_t> data){
 
     const uint8_t espnow_size = 250 / sizeof(DataReading_t);
 
-    //add unknow peers
-    uint8_t n = data.size() / espnow_size;
-    uint8_t m = data.size() % espnow_size;
-    int i = 0;
+    uint32_t i = 0;
+    for(i = 0; i < unknow_peer.size(); i++){
+        list_peer(unknow_peer[i]._data());
+    }
+    
+    uint8_t d = data.size() / espnow_size;
+    uint8_t r = data.size() % espnow_size;
 
-    DataReading_t buffer1[n];
-    for(i = 0; i < n; i++){
+    DataReading_t buffer1[d];
+    for(i = 0; i < d; i++){
         buffer1[i] = data[i];
     }
 
-    esp_now_send(mac, (uint8_t *) buffer1, n * sizeof(DataReading_t));
+    esp_now_send(NULL, (uint8_t *) buffer1, d * sizeof(DataReading_t));
 
-    for(i = 0; i < m; i++){
-        buffer1[i] = data[i + n];
+    for(i = 0; i < r; i++){
+        buffer1[i] = data[i + d];
     }
 
-    esp_now_send(mac, (uint8_t *) buffer1, m * sizeof(DataReading_t));
+    esp_now_send(NULL, (uint8_t *) buffer1, r * sizeof(DataReading_t));
 
+    
 
-    //do send loop
+    for(i = 0; i < unknow_peer.size(); i++){
+        unlist_peer(unknow_peer[i]._data());
+    }
 
-    //remove unknow peers
-
-
+    unknow_peer.clear();
+    
 }
 
