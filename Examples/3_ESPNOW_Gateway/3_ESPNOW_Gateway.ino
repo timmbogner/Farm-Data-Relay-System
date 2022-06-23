@@ -51,7 +51,7 @@ uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 #endif
 
 
-MQTT_FDRSGateWay MQTT(1000,"ssid","pwd","srv");
+MQTT_FDRSGateWay MQTT(1000,WIFI_SSID,WIFI_PASS,MQTT_ADDR,MQTT_PORT);
 
 ESP_FDRSGateWay ESPNow(broadcast_mac,selfAddress,1000);
 
