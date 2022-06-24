@@ -55,6 +55,12 @@ MQTT_FDRSGateWay MQTT(1000,WIFI_SSID,WIFI_PASS,MQTT_ADDR,MQTT_PORT);
 
 ESP_FDRSGateWay ESPNow(broadcast_mac,selfAddress,1000);
 
+#if defined(ESP32)
+Serial_FDRSGateWay SerialGW(&Serial1,115200,1000);
+#else
+Serial_FDRSGateWay SerialGW(&Serial,115200,1000);
+#endif
+
 void setup() {
 
 #ifdef USE_LED
@@ -74,10 +80,12 @@ void setup() {
 #ifdef ESPNOW_PEER_2
   ESPNow.add_peer(ESPNOW2);
 #endif
-
-
 #endif
-
+#if defined(ESP32)
+  SerialGW.init(SERIAL_8N1,RXD2,TXD2);
+#else
+  SerialGW.init();
+#endif
 // #ifdef USE_LORA
 //   DBG("Initializing LoRa!");
 //   SPI.begin(SCK, MISO, MOSI, SS);
@@ -95,8 +103,10 @@ void setup() {
 
 void loop() {
 
-  ESPNow.release();
 
+  SerialGW.get();
+
+  ESPNow.release();
   #ifdef ESPNOWG_DELAY
   if (millis() > timeESPNOWG) {
     timeESPNOWG += ESPNOWG_DELAY;
@@ -147,9 +157,7 @@ void loop() {
   // }
   // #endif
 
-  while (UART_IF.available()) {
-    getSerial();
-  }
+
   // getLoRa();
 
 }

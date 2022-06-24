@@ -1,6 +1,7 @@
 #ifndef __FDRS_GATEWAY_H__
 #define __FDRS_GATEWAY_H__
 
+#include "HardwareSerial.h"
 #include "fdrs_types.h"
 #include <string.h>
 #include <vector>
@@ -169,14 +170,32 @@ private:
     WiFiClient espClient;
     PubSubClient *_client;
 
-    static bool is_init;
-
-    static void setup(void);
-
     void reconnect();
     void send(std::vector<DataReading_t> data) override;
 
+};
+
+
+class Serial_FDRSGateWay: public FDRSGateWayBase{
+
+public:
+    Serial_FDRSGateWay(HardwareSerial *serial, uint32_t baud, uint32_t send_delay);
+
+    void init(void);
+#if defined(ESP32)
+    void init(int mode, int rx_pin, int tx_pin);
+#endif
+    void get(void);
+private:
+
+    HardwareSerial *_serial;
+    uint32_t _baud;
+    static void setup(void);
+    void pull(void);
+    void send(std::vector<DataReading_t> data) override;
 
 };
+
+
 
 #endif

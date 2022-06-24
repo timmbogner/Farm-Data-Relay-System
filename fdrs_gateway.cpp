@@ -12,8 +12,6 @@ bool ESP_FDRSGateWay::is_init = false;
 std::vector<ESP_Peer_t> ESP_FDRSGateWay::peer_list;
 std::vector<ESP_Peer_t> ESP_FDRSGateWay::unknow_peer;
 
-bool MQTT_FDRSGateWay::is_init = false;
-
 uint8_t newData = 0;
 uint8_t ln = 0;
 DataReading_t theData[256];
@@ -483,8 +481,6 @@ void MQTT_FDRSGateWay::mqtt_callback(char* topic, byte * message, unsigned int l
         FDRSGateWayBase::add_data(&data);
         memset(&data,0,sizeof(DataReading_t));
     }
-    ln = s;
-    newData = 5;
     DBG("Incoming MQTT.");
     
 }
@@ -540,4 +536,71 @@ void MQTT_FDRSGateWay::send(std::vector<DataReading_t> data) {
     reconnect();
     _client->loop();
     
+}
+
+
+Serial_FDRSGateWay::Serial_FDRSGateWay(HardwareSerial *serial, uint32_t baud, uint32_t send_delay):
+                    FDRSGateWayBase(send_delay),
+                    _serial(serial),
+                    _baud(baud)
+{
+    
+}
+
+void Serial_FDRSGateWay::init(void){
+    _serial->begin(_baud);
+}
+
+#if defined(ESP32)
+void Serial_FDRSGateWay::init(int mode, int rx_pin, int tx_pin){
+    _serial->begin(_baud,mode,rx_pin,tx_pin);
+}
+#endif
+
+void Serial_FDRSGateWay::pull(void){
+    //TDDO: this is blocking. Some method of escaping is required.
+    // At the momment we are just hoping we get a \n
+    String incomingString =  _serial->readStringUntil('\n');
+    DynamicJsonDocument doc(24576);
+    DeserializationError error = deserializeJson(doc, incomingString);
+    // Test if parsing succeeds.
+    if (error) {    
+    // DBG("json parse err");
+    // DBG(incomingString);
+        return;
+    }
+
+    int s = doc.size();
+    //UART_IF.println(s);
+    DataReading_t data;
+    memset(&data,0,sizeof(DataReading_t));
+    for (int i = 0; i < s; i++) {
+        data.id = doc[i]["id"];
+        data.type = doc[i]["type"];
+        data.data = doc[i]["data"];
+        FDRSGateWayBase::add_data(&data);
+        memset(&data,0,sizeof(DataReading_t));
+    }
+    DBG("Incoming Serial.");
+
+}
+
+
+void Serial_FDRSGateWay::get(void){
+    while(_serial->available()){
+        pull();
+    }
+}
+
+void Serial_FDRSGateWay::send(std::vector<DataReading_t> data){
+
+    DBG("Releasing Serial.");
+    DynamicJsonDocument doc(24576);
+    for (int i = 0; i < data.size(); i++) {
+        doc[i]["id"]   = data[i].id;
+        doc[i]["type"] = data[i].type;
+        doc[i]["data"] = data[i].data;
+    }
+    serializeJson(doc, *_serial);
+    _serial->println();
 }
