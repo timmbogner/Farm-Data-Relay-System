@@ -27,10 +27,7 @@ typedef struct Peer_t{
     }
 
     bool operator==(Peer_t c){
-        if(memcmp(this->peer,c.peer,6) == 0){
-            return true;
-        }
-        return false;
+        return (memcmp(this->peer,c.peer,6) == 0);
     }
 
 }Peer_t;
