@@ -1,4 +1,3 @@
-
 #include "fdrs_sensor.h"
 
 
@@ -26,7 +25,7 @@ void FDRSBase::begin() {
 #ifdef DEBUG
     Serial.begin(115200);
 #endif
-    DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
+    DBG("FDRS Sensor ID " + String(_reading_id) + " initializing...");
     DBG(" Gateway: " + String (_gtwy_mac, HEX));
 #ifdef POWER_CTRL
     DBG("Powering up the sensor array!");
@@ -49,7 +48,7 @@ void FDRSBase::send(void) {
 }
 
 void FDRSBase::load(float data, uint8_t type) {
-  DBG("Data loaded. Type: " + String(t));
+  DBG("Data loaded. Type: " + String(type));
   if (_data_count > _espnow_size){
     send();
   } 
