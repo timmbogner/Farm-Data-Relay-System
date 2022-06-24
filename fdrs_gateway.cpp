@@ -88,7 +88,7 @@ void FDRSGateWayBase::release(void){
     send(_data);
 }
 
-void flush(void){
+void FDRSGateWayBase::flush(void){
     _data.clear();
 }
 
