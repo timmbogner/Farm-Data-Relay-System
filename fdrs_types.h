@@ -25,10 +25,10 @@ typedef struct DataReadingBuffer_t{
 }DataReadingBuffer_t;
 
 
-typedef struct ESP_Peer_t{
+typedef struct Peer_t{
 
     uint8_t peer[6];
-    ESP_Peer_t(){
+    Peer_t(){
         memset(peer,0,6);
     }
 
@@ -39,6 +39,13 @@ typedef struct ESP_Peer_t{
         return peer;
     }
 
-}ESP_Peer_t;
+    bool operator==(Peer_t c){
+        if(memcmp(this->peer,c.peer,6) == 0){
+            return true;
+        }
+        return false;
+    }
+
+}Peer_t;
 
 #endif

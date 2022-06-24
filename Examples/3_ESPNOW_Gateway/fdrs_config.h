@@ -5,6 +5,7 @@
 //#include <fdrs_globals.h> //Uncomment if you install the globals file
 #define DEBUG
 
+#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
 #define UNIT_MAC     0x03  // The address of this gateway
 
@@ -20,8 +21,11 @@
 
 // Peer addresses
 
-#define LORA1_PEER    0x0E  // LoRa1 Address
-#define LORA2_PEER    0x0F  // LoRa2 Address
+#define LORA_PEER_1    0x0E  // LoRa1 Address
+#define LORA_PEER_2    0x0F  // LoRa2 Address
+
+#define ESPNOW_PEER_1  0x0C  // ESPNOW1 Address 
+#define ESPNOW_PEER_2  0x0D  // ESPNOW2 Address
 
 // Peer Actions
 #define ESPNOW1_ACT    
@@ -34,10 +38,6 @@
 #define WIFI_PASS   "Your Password"
 #define MQTT_ADDR   "192.168.0.8"
 #define MQTT_PORT   1883
-// MQTT Topics
-#define TOPIC_DATA "fdrs/data"
-#define TOPIC_STATUS "fdrs/status"
-#define TOPIC_COMMAND "fdrs/command" 
 
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14
@@ -55,16 +55,6 @@
 //915E6 for North America
 #define BAND 915E6
 #define SF 7
-
-// Buffer Delays - in milliseconds
-//#define ESPNOW1_DELAY  0
-//#define ESPNOW2_DELAY  0
-//#define ESPNOWG_DELAY  0
-//#define SERIAL_DELAY   0
-//#define MQTT_DELAY     0
-#define LORAG_DELAY    1000
-//#define LORA1_DELAY    1000
-//#define LORA2_DELAY    1000
 
 //#define USE_LED    //Not yet fully implemented
 #define LED_PIN    32
