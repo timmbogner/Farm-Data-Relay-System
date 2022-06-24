@@ -5,7 +5,6 @@
 #include <string.h>
 
 typedef struct __attribute__((packed)) DataReading_t {
-
     float data;
     uint16_t id;
     uint8_t type;
@@ -47,5 +46,6 @@ typedef struct Peer_t{
     }
 
 }Peer_t;
+
 
 #endif

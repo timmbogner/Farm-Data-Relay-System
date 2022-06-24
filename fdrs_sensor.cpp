@@ -1,4 +1,3 @@
-
 #include "fdrs_sensor.h"
 
 
@@ -11,11 +10,11 @@ uint32_t wait_time = 0;
 
 FDRSBase::FDRSBase(uint8_t gtwy_mac,uint8_t reading_id): 
                 _gtwy_mac(gtwy_mac),
-                _espnow_size(250 / sizeof(DataReading)),
+                _espnow_size(250 / sizeof(DataReading_t)),
                 _reading_id(reading_id),
                 _data_count(0)
 {
-    fdrsData = new DataReading[_espnow_size];
+    fdrsData = new DataReading_t[_espnow_size];
 }
 
 FDRSBase::~FDRSBase(){
@@ -26,7 +25,7 @@ void FDRSBase::begin() {
 #ifdef DEBUG
     Serial.begin(115200);
 #endif
-    DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
+    DBG("FDRS Sensor ID " + String(_reading_id) + " initializing...");
     DBG(" Gateway: " + String (_gtwy_mac, HEX));
 #ifdef POWER_CTRL
     DBG("Powering up the sensor array!");
@@ -49,11 +48,11 @@ void FDRSBase::send(void) {
 }
 
 void FDRSBase::load(float data, uint8_t type) {
-  DBG("Data loaded. Type: " + String(t));
+  DBG("Data loaded. Type: " + String(type));
   if (_data_count > _espnow_size){
     send();
   } 
-  DataReading dr;
+  DataReading_t dr;
   dr.id = _reading_id;
   dr.type = type;
   dr.data = data;
@@ -121,8 +120,8 @@ void FDRS_EspNow::init(void){
   DBG(" ESP-NOW Initialized.");
 }
 
-void FDRS_EspNow::transmit(DataReading *fdrsData, uint8_t _data_count){
-    esp_now_send(_gatewayAddress, (uint8_t *) fdrsData, _data_count * sizeof(DataReading));
+void FDRS_EspNow::transmit(DataReading_t *fdrsData, uint8_t _data_count){
+    esp_now_send(_gatewayAddress, (uint8_t *) fdrsData, _data_count * sizeof(DataReading_t));
     delay(5);
     DBG(" ESP-NOW sent.");
 }
@@ -164,17 +163,17 @@ void FDRSLoRa::init(void){
     DBG("LoRa Initialized.");
 }
 
-void FDRSLoRa::buildPacket(uint8_t* mac, DataReading * packet, uint8_t len) {
-  uint8_t pkt[5 + (len * sizeof(DataReading))];
+void FDRSLoRa::buildPacket(uint8_t* mac, DataReading_t * packet, uint8_t len) {
+  uint8_t pkt[5 + (len * sizeof(DataReading_t))];
   memcpy(&pkt, mac, 3);  //
   memcpy(&pkt[3], &LoRaAddress, 2);
-  memcpy(&pkt[5], packet, len * sizeof(DataReading));
+  memcpy(&pkt[5], packet, len * sizeof(DataReading_t));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
 }
 
-void FDRSLoRa::transmit(DataReading *fdrsData, uint8_t _data_count){
+void FDRSLoRa::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     buildPacket(_gatewayAddress, fdrsData, _data_count);
     DBG(" LoRa sent.");
 }
