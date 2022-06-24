@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-typedef struct __attribute__((packed)) DataReading {
+typedef struct __attribute__((packed)) DataReading_t {
     float data;
     uint16_t id;
     uint8_t type;
-} DataReading;
+} DataReading_t;
 
 #endif
