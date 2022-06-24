@@ -95,10 +95,10 @@ private:
   const uint16_t _espnow_size;
   uint8_t _reading_id;
   uint8_t _data_count;
-  DataReading *fdrsData;
+  DataReading_t *fdrsData;
 
   virtual void init(void) = 0;
-  virtual void transmit(DataReading *fdrsData, uint8_t _data_count) = 0;
+  virtual void transmit(DataReading_t *fdrsData, uint8_t _data_count) = 0;
 };
 
 
@@ -110,7 +110,7 @@ public:
 private:
 
   uint8_t _gatewayAddress[ESP_GATEWAY_ADDRESS_SIZE];
-  void transmit(DataReading *fdrsData, uint8_t _data_count) override;
+  void transmit(DataReading_t *fdrsData, uint8_t _data_count) override;
   void init(void) override;
 
 };
@@ -132,8 +132,8 @@ private:
   uint32_t _band;
   uint8_t _sf;
 
-  void buildPacket(uint8_t* mac, DataReading * packet, uint8_t len);
-  void transmit(DataReading *fdrsData, uint8_t _data_count) override;
+  void buildPacket(uint8_t* mac, DataReading_t * packet, uint8_t len);
+  void transmit(DataReading_t *fdrsData, uint8_t _data_count) override;
   void init(void) override;
 
 };
