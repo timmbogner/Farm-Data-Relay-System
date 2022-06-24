@@ -11,32 +11,11 @@ bool ESP_FDRSGateWay::is_init = false;
 std::vector<Peer_t> ESP_FDRSGateWay::peer_list;
 std::vector<Peer_t> ESP_FDRSGateWay::unknow_peer;
 
-uint8_t newData = 0;
-uint8_t ln = 0;
-DataReading_t theData[256];
-
-DataReadingBuffer_t MQTTbuffer;
-uint32_t timeMQTT = 0;
-
-DataReadingBuffer_t LORAGbuffer;
-uint32_t timeLORAG = 0;
-
-DataReadingBuffer_t LORA1buffer;
-uint32_t timeLORA1 = 0;
-
-DataReadingBuffer_t LORA2buffer;
-uint32_t timeLORA2 = 0;
-
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 void ESP_FDRSGateWay::OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len){
 
-
     DataReading_t data;
-
-    //memcpy(&data, incomingData, sizeof(theData));
-
     uint32_t i = 0;
-    
     
     uint8_t d = len / sizeof(DataReading_t);
 
@@ -493,6 +472,8 @@ void LoRa_FDRSGateWay::get(void){
     if (memcmp(&packet, &_mac[3], 3) != 0) { 
         return;    
     }
+
+    uint8_t theData[packetSize - 5];
 
     memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
     memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet

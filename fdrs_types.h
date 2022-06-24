@@ -12,18 +12,6 @@ typedef struct __attribute__((packed)) DataReading_t {
     }
 } DataReading_t;
 
-
-typedef struct DataReadingBuffer_t{
-    DataReading_t buffer[256];
-    uint16_t len;
-
-    DataReadingBuffer_t(){
-        
-    }
-
-}DataReadingBuffer_t;
-
-
 typedef struct Peer_t{
 
     uint8_t peer[6];
