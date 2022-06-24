@@ -9,12 +9,17 @@
 
 #define UNIT_MAC     0x03  // The address of this gateway
 
-//Actions -- Define what happens when a packet arrives at each interface:
-//Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(), bufferESPNOW(interface), bufferSerial(), and bufferLoRa(interface).
+//Where we get the data from
+#define LORA_GET
+#define MQTT_GET
+#define ESP_GET
+#define SER_GET  
 
-#define SERIAL_ACT         
-#define MQTT_ACT          
-#define LORAG_ACT      
+//Where we send the data to
+#define LORA_SEND
+#define MQTT_SEND
+#define ESP_SEND
+#define SER_SEND 
 
 //#define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
@@ -26,12 +31,6 @@
 
 #define ESPNOW_PEER_1  0x0C  // ESPNOW1 Address 
 #define ESPNOW_PEER_2  0x0D  // ESPNOW2 Address
-
-// Peer Actions
-#define ESPNOW1_ACT    
-#define ESPNOW2_ACT                    
-#define LORA1_ACT 
-#define LORA2_ACT 
 
 //WiFi and MQTT Credentials -- Needed only for MQTT gateway
 #define WIFI_SSID   "Your SSID"  
