@@ -1,3 +1,11 @@
+/*  FARM DATA RELAY SYSTEM
+*
+*  "fdrs_sensor.h"
+*
+*  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+*  Condensed and refactored to a single file pair by Binder Tronics (info@bindertronics.com).
+*/
+
 #ifndef __FDRS_GATEWAY_H__
 #define __FDRS_GATEWAY_H__
 
