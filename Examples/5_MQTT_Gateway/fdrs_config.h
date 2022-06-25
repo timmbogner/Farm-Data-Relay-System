@@ -70,9 +70,9 @@
 #define MQTT_PORT   1883 // Default MQTT port is 1883
 
 //MQTT Credentials -- Needed only if MQTT broker requires authentication
-//#define MQTT_AUTH   
-//#define MQTT_USER   "Your MQTT Username"
-//#define MQTT_PASS   "Your MQTT Password"
+//#define MQTT_AUTH   //uncomment to enable MQTT authentication 
+#define MQTT_USER   "Your MQTT Username"
+#define MQTT_PASS   "Your MQTT Password"
 
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"

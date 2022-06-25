@@ -35,6 +35,10 @@
 #define FDRS_SF SF
 #endif
 
+#if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
+#define FDRS_MQTT_AUTH
+#endif
+
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
 typedef struct __attribute__((packed)) DataReading {
@@ -113,7 +117,7 @@ const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
 #endif
-#ifdef MQTT_AUTH
+#ifdef FDRS_MQTT_AUTH
 const char* mqtt_user = FDRS_MQTT_USER;
 const char* mqtt_pass = FDRS_MQTT_PASS;
 #else
