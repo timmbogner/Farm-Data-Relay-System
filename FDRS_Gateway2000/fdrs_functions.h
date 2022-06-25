@@ -504,7 +504,7 @@ void reconnect() {
   // Loop until reconnected
   while (!client.connected()) {
     // Attempt to connect
-    if (client.connect("FDRS_GATEWAY")) {
+    if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
       client.subscribe(TOPIC_COMMAND);
     } else {
