@@ -116,8 +116,8 @@ const int mqtt_port = FDRS_MQTT_PORT;
 const char* mqtt_user = FDRS_MQTT_USER;
 const char* mqtt_pass = FDRS_MQTT_PASS;
 #else
-const char* mqtt_user = null;
-const char* mqtt_pass = null;
+const char* mqtt_user = NULL;
+const char* mqtt_pass = NULL;
 #endif
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
