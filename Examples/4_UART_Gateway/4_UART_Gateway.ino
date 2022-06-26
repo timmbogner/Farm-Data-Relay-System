@@ -49,7 +49,7 @@ void setup() {
     delay(500);
   }
   DBG("WiFi Connected");
-  client.setServer(mqtt_server, 1883);
+  client.setServer(mqtt_server, mqtt_port);
   if (!client.connected()) {
     DBG("Connecting MQTT...");
     reconnect();
