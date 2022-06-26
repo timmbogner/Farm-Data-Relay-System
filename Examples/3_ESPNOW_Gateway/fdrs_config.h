@@ -34,6 +34,13 @@
 #define WIFI_SSID   "Your SSID"  
 #define WIFI_PASS   "Your Password"
 #define MQTT_ADDR   "192.168.0.8"
+#define MQTT_PORT   1883 // Default MQTT port is 1883
+
+//MQTT Credentials -- Needed only if MQTT broker requires authentication
+//#define MQTT_AUTH   //uncomment to enable MQTT authentication 
+#define MQTT_USER   "Your MQTT Username"
+#define MQTT_PASS   "Your MQTT Password"
+
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"
 #define TOPIC_STATUS "fdrs/status"
