@@ -126,7 +126,15 @@ void loop() {
 #endif
 
 #if defined(ESP_SEND)
+#ifdef ESPNOW_ALL
   ESPNow.release();
+#endif
+#ifdef ESPNOW_PEER_1
+  ESPNow.release(ESPNOW1);
+#endif
+#ifdef ESPNOW_PEER_2
+  ESPNow.release(ESPNOW2);
+#endif
 #endif
 
 #if defined(MQTT_SEND)

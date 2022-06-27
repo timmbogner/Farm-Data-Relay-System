@@ -63,9 +63,15 @@ FDRSGateWayBase::FDRSGateWayBase(){
 FDRSGateWayBase::~FDRSGateWayBase(){
 }
 
-void FDRSGateWayBase::release(void){
-    send(_data);
+
+void FDRSGateWayBase::release(uint8_t *peer_mac){
+    if(peer_mac == NULL){
+        send(_data);
+    }
+    forward(peer_mac ,_data);
+    
 }
+
 
 void FDRSGateWayBase::flush(void){
     _data.clear();
@@ -73,6 +79,10 @@ void FDRSGateWayBase::flush(void){
 
 void FDRSGateWayBase::add_data(DataReading_t *data){
     _data.push_back(*data);
+}
+
+std::vector<DataReading_t> *FDRSGateWayBase::get_data(){
+    return &_data;
 }
 
 ESP_FDRSGateWay::ESP_FDRSGateWay(void)
@@ -232,6 +242,24 @@ void ESP_FDRSGateWay::send(std::vector<DataReading_t> data){
     
 }
 
+void ESP_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data){
+
+    const uint8_t espnow_size = 250 / sizeof(DataReading_t);
+
+    uint32_t i = 0;
+
+    
+    uint8_t d = data.size() / espnow_size;
+
+    DataReading_t buffer1[d];
+    for(i = 0; i < d; i++){
+        buffer1[i] = data[i];
+    }
+
+    esp_now_send(peer_mac, (uint8_t *) buffer1, d * sizeof(DataReading_t));
+    
+}
+
 MQTT_FDRSGateWay::MQTT_FDRSGateWay(const char *ssid, const char *password, const char *server,int port):
                                     _ssid(ssid),
                                     _password(password),
@@ -334,6 +362,9 @@ void MQTT_FDRSGateWay::send(std::vector<DataReading_t> data) {
     
 }
 
+void MQTT_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data){
+    //does nothing. just here implement the pure virtule from the base class.
+}
 
 Serial_FDRSGateWay::Serial_FDRSGateWay(HardwareSerial *serial, uint32_t baud):
                     _serial(serial),
@@ -397,6 +428,10 @@ void Serial_FDRSGateWay::send(std::vector<DataReading_t> data){
     }
     serializeJson(doc, *_serial);
     _serial->println();
+}
+
+void Serial_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data){
+    //does nothing. just here implement the pure virtule from the base class.
 }
 
 LoRa_FDRSGateWay::LoRa_FDRSGateWay(uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,double band,uint8_t sf):
@@ -515,6 +550,10 @@ void LoRa_FDRSGateWay::send(std::vector<DataReading_t> data){
 
     transmit(buffer1, d * sizeof(DataReading_t));
 
+}
+
+void LoRa_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data){
+    //TODO: add peer forwading.
 }
 
 void LoRa_FDRSGateWay::transmit(DataReading_t *packet, uint8_t len) {

@@ -29,6 +29,7 @@
 #define LORA_PEER_1    0x0E  // LoRa1 Address
 #define LORA_PEER_2    0x0F  // LoRa2 Address
 
+#define ESPNOW_ALL           //send to all know and unknow peers
 #define ESPNOW_PEER_1  0x0C  // ESPNOW1 Address 
 #define ESPNOW_PEER_2  0x0D  // ESPNOW2 Address
 

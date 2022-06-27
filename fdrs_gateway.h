@@ -39,13 +39,18 @@ public:
 
     static void add_data(DataReading_t *data);
 
-    void release(void);
+    void release(uint8_t *peer_mac = NULL);
+
     void flush(void);
+
+protected:
+    std::vector<DataReading_t> *get_data();
 
 private:
     static uint32_t peer_id;
     static std::vector<DataReading_t> _data;
     virtual void send(std::vector<DataReading_t> data) = 0;
+    virtual void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) = 0;
 };
 
 class ESP_FDRSGateWay: public FDRSGateWayBase{
@@ -69,6 +74,7 @@ private:
     static void setup(void);
 
     void send(std::vector<DataReading_t> data) override;
+    void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) override;
 
     void list_peer(uint8_t peer_mac[6]);
     void unlist_peer(uint8_t peer_mac[6]);
@@ -101,6 +107,7 @@ private:
 
     void reconnect();
     void send(std::vector<DataReading_t> data) override;
+    void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) override;
 
 };
 
@@ -122,6 +129,7 @@ private:
     static void setup(void);
     void pull(void);
     void send(std::vector<DataReading_t> data) override;
+    void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) override;
 
 };
 
@@ -152,8 +160,8 @@ private:
 
     void transmit(DataReading_t *packet, uint8_t len);
 
-
     void send(std::vector<DataReading_t> data) override;
+    void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) override;
 
 };
 
