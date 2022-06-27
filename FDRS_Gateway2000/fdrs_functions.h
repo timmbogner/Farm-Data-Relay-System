@@ -19,14 +19,24 @@
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #define FDRS_WIFI_PASS GLOBAL_PASS
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
+#define FDRS_MQTT_PORT GLOBAL_MQTT_PORT
+#define FDRS_MQTT_USER GLOBAL_MQTT_USER
+#define FDRS_MQTT_PASS GLOBAL_MQTT_PASS
 #define FDRS_BAND GLOBAL_BAND
 #define FDRS_SF GLOBAL_SF
 #else
 #define FDRS_WIFI_SSID WIFI_SSID
 #define FDRS_WIFI_PASS WIFI_PASS
 #define FDRS_MQTT_ADDR MQTT_ADDR
+#define FDRS_MQTT_PORT MQTT_PORT
+#define FDRS_MQTT_USER MQTT_USER
+#define FDRS_MQTT_PASS MQTT_PASS
 #define FDRS_BAND BAND
 #define FDRS_SF SF
+#endif
+
+#if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
+#define FDRS_MQTT_AUTH
 #endif
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
@@ -105,8 +115,15 @@ PubSubClient client(espClient);
 const char* ssid = FDRS_WIFI_SSID;
 const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
+const int mqtt_port = FDRS_MQTT_PORT;
 #endif
-
+#ifdef FDRS_MQTT_AUTH
+const char* mqtt_user = FDRS_MQTT_USER;
+const char* mqtt_pass = FDRS_MQTT_PASS;
+#else
+const char* mqtt_user = NULL;
+const char* mqtt_pass = NULL;
+#endif
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -487,7 +504,7 @@ void reconnect() {
   // Loop until reconnected
   while (!client.connected()) {
     // Attempt to connect
-    if (client.connect("FDRS_GATEWAY")) {
+    if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
       client.subscribe(TOPIC_COMMAND);
     } else {
