@@ -25,6 +25,8 @@
 
 #define USE_LORA
 
+#define DEBUG
+
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
 #else
