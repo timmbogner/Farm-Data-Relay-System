@@ -109,6 +109,7 @@ void ESP_FDRSGateWay::init(uint8_t inturnal_mac[5]){
 
 #if defined(ESP32)
     esp_now_peer_info_t peerInfo;
+    memset(&peerInfo, 0, sizeof(peerInfo));
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
     // Register first peer
@@ -199,6 +200,7 @@ void ESP_FDRSGateWay::list_peer(uint8_t peer_mac[6]){
 
 #if defined(ESP32)
     esp_now_peer_info_t peerInfo;
+    memset(&peerInfo, 0, sizeof(peerInfo));
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
     memcpy(peerInfo.peer_addr, peer_mac, 6);
