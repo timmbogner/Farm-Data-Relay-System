@@ -7,23 +7,20 @@
 //
 
 #include "fdrs_sensor.h"
-#include "sensor_setup.h"
 
 float data1;
 float data2;
 
-FDRS_EspNow FDRS(GTWY_MAC,READING_ID);
-
 void setup() {
-  FDRS.begin();
+  beginFDRS();
 }
 void loop() {
-    data1 = readHum();
-    FDRS.load(data1, HUMIDITY_T);
-    data2 = readTemp();
-    FDRS.load(data2, TEMP_T);
-    FDRS.send();
-    FDRS.sleep(10);  //Sleep time in seconds
+  data1 = readHum();
+  loadFDRS(data1, HUMIDITY_T);
+  data2 = readTemp();
+  loadFDRS(data2, TEMP_T);
+  sendFDRS();
+  sleepFDRS(10);  //Sleep time in seconds
 }
 
 float readTemp() {

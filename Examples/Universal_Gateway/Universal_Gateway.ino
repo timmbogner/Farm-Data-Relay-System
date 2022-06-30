@@ -1,8 +1,8 @@
 //  FARM DATA RELAY SYSTEM
 //
-//  GATEWAY 2.000
+//  Experimental Universal Gateway
 //
-//  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Under construction, feedback is appreciated!
 //
 
 #include "fdrs_config.h"
