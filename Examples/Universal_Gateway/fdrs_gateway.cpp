@@ -5,35 +5,54 @@
 
 // #define USE_WIFI
 
-std::vector<DataReading_t> FDRSGateWayBase::_data;
-
 bool ESP_FDRSGateWay::is_init = false;
-std::vector<Peer_t> ESP_FDRSGateWay::peer_list;
-std::vector<Peer_t> ESP_FDRSGateWay::unknow_peer;
+std::vector<Peer_t> ESP_FDRSGateWay::_peer_list;
+std::vector<Peer_t> ESP_FDRSGateWay::_unknow_peer;
+
+std::vector<DataReading_t> MQTT_FDRSGateWay::_buffer;
+std::vector<DataReading_t> Serial_FDRSGateWay::_buffer;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 void ESP_FDRSGateWay::OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len){
 
     DataReading_t data;
     uint32_t i = 0;
+    uint32_t j = 0;
     
     uint8_t d = len / sizeof(DataReading_t);
 
-    for(i = 0; i < d; i++){
-        memcpy(&data,&incomingData[i*sizeof(DataReading_t)],sizeof(DataReading_t));
-        FDRSGateWayBase::add_data(&data);
-        memset(&data,0,sizeof(DataReading_t));
+    for(uint32_t i = 0; i < _peer_list.size();i++){
+        if(memcmp(_peer_list[i]._get_peer(),mac,6) == 0){
+            for(j = 0; j < d; j++){
+                memcpy(&data,&incomingData[j*sizeof(DataReading_t)],sizeof(DataReading_t));
+                _peer_list[i].buffer.push_back(data);
+                memset(&data,0,sizeof(DataReading_t));
+            }
+            return;
+        }  
     }
 
-    for(uint32_t i = 0; i < peer_list.size();i++){
-        if(memcmp(peer_list[i]._data(),mac,6) == 0){
+    for(uint32_t i = 0; i < _unknow_peer.size();i++){
+        if(memcmp(_unknow_peer[i]._get_peer(),mac,6) == 0){
+            for(j = 0; j < d; j++){
+                memcpy(&data,&incomingData[j*sizeof(DataReading_t)],sizeof(DataReading_t));
+                _unknow_peer[i].buffer.push_back(data);
+                memset(&data,0,sizeof(DataReading_t));
+            }
             return;
         }  
     }
 
     Peer_t peer;
-    peer._copy(mac);
-    unknow_peer.push_back(peer);
+    peer._set_peer(mac);
+    _unknow_peer.push_back(peer);
+
+    for(j = 0; j < d; j++){
+        memcpy(&data,&incomingData[j*sizeof(DataReading_t)],sizeof(DataReading_t));
+        _unknow_peer.back().buffer.push_back(data);
+        memset(&data,0,sizeof(DataReading_t));
+    }
+
 }
 
 #if defined(ESP8266)
@@ -63,26 +82,12 @@ FDRSGateWayBase::FDRSGateWayBase(){
 FDRSGateWayBase::~FDRSGateWayBase(){
 }
 
-
-void FDRSGateWayBase::release(uint8_t *peer_mac){
+void FDRSGateWayBase::release(std::vector<DataReading_t> data,uint8_t *peer_mac){
     if(peer_mac == NULL){
-        send(_data);
+        send(data);
     }
-    forward(peer_mac ,_data);
+    forward(peer_mac ,data);
     
-}
-
-
-void FDRSGateWayBase::flush(void){
-    _data.clear();
-}
-
-void FDRSGateWayBase::add_data(DataReading_t *data){
-    _data.push_back(*data);
-}
-
-std::vector<DataReading_t> *FDRSGateWayBase::get_data(){
-    return &_data;
 }
 
 ESP_FDRSGateWay::ESP_FDRSGateWay(void)
@@ -163,8 +168,8 @@ void ESP_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
 
     uint32_t i = 0;
 
-    for(uint32_t i = 0; i < peer_list.size();i++){
-        if(memcmp(peer_list[i]._data(),peer_mac,6) == 0){
+    for(uint32_t i = 0; i < _peer_list.size();i++){
+        if(memcmp(_peer_list[i]._get_peer(),peer_mac,6) == 0){
             return;
         }  
     }
@@ -172,10 +177,10 @@ void ESP_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
     list_peer(peer_mac);
 
     Peer_t peer;
-    peer._copy(peer_mac);
+    peer._set_peer(peer_mac);
     //esp_now_del_peer(NEWPEER);
 
-    peer_list.push_back(peer);
+    _peer_list.push_back(peer);
 
 }
 
@@ -183,12 +188,12 @@ void ESP_FDRSGateWay::remove_peer(uint8_t peer_mac[6]){
 
     unlist_peer(peer_mac);
 
-    if(peer_list.size() == 0){
+    if(_peer_list.size() == 0){
         return;
     }
     Peer_t peer;
-    peer._copy(peer_mac);
-    peer_list.erase(std::find(peer_list.begin(),peer_list.end(),peer));
+    peer._set_peer(peer_mac);
+    _peer_list.erase(std::find(_peer_list.begin(),_peer_list.end(),peer));
 
 }
 
@@ -218,29 +223,82 @@ void ESP_FDRSGateWay::unlist_peer(uint8_t peer_mac[6]){
     
 }
 
+std::vector<DataReading_t> ESP_FDRSGateWay::get_peer_data(uint8_t *peer_mac){
+
+    for(uint32_t i = 0; i < _peer_list.size();i++){
+        if(memcmp(_peer_list[i]._get_peer(),peer_mac,6) == 0){
+            return _peer_list[i].buffer;
+        }  
+    }
+    return std::vector<DataReading_t>();
+}
+
+std::vector<DataReading_t> ESP_FDRSGateWay::get_unkown_peer_data(void){
+
+    std::vector<DataReading_t> data;
+    for(uint32_t i = 0; i < _unknow_peer.size(); i++){
+        data.insert(data.end(),_unknow_peer[i].buffer.begin(),_unknow_peer[i].buffer.end());
+    }
+
+    return data;
+}
+
+void ESP_FDRSGateWay::flush(uint8_t *peer_mac){
+
+    if(peer_mac == NULL){
+        for(uint32_t i = 0; i < _unknow_peer.size(); i++){
+            _unknow_peer[i].buffer.clear();
+            return;
+        }
+    }
+
+    for(uint32_t i = 0; i < _peer_list.size();i++){
+        if(memcmp(_peer_list[i]._get_peer(),peer_mac,6) == 0){
+            _peer_list[i].buffer.clear();
+            return;
+        }  
+    }
+    
+}
+
+
+
 void ESP_FDRSGateWay::send(std::vector<DataReading_t> data){
 
     const uint8_t espnow_size = 250 / sizeof(DataReading_t);
 
     uint32_t i = 0;
-    for(i = 0; i < unknow_peer.size(); i++){
-        list_peer(unknow_peer[i]._data());
+    for(i = 0; i < _unknow_peer.size(); i++){
+        list_peer(_unknow_peer[i]._get_peer());
     }
     
     uint8_t d = data.size() / espnow_size;
 
-    DataReading_t buffer1[d];
-    for(i = 0; i < d; i++){
-        buffer1[i] = data[i];
+    DataReading_t buffer1[d * sizeof(DataReading_t)];
+    memset(buffer1,0,d * sizeof(DataReading_t));
+    uint32_t j = 0;
+    for(i = 0; i < data.size(); i++){
+
+        buffer1[j++] = data[i];
+        if(j >= d){
+            esp_now_send(NULL, (uint8_t *) buffer1, d * sizeof(DataReading_t));
+            
+            memset(buffer1,0,d * sizeof(DataReading_t));
+            j = 0;
+            delay(10);
+        }
+        
     }
 
-    esp_now_send(NULL, (uint8_t *) buffer1, d * sizeof(DataReading_t));
-
-    for(i = 0; i < unknow_peer.size(); i++){
-        unlist_peer(unknow_peer[i]._data());
+    if(j != 0){
+        esp_now_send(NULL, (uint8_t *) buffer1, j * sizeof(DataReading_t));
     }
 
-    unknow_peer.clear();
+    for(i = 0; i < _unknow_peer.size(); i++){
+        unlist_peer(_unknow_peer[i]._get_peer());
+    }
+
+    _unknow_peer.clear();
     
 }
 
@@ -248,14 +306,28 @@ void ESP_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data
 
     const uint8_t espnow_size = 250 / sizeof(DataReading_t);
 
-    uint32_t i = 0;
-
-    
     uint8_t d = data.size() / espnow_size;
 
-    DataReading_t buffer1[d];
-    for(i = 0; i < d; i++){
-        buffer1[i] = data[i];
+    uint32_t i = 0;
+
+    DataReading_t buffer1[d * sizeof(DataReading_t)];
+    memset(buffer1,0,d * sizeof(DataReading_t));
+    uint32_t j = 0;
+    for(i = 0; i < data.size(); i++){
+
+        buffer1[j++] = data[i];
+        if(j >= d){
+            esp_now_send(NULL, (uint8_t *) buffer1, d * sizeof(DataReading_t));
+            
+            memset(buffer1,0,d * sizeof(DataReading_t));
+            j = 0;
+            delay(10);
+        }
+        
+    }
+
+    if(j != 0){
+        esp_now_send(NULL, (uint8_t *) buffer1, j * sizeof(DataReading_t));
     }
 
     esp_now_send(peer_mac, (uint8_t *) buffer1, d * sizeof(DataReading_t));
@@ -304,7 +376,7 @@ void MQTT_FDRSGateWay::mqtt_callback(char* topic, byte * message, unsigned int l
         data.id = doc[i]["id"];
         data.type = doc[i]["type"];
         data.data = doc[i]["data"];
-        FDRSGateWayBase::add_data(&data);
+        _buffer.push_back(data);
         memset(&data,0,sizeof(DataReading_t));
     }
     DBG("Incoming MQTT.");
@@ -366,6 +438,15 @@ void MQTT_FDRSGateWay::send(std::vector<DataReading_t> data) {
 
 void MQTT_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data){
     //does nothing. just here implement the pure virtule from the base class.
+    send(data);
+}
+
+std::vector<DataReading_t> MQTT_FDRSGateWay::get_data(void){
+    return _buffer;
+}
+
+void MQTT_FDRSGateWay::flush(uint8_t *peer_mac){
+    _buffer.clear();
 }
 
 Serial_FDRSGateWay::Serial_FDRSGateWay(HardwareSerial *serial, uint32_t baud):
@@ -406,11 +487,15 @@ void Serial_FDRSGateWay::pull(void){
         data.id = doc[i]["id"];
         data.type = doc[i]["type"];
         data.data = doc[i]["data"];
-        FDRSGateWayBase::add_data(&data);
+        _buffer.push_back(data);
         memset(&data,0,sizeof(DataReading_t));
     }
     DBG("Incoming Serial.");
 
+}
+
+std::vector<DataReading_t> Serial_FDRSGateWay::get_data(void){
+    return _buffer;
 }
 
 void Serial_FDRSGateWay::get(void){
@@ -434,6 +519,10 @@ void Serial_FDRSGateWay::send(std::vector<DataReading_t> data){
 
 void Serial_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> data){
     //does nothing. just here implement the pure virtule from the base class.
+}
+
+void Serial_FDRSGateWay::flush(uint8_t *peer_mac){
+    _buffer.clear();
 }
 
 LoRa_FDRSGateWay::LoRa_FDRSGateWay(uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,double band,uint8_t sf):
@@ -470,13 +559,13 @@ void LoRa_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
     uint32_t i = 0;
 
     for(uint32_t i = 0; i < _peer_list.size();i++){
-        if(memcmp(_peer_list[i]._data(),peer_mac,6) == 0){
+        if(memcmp(_peer_list[i]._get_peer(),peer_mac,6) == 0){
             return;
         }  
     }
 
     Peer_t peer;
-    peer._copy(peer_mac);
+    peer._set_peer(peer_mac);
     _peer_list.push_back(peer);
 
 }
@@ -487,7 +576,7 @@ void LoRa_FDRSGateWay::remove_peer(uint8_t peer_mac[6]){
         return;
     }
     Peer_t peer;
-    peer._copy(peer_mac);
+    peer._set_peer(peer_mac);
     _peer_list.erase(std::find(_peer_list.begin(),_peer_list.end(),peer));
 
 }
@@ -524,9 +613,9 @@ void LoRa_FDRSGateWay::get(void){
             
             memset(&data,0,sizeof(DataReading_t));
 
-            for(i = 0; i < d; i++){
-                memcpy(&data,&theData[i*sizeof(DataReading_t)],sizeof(DataReading_t));
-                FDRSGateWayBase::add_data(&data);
+            for(uint32_t j = 0; j < d; j++){
+                memcpy(&data,&theData[j*sizeof(DataReading_t)],sizeof(DataReading_t));
+                _peer_list[i].buffer.push_back(data);
                 memset(&data,0,sizeof(DataReading_t));
             }
 
@@ -536,6 +625,16 @@ void LoRa_FDRSGateWay::get(void){
 
     DBG("Incoming LoRa.");
 
+}
+
+std::vector<DataReading_t> LoRa_FDRSGateWay::get_peer_data(uint8_t *peer_mac){
+
+    for(uint32_t i = 0; i < _peer_list.size();i++){
+        if(memcmp(_peer_list[i]._get_peer(),peer_mac,6) == 0){
+            return _peer_list[i].buffer;
+        }  
+    }
+    return std::vector<DataReading_t>();
 }
 
 void LoRa_FDRSGateWay::send(std::vector<DataReading_t> data){
@@ -569,5 +668,18 @@ void LoRa_FDRSGateWay::transmit(DataReading_t *packet, uint8_t len) {
     LoRa.endPacket();
 }
 
+void LoRa_FDRSGateWay::flush(uint8_t *peer_mac){
 
+    if(peer_mac == NULL){
+        return;
+    }
+
+    for(uint32_t i = 0; i < _peer_list.size();i++){
+        if(memcmp(_peer_list[i]._get_peer(),peer_mac,6) == 0){
+            _peer_list[i].buffer.clear();
+            return;
+        }  
+    }
+    
+}
 
