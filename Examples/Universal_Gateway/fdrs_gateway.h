@@ -39,18 +39,11 @@ public:
     FDRSGateWayBase();
     ~FDRSGateWayBase();
 
-    static void add_data(DataReading_t *data);
-
-    void release(uint8_t *peer_mac = NULL);
-
-    void flush(void);
-
-protected:
-    std::vector<DataReading_t> *get_data();
+    void release(std::vector<DataReading_t> data, uint8_t *peer_mac = NULL);
+    virtual void flush(uint8_t *peer_mac = NULL) = 0;
 
 private:
     static uint32_t peer_id;
-    static std::vector<DataReading_t> _data;
     virtual void send(std::vector<DataReading_t> data) = 0;
     virtual void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) = 0;
 };
@@ -59,19 +52,24 @@ class ESP_FDRSGateWay: public FDRSGateWayBase{
 public:
     ESP_FDRSGateWay(void);
 
+    static void OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len);
+
     void init(uint8_t inturnal_mac[5]);
 
     void add_peer(uint8_t peer_mac[6]);
     void remove_peer(uint8_t peer_mac[6]);
-    static void OnDataRecv(uint8_t * mac, const uint8_t *incomingData, int len);
+    std::vector<DataReading_t> get_peer_data(uint8_t peer_mac[6]);
+    std::vector<DataReading_t> get_unkown_peer_data(void);
+    
+    void flush(uint8_t *peer_mac = NULL) override;
 
 private:
 
     static bool is_init;
     uint8_t _broadcast_mac[6];
     uint8_t _inturnal_mac[6];
-    static std::vector<Peer_t> peer_list;
-    static std::vector<Peer_t> unknow_peer;
+    static std::vector<Peer_t> _peer_list;
+    static std::vector<Peer_t> _unknow_peer;
 
     static void setup(void);
 
@@ -93,6 +91,10 @@ public:
 
     void init(void);
 
+    std::vector<DataReading_t> get_data(void);
+
+    void flush(uint8_t *peer_mac = NULL) override;
+
 private:
     #define TOPIC_DATA "fdrs/data"
     #define TOPIC_STATUS "fdrs/status"
@@ -106,6 +108,8 @@ private:
     int _port;
     WiFiClient espClient;
     PubSubClient *_client;
+
+    static std::vector<DataReading_t> _buffer;
 
     void reconnect();
     void send(std::vector<DataReading_t> data) override;
@@ -124,15 +128,22 @@ public:
     void init(int mode, int rx_pin, int tx_pin);
 #endif
     void get(void);
+
+    std::vector<DataReading_t> get_data(void);
+
+    void flush(uint8_t *peer_mac = NULL) override;
+
 private:
 
     HardwareSerial *_serial;
     uint32_t _baud;
+    static std::vector<DataReading_t> _buffer;
+
     static void setup(void);
     void pull(void);
     void send(std::vector<DataReading_t> data) override;
     void forward(uint8_t *peer_mac ,std::vector<DataReading_t> data) override;
-
+    
 };
 
 
@@ -145,6 +156,9 @@ public:
     void get(void);
     void add_peer(uint8_t peer_mac[6]);
     void remove_peer(uint8_t peer_mac[6]);
+    std::vector<DataReading_t> get_peer_data(uint8_t *peer_mac);
+
+    void flush(uint8_t *peer_mac = NULL) override;
 
 private:
 
