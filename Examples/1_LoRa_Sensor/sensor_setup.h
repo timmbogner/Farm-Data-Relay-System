@@ -9,6 +9,8 @@
 #define READING_ID    1   //Unique ID for this sensor
 #define GTWY_MAC      0x04 //Address of the nearest gateway
 
+//#define USE_ESPNOW
+#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
 #define DEBUG
