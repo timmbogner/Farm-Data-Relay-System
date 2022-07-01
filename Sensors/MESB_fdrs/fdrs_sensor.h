@@ -116,11 +116,12 @@ void beginFDRS() {
   DBG("Initializing LoRa!");
   DBG(BAND);
   DBG(SF);
-#ifndef __AVR__
+#ifdef ESP32
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
   LoRa.setPins(SS, RST, DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
+    DBG("Unable to initialize LoRa!");
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
