@@ -52,9 +52,9 @@
 #define CURRENT_T       18 // Current
 #define CURRENT2_T      19 // Current #2
 #define IT_T            20 // Iterations
-#define LATITUDE_T      21 // Latitude part of GPS coordinate
-#define LONGITUDE_T     22 // Longitude part of GPS coordinate
-#define ALTITUDE_T      23 // Altitude part of GPS coordinate
+#define LATITUDE_T      21 // GPS Latitude
+#define LONGITUDE_T     22 // GPS Longitude
+#define ALTITUDE_T      23 // GPS Altitude
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
@@ -119,11 +119,12 @@ void beginFDRS() {
   DBG("Initializing LoRa!");
   DBG(BAND);
   DBG(SF);
-#ifndef __AVR__
+#ifdef ESP32
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
   LoRa.setPins(SS, RST, DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
+    DBG("Unable to initialize LoRa!");
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
