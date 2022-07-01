@@ -8,10 +8,10 @@
 //
 
 
-#include "fdrs_sensor.h"
 #include "sensor_setup.h"
+#include "fdrs_sensor.h"
 
-FDRSLoRa FDRS(GTWY_MAC,READING_ID,MISO,MOSI,SCK,SS,RST,DIO0,BAND,SF);
+FDRSLoRa FDRS(GTWY_MAC,READING_ID,MISO,MOSI,SCK,SS,RST,DIO0,FDRS_BAND,FDRS_SF);
 
 float data1;
 float data2;
