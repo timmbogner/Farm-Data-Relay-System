@@ -1,3 +1,8 @@
+//  FARM DATA RELAY SYSTEM
+//
+//  GATEWAY 2.000 Functions
+//  This is the 'meat and potatoes' of FDRS, and should not be fooled with unless improving/adding features. 
+
 #ifdef DEBUG
 #define DBG(a) (Serial.println(a))
 #else

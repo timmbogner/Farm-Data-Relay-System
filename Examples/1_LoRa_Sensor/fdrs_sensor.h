@@ -116,7 +116,7 @@ void beginFDRS() {
   DBG("Initializing LoRa!");
   DBG(BAND);
   DBG(SF);
-#ifndef __AVR__
+#ifdef ESP32
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif
   LoRa.setPins(SS, RST, DIO0);
