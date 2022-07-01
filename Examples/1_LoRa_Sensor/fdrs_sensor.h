@@ -121,6 +121,7 @@ void beginFDRS() {
 #endif
   LoRa.setPins(SS, RST, DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
+    DBG("Unable to initialize LoRa!");
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
