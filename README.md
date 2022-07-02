@@ -21,6 +21,7 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
  
 ## Dependencies
 [LoRa library](https://github.com/sandeepmistry/arduino-LoRa)
+
 [ArduinoJson](https://arduinojson.org/)
 
 ## Future Plans
