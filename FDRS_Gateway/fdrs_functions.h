@@ -143,14 +143,16 @@ void end_lora(){
   LoRa.end();
 }
 
-void begin_SD(){
+bool begin_SD(){
   DBG("Initializing SD card...");
 
   if (!SD.begin(SD_CS)) {
-    DBG("initialization failed!");
-    while (1);
+    DBG(" Initialization failed!");
+    return false;
   }
-  DBG("initialization done.");
+  DBG(" Initialization done.");
+
+  return true;
 }
 
 void end_SD(){
@@ -226,9 +228,6 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 
 void getLoRa() {
 #ifdef USE_LORA
-  #ifdef ENABLE_SD_LOG
-  begin_lora();
-  #endif
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     uint8_t packet[packetSize];
@@ -249,10 +248,34 @@ void getLoRa() {
 
     }
   }
-  #ifdef ENABLE_SD_LOG
+#endif
+}
+
+void logToSD() {
+  #ifdef USE_LORA
   end_lora();
   #endif
-#endif
+  if(begin_SD()){
+    DBG("Logging to SD card.");
+    DynamicJsonDocument doc(24576);
+    for (int i = 0; i < ln; i++) {
+      doc[i]["id"]   = theData[i].id;
+      doc[i]["type"] = theData[i].t;
+      doc[i]["data"] = theData[i].d;
+    }
+    String outgoingString;
+    serializeJson(doc, outgoingString);
+
+    File logfile = SD.open("fdrs_log.txt", FILE_WRITE);
+    logfile.println(outgoingString);
+    logfile.close();
+
+    end_SD();
+  }
+  
+  #ifdef USE_LORA
+  begin_lora();
+  #endif
 }
 
 void sendESPNOW(uint8_t address) {
@@ -285,6 +308,7 @@ void sendESPNOW(uint8_t address) {
 }
 
 void sendSerial() {
+  logToSD();
   DBG("Sending Serial.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < ln; i++) {
@@ -314,25 +338,6 @@ void sendMQTT() {
   serializeJson(doc, outgoingString);
   client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
 #endif
-}
-
-void logToSD() {
-  begin_SD();
-  DBG("Logging to SD card.");
-  DynamicJsonDocument doc(24576);
-  for (int i = 0; i < ln; i++) {
-    doc[i]["id"]   = theData[i].id;
-    doc[i]["type"] = theData[i].t;
-    doc[i]["data"] = theData[i].d;
-  }
-  String outgoingString;
-  serializeJson(doc, outgoingString);
-
-  File logfile = SD.open("fdrs_log.txt", FILE_WRITE);
-  myFile.println(outgoingString);
-  myFile.close();
-
-  end_SD();
 }
 
 void bufferESPNOW(uint8_t interface) {
@@ -459,9 +464,6 @@ void releaseESPNOW(uint8_t interface) {
 }
 #ifdef USE_LORA
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
-  #ifdef ENABLE_SD_LOG
-  begin_lora();
-  #endif
   DBG("Transmitting LoRa.");
 
   uint8_t pkt[5 + (len * sizeof(DataReading))];
@@ -471,9 +473,6 @@ void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
-  #ifdef ENABLE_SD_LOG
-  end_lora();
-  #endif
 }
 #endif
 
