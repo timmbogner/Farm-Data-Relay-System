@@ -140,7 +140,7 @@ void begin_lora(){
 }
 
 void end_lora(){
-  LoRa.end()
+  LoRa.end();
 }
 
 void begin_SD(){
