@@ -24,7 +24,7 @@
 #ifdef USE_LED
 #include <FastLED.h>
 #endif
-#ifdef ENABLE_SD_LOG
+#ifdef USE_SD_LOG
 #include <SPI.h>
 #include <SD.h>
 #endif
@@ -66,7 +66,7 @@ void setup() {
 #ifdef USE_LORA
   begin_lora();
 #endif
-#ifdef ENABLE_SD_LOG
+#ifdef USE_SD_LOG
   begin_SD();
 #endif
   
