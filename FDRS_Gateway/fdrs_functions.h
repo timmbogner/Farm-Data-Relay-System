@@ -221,6 +221,7 @@ void getLoRa() {
 }
 
 void logToSD() {
+  #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < ln; i++) {
@@ -231,11 +232,11 @@ void logToSD() {
   String outgoingString;
   serializeJson(doc, outgoingString);
 
-  File logfile = SD.open("fdrs_log.txt", FILE_WRITE);
+  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
   logfile.println(outgoingString);
   logfile.close();
 
-
+  #endif
 }
 
 void sendESPNOW(uint8_t address) {
@@ -606,8 +607,9 @@ void begin_lora(){
 void begin_SD(){
   DBG("Initializing SD card...");
 
-  if (!SD.begin(SD_CS)) {
+  if (!SD.begin(SD_SS)) {
     DBG(" Initialization failed!");
+  }else{
+    DBG(" SD initialized.");
   }
-  DBG(" SD initialized.");
 }
