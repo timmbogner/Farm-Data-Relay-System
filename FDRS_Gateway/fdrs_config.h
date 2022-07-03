@@ -18,6 +18,7 @@
 
 //#define USE_LORA
 //#define USE_WIFI      //Used only for MQTT gateway
+//#define USE_SD_LOG      //Used only for SD-card logging
 
 // Peer addresses
 #define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
@@ -80,6 +81,6 @@
 #define TOPIC_COMMAND "fdrs/command" 
 
 
-// SD card logging
-#define ENABLE_SD_LOG
-#define SD_CS 4
+// SD card logging config -- Needed only for SD-card logging
+#define SD_SS 0     //SD card Chipselect pin (Use a different pins for LoRa and SD)
+#define SD_FILENAME "fdrs_log.txt"
