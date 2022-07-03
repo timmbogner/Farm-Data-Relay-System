@@ -66,6 +66,9 @@ void setup() {
 #ifdef USE_LORA
   begin_lora();
 #endif
+#ifdef ENABLE_SD_LOG
+  begin_SD();
+#endif
   
   //DBG(sizeof(DataReading));
 #ifdef USE_WIFI
