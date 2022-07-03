@@ -609,6 +609,7 @@ void begin_SD(){
 
   if (!SD.begin(SD_SS)) {
     DBG(" Initialization failed!");
+    while (1);
   }else{
     DBG(" SD initialized.");
   }
