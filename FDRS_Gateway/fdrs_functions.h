@@ -127,37 +127,6 @@ const char* mqtt_pass = NULL;
 #endif
 
 
-void begin_lora(){
-  #ifdef USE_LORA
-  DBG("Initializing LoRa!");
-  LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(FDRS_BAND)) {
-    while (1);
-  }
-  LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa initialized.");
-  #endif
-}
-
-void end_lora(){
-  LoRa.end();
-}
-
-bool begin_SD(){
-  DBG("Initializing SD card...");
-
-  if (!SD.begin(SD_CS)) {
-    DBG(" Initialization failed!");
-    return false;
-  }
-  DBG(" Initialization done.");
-
-  return true;
-}
-
-void end_SD(){
-  SD.end();
-}
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -621,4 +590,24 @@ void begin_espnow() {
 #endif
 #endif
   DBG(" ESP-NOW Initialized.");
+}
+void begin_lora(){
+  #ifdef USE_LORA
+  DBG("Initializing LoRa!");
+  LoRa.setPins(SS, RST, DIO0);
+  if (!LoRa.begin(FDRS_BAND)) {
+    DBG(" Initialization failed!");
+    while (1);
+  }
+  LoRa.setSpreadingFactor(FDRS_SF);
+  DBG(" LoRa initialized.");
+  #endif
+}
+void begin_SD(){
+  DBG("Initializing SD card...");
+
+  if (!SD.begin(SD_CS)) {
+    DBG(" Initialization failed!");
+  }
+  DBG(" SD initialized.");
 }
