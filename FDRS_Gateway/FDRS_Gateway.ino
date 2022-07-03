@@ -137,6 +137,13 @@ void loop() {
   }
   client.loop();
 #endif
+#ifdef USE_SD_LOG
+unsigned long current_millis = millis();
+if(current_millis-last_millis > 100){
+  tenths_of_a_second_since_reset+=(current_millis-last_millis)/100;
+  last_millis=current_millis;
+}
+#endif
   if (newData) {
     switch (newData) {
       case 1:     //ESP-NOW #1

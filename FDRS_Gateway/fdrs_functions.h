@@ -78,6 +78,11 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 //uint8_t LoRaAddress[] = {0x42, 0x00};
 #endif
 
+#ifdef USE_SD_LOG
+unsigned long last_millis = 0;
+unsigned long tenths_of_a_second_since_reset = 0;
+#endif
+
 DataReading theData[256];
 uint8_t ln;
 uint8_t newData = 0;
@@ -233,6 +238,8 @@ void logToSD() {
   serializeJson(doc, outgoingString);
 
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
+  logfile.print(tenths_of_a_second_since_reset/10.0);
+  logfile.print(" : ");
   logfile.println(outgoingString);
   logfile.close();
 
