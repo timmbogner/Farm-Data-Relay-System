@@ -252,30 +252,21 @@ void getLoRa() {
 }
 
 void logToSD() {
-  #ifdef USE_LORA
-  end_lora();
-  #endif
-  if(begin_SD()){
-    DBG("Logging to SD card.");
-    DynamicJsonDocument doc(24576);
-    for (int i = 0; i < ln; i++) {
-      doc[i]["id"]   = theData[i].id;
-      doc[i]["type"] = theData[i].t;
-      doc[i]["data"] = theData[i].d;
-    }
-    String outgoingString;
-    serializeJson(doc, outgoingString);
-
-    File logfile = SD.open("fdrs_log.txt", FILE_WRITE);
-    logfile.println(outgoingString);
-    logfile.close();
-
-    end_SD();
+  DBG("Logging to SD card.");
+  DynamicJsonDocument doc(24576);
+  for (int i = 0; i < ln; i++) {
+    doc[i]["id"]   = theData[i].id;
+    doc[i]["type"] = theData[i].t;
+    doc[i]["data"] = theData[i].d;
   }
-  
-  #ifdef USE_LORA
-  begin_lora();
-  #endif
+  String outgoingString;
+  serializeJson(doc, outgoingString);
+
+  File logfile = SD.open("fdrs_log.txt", FILE_WRITE);
+  logfile.println(outgoingString);
+  logfile.close();
+
+
 }
 
 void sendESPNOW(uint8_t address) {
