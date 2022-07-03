@@ -24,6 +24,10 @@
 #ifdef USE_LED
 #include <FastLED.h>
 #endif
+#ifdef ENABLE_SD_LOG
+#include <SPI.h>
+#include <SD.h>
+#endif
 #include "fdrs_functions.h"
 
 void setup() {
@@ -60,14 +64,7 @@ void setup() {
   begin_espnow();
 #endif
 #ifdef USE_LORA
-  DBG("Initializing LoRa!");
-  SPI.begin(SCK, MISO, MOSI, SS);
-  LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(FDRS_BAND)) {
-    while (1);
-  }
-  LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa initialized.");
+  begin_lora();
 #endif
   
   //DBG(sizeof(DataReading));

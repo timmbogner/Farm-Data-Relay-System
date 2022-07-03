@@ -126,6 +126,37 @@ const char* mqtt_user = NULL;
 const char* mqtt_pass = NULL;
 #endif
 
+
+void begin_lora(){
+  #ifdef USE_LORA
+  DBG("Initializing LoRa!");
+  LoRa.setPins(SS, RST, DIO0);
+  if (!LoRa.begin(FDRS_BAND)) {
+    while (1);
+  }
+  LoRa.setSpreadingFactor(FDRS_SF);
+  DBG(" LoRa initialized.");
+  #endif
+}
+
+void end_lora(){
+  LoRa.end()
+}
+
+void begin_SD(){
+  DBG("Initializing SD card...");
+
+  if (!SD.begin(SD_CS)) {
+    DBG("initialization failed!");
+    while (1);
+  }
+  DBG("initialization done.");
+}
+
+void end_SD(){
+  SD.end();
+}
+
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
@@ -195,6 +226,9 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 
 void getLoRa() {
 #ifdef USE_LORA
+  #ifdef ENABLE_SD_LOG
+  begin_lora();
+  #endif
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     uint8_t packet[packetSize];
@@ -215,6 +249,9 @@ void getLoRa() {
 
     }
   }
+  #ifdef ENABLE_SD_LOG
+  end_lora();
+  #endif
 #endif
 }
 
@@ -277,6 +314,25 @@ void sendMQTT() {
   serializeJson(doc, outgoingString);
   client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
 #endif
+}
+
+void logToSD() {
+  begin_SD();
+  DBG("Logging to SD card.");
+  DynamicJsonDocument doc(24576);
+  for (int i = 0; i < ln; i++) {
+    doc[i]["id"]   = theData[i].id;
+    doc[i]["type"] = theData[i].t;
+    doc[i]["data"] = theData[i].d;
+  }
+  String outgoingString;
+  serializeJson(doc, outgoingString);
+
+  File logfile = SD.open("fdrs_log.txt", FILE_WRITE);
+  myFile.println(outgoingString);
+  myFile.close();
+
+  end_SD();
 }
 
 void bufferESPNOW(uint8_t interface) {
@@ -403,6 +459,9 @@ void releaseESPNOW(uint8_t interface) {
 }
 #ifdef USE_LORA
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
+  #ifdef ENABLE_SD_LOG
+  begin_lora();
+  #endif
   DBG("Transmitting LoRa.");
 
   uint8_t pkt[5 + (len * sizeof(DataReading))];
@@ -412,6 +471,9 @@ void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
+  #ifdef ENABLE_SD_LOG
+  end_lora();
+  #endif
 }
 #endif
 

@@ -78,3 +78,8 @@
 #define TOPIC_DATA "fdrs/data"
 #define TOPIC_STATUS "fdrs/status"
 #define TOPIC_COMMAND "fdrs/command" 
+
+
+// SD card logging
+#define ENABLE_SD_LOG
+#define SD_CS 4
