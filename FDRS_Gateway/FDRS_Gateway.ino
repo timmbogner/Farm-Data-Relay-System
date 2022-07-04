@@ -55,10 +55,8 @@ void setup() {
   DBG("WiFi Connected");
   client.setServer(mqtt_server, mqtt_port);
   if (!client.connected()) {
-    DBG("Connecting MQTT...");
-    reconnect();
+    reconnect(5);
   }
-  DBG("MQTT Connected");
   client.setCallback(mqtt_callback);
 #else
   begin_espnow();
@@ -130,13 +128,12 @@ void loop() {
     getSerial();
   }
   getLoRa();
-#ifdef USE_WIFI
+  #ifdef USE_WIFI
   if (!client.connected()) {
-    DBG("Connecting MQTT...");
-    reconnect();
+    reconnect(1, true);
   }
-  client.loop();
-#endif
+  client.loop(); // for recieving incoming messages and maintaining connection
+  #endif
 #ifdef USE_SD_LOG
 unsigned long current_millis = millis();
 if(current_millis-last_millis > 100){

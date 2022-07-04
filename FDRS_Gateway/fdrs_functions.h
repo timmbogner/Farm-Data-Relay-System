@@ -173,6 +173,56 @@ void getSerial() {
 
   }
 }
+void logToSD() {
+  #ifdef USE_SD_LOG
+  DBG("Logging to SD card.");
+  DynamicJsonDocument doc(24576);
+  for (int i = 0; i < ln; i++) {
+    doc[i]["id"]   = theData[i].id;
+    doc[i]["type"] = theData[i].t;
+    doc[i]["data"] = theData[i].d;
+  }
+  String outgoingString;
+  serializeJson(doc, outgoingString);
+
+  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
+  logfile.print(tenths_of_a_second_since_reset/10.0);
+  logfile.print(" : ");
+  logfile.println(outgoingString);
+  logfile.close();
+
+  #endif
+}
+void reconnect(int attempts){
+  reconnect(attempts, false);
+}
+void reconnect(int attempts, bool silent) {
+#ifdef USE_WIFI
+
+  if(!silent) DBG("Connecting MQTT...");
+  
+  for (int i = 1; i<=attempts; i++) {
+    // Attempt to connect
+    if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
+      // Subscribe
+      client.subscribe(TOPIC_COMMAND);
+      if(!silent) DBG(" MQTT Connected");
+      return;
+    } else {
+      if(!silent) {
+        char msg[15];
+        sprintf(msg, " Attempt %d/%d",i,attempts);
+        DBG(msg);
+      }
+      if(attempts=!1){
+        delay(3000);
+      }
+    }
+  }
+
+  if(!silent) DBG(" Connecting MQTT failed.");
+#endif
+}
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
   DBG(topic);
@@ -199,6 +249,14 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 
   }
 }
+void mqtt_publish(const char* payload){
+  #ifdef USE_WIFI
+  if(!client.publish(TOPIC_DATA, payload)){
+    DBG("Error on sending MQTT");
+    logToSD();
+  }
+  #endif
+}
 
 void getLoRa() {
 #ifdef USE_LORA
@@ -223,27 +281,6 @@ void getLoRa() {
     }
   }
 #endif
-}
-
-void logToSD() {
-  #ifdef USE_SD_LOG
-  DBG("Logging to SD card.");
-  DynamicJsonDocument doc(24576);
-  for (int i = 0; i < ln; i++) {
-    doc[i]["id"]   = theData[i].id;
-    doc[i]["type"] = theData[i].t;
-    doc[i]["data"] = theData[i].d;
-  }
-  String outgoingString;
-  serializeJson(doc, outgoingString);
-
-  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
-  logfile.print(tenths_of_a_second_since_reset/10.0);
-  logfile.print(" : ");
-  logfile.println(outgoingString);
-  logfile.close();
-
-  #endif
 }
 
 void sendESPNOW(uint8_t address) {
@@ -303,7 +340,7 @@ void sendMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
+  mqtt_publish((char*) outgoingString.c_str());
 #endif
 }
 
@@ -524,23 +561,8 @@ void releaseMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
+  mqtt_publish((char*) outgoingString.c_str());
   lenMQTT = 0;
-#endif
-}
-void reconnect() {
-#ifdef USE_WIFI
-  // Loop until reconnected
-  while (!client.connected()) {
-    // Attempt to connect
-    if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
-      // Subscribe
-      client.subscribe(TOPIC_COMMAND);
-    } else {
-      DBG("Connecting MQTT.");
-      delay(5000);
-    }
-  }
 #endif
 }
 void begin_espnow() {
