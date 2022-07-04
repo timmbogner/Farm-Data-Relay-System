@@ -276,7 +276,6 @@ void sendESPNOW(uint8_t address) {
 }
 
 void sendSerial() {
-  logToSD();
   DBG("Sending Serial.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < ln; i++) {
@@ -612,6 +611,7 @@ void begin_lora(){
   #endif
 }
 void begin_SD(){
+  #ifdef USE_SD_LOG
   DBG("Initializing SD card...");
 
   if (!SD.begin(SD_SS)) {
@@ -620,4 +620,5 @@ void begin_SD(){
   }else{
     DBG(" SD initialized.");
   }
+  #endif
 }
