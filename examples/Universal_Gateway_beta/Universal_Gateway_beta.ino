@@ -53,6 +53,8 @@ std::vector<DataReading_t> lora_peer_2_data;
 
 #if defined(MQTT_GET) || defined(MQTT_SEND)
 MQTT_FDRSGateWay MQTT(WIFI_SSID,WIFI_PASS,MQTT_ADDR,MQTT_PORT);
+// TODO: should be:
+//MQTT_FDRSGateWay MQTT(GLOBAL_SSID,GLOBAL_PASS,GLOBAL_MQTT_ADDR,GLOBAL_MQTT_PORT);
 std::vector<DataReading_t> mqtt_data;
 #endif
 

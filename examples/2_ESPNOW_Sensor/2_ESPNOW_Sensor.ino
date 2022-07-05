@@ -6,7 +6,8 @@
 //  An example of how to send data using "fdrs_sensor.h".
 //
 
-#include "fdrs_sensor.h"
+#include "sensor_setup.h"
+#include <fdrs_sensor.h>
 
 float data1;
 float data2;
@@ -24,9 +25,9 @@ void loop() {
 }
 
 float readTemp() {
-  return 42.069;
+  return 22.069;
 }
 
 float readHum() {
-  return 21.0345;
+  return (0,100);
 }

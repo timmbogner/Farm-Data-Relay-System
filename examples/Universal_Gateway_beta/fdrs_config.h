@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-//#include <fdrs_globals.h> //Uncomment if you install the globals file
+#include <fdrs_globals.h> // uncomment if you want to set specific values for this sensor in sensor_setup.h
 #define DEBUG
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
@@ -33,6 +33,7 @@
 #define ESPNOW_PEER_1  0x0C  // ESPNOW1 Address 
 #define ESPNOW_PEER_2  0x0D  // ESPNOW2 Address
 
+// TODO: Needs to be commented out if FDRS_GLOBALS are assigned
 //WiFi and MQTT Credentials -- Needed only for MQTT gateway
 #define WIFI_SSID   "Your SSID"  
 #define WIFI_PASS   "Your Password"
@@ -53,6 +54,7 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
+// TODO: Needs to be commented out if FDRS_GLOBALS are assigned
 #define BAND 915E6
 #define SF 7
 

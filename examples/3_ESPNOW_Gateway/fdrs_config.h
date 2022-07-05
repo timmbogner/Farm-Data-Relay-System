@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-//#include <fdrs_globals.h> //Uncomment if you install the globals file
+#include <fdrs_globals.h> // Comment if you want to set specific values for this individually
 #define DEBUG
 
 #define UNIT_MAC     0x03  // The address of this gateway
@@ -60,8 +60,8 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define BAND 915E6
-#define SF 7
+//#define BAND 915E6
+//#define SF 7
 
 // Buffer Delays - in milliseconds
 //#define ESPNOW1_DELAY  0

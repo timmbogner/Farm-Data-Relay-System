@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-//#include <fdrs_globals.h> //Uncomment if you install the globals file
+#include <fdrs_globals.h> // Comment if you want to set specific values for this individually
 #define DEBUG
 
 #define UNIT_MAC     0x04  // The address of this gateway
@@ -30,16 +30,19 @@
 #define LORA1_ACT 
 #define LORA2_ACT 
 
+// TODO: Either way the current system is broken: It should work like the following: IF a specific Global setting is set, it should be used. If a local settings
+// is set (independent of a global setting) the local setting should be used. Therefore by default all local settings must be commented out.
+// Needs to be fixed for all sensors and gateways, did this only for the UART_Gateway to bring it back to function.
 //WiFi and MQTT Credentials -- Needed only for MQTT gateway
-#define WIFI_SSID   "Your SSID"  
-#define WIFI_PASS   "Your Password"
-#define MQTT_ADDR   "192.168.0.8"
-#define MQTT_PORT   1883 // Default MQTT port is 1883
+//#define WIFI_SSID   "Your SSID"  
+//#define WIFI_PASS   "Your Password"
+//#define MQTT_ADDR   "192.168.0.8"
+//#define MQTT_PORT   1883 // Default MQTT port is 1883
 
 //MQTT Credentials -- Needed only if MQTT broker requires authentication
 //#define MQTT_AUTH   //uncomment to enable MQTT authentication 
-#define MQTT_USER   "Your MQTT Username"
-#define MQTT_PASS   "Your MQTT Password"
+//#define MQTT_USER   "Your MQTT Username"
+//#define MQTT_PASS   "Your MQTT Password"
 
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"
@@ -60,8 +63,8 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define BAND 915E6
-#define SF 7
+//#define BAND 915E6
+//#define SF 7
 
 // Buffer Delays - in milliseconds
 //#define ESPNOW1_DELAY  0

@@ -10,7 +10,7 @@
 #define __FDRS_SENSOR__H__
 
 #include "fdrs_types.h"
-#include <FDRS_datatypes.h>
+#include "fdrs_datatypes.h"
 
 //1 to enable debugging prints. 0 disables the debugging prints
 #define ENABLE_DEBUG 1 
