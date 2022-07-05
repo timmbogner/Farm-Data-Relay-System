@@ -1,0 +1,29 @@
+##########################################################
+# Syntax Coloring Map For Farm-Data-Relay-System
+##########################################################
+
+##########################################################
+# Datatypes (KEYWORD1)
+##########################################################
+
+DataReading KEYWORD1
+
+##########################################################
+# Methods and Functions (KEYWORD2)
+##########################################################
+
+beginFDRS KEYWORD2
+loadFDRS KEYWORD2
+sendFDRS KEYWORD2
+sleepFDRS KEYWORD2
+DBG KEYWORD2
+getLoRa KEYWORD2
+sendESPNOW KEYWORD2
+sendSerial KEYWORD2
+sendMQTT KEYWORD2
+bufferESPNOW KEYWORD2
+bufferSerial KEYWORD2
+bufferMQTT KEYWORD2
+bufferLoRa KEYWORD2
+transmitLoRa KEYWORD2
+getSerial KEYWORD2
