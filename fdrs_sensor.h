@@ -4,8 +4,7 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
-#include "sensor_setup.h"
-#include <FDRS_datatypes.h>
+#include <fdrs_datatypes.h>
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <espnow.h>

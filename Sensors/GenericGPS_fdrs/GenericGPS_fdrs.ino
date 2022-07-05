@@ -6,7 +6,8 @@
 //  Reads in GPS data from serial and sends latitude, longitude and altitude to a gateway.
 //
 
-#include "fdrs_sensor.h"
+#include "sensor_setup.h"
+#include <fdrs_sensor.h>
 
 #define SERIAL1_RX 34 // TX pin of GPS sensor
 #define SERIAL1_TX 12 // RX pin of GPS sensor

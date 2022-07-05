@@ -2,12 +2,13 @@
 //
 //  TIPPING BUCKET RAINFALL SENSOR MODULE
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
-//  Each reading is assigned a two-byte identifier along with a one-byte sensor type
-//
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
+
 #define REED_PIN 2
 
-#include "fdrs_sensor.h"
+#include "sensor_setup.h"
+#include <fdrs_sensor.h>
+
 unsigned int theCount = 0;
 unsigned long lastTrigger = 0;
 boolean clicked = false;
