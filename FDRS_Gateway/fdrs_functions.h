@@ -175,7 +175,7 @@ void getSerial() {
 
   }
 }
-void SDsend(char filename[32]) {
+void send_SD(char filename[32]) {
   #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
@@ -193,6 +193,27 @@ void SDsend(char filename[32]) {
     logfile.println(theData[i].d);
   }
   logfile.close();
+  #endif
+}
+void send_FS(char filename[32]) {
+  #ifdef USE_SPIFFS_LOG
+  DBG("Logging to internal flash.");
+  File logfile = SPIFFS.open(filename, "a");
+  for (int i = 0; i < ln; i++) {
+    #ifdef USE_WIFI
+    logfile.print(timeClient.getEpochTime());
+    #else
+    logfile.print(seconds_since_reset);
+    #endif
+    logfile.print(",");
+    logfile.print(theData[i].id);
+    logfile.print(",");
+    logfile.print(theData[i].t);
+    logfile.print(",");
+    logfile.println(theData[i].d);
+  }
+  logfile.close();
+  }
   #endif
 }
 void reconnect(int attempts, bool silent) {
@@ -255,7 +276,8 @@ void mqtt_publish(const char* payload){
   #ifdef USE_WIFI
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
-    SDsend(SD_FILENAME);
+    send_SD(SD_FILENAME);
+    send_FS(SD_FILENAME);
   }
   #endif
 }
@@ -643,6 +665,21 @@ void begin_SD(){
     while (1);
   }else{
     DBG(" SD initialized.");
+  }
+  #endif
+}
+void begin_FS(){
+  #ifdef USE_SPIFFS_LOG
+  DBG("Initializing SPIFFS...");
+
+  if(!SPIFFS.begin())
+  {
+    Serial.println(" initialization failed");
+    while (1);
+  }
+  else
+  {
+    Serial.println(" SPIFFS initialized");
   }
   #endif
 }
