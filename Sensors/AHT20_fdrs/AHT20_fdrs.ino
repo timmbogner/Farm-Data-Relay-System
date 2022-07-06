@@ -4,8 +4,9 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 
+#include "sensor_setup.h"
 #include <Adafruit_AHTX0.h>
-#include "fdrs_sensor.h"
+#include <fdrs_sensor.h>
 
 Adafruit_AHTX0 aht;
 

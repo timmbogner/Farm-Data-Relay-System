@@ -2,11 +2,12 @@
 //
 //  BMP280 SENSOR MODULE
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //  Connect sensor SDA and SCL pins to those of the ESP.
 
+#include "sensor_setup.h"
 #include <Adafruit_BMP280.h>
-#include "fdrs_sensor.h"
+#include <fdrs_sensor.h>
 
 Adafruit_BMP280 bmp;
 
