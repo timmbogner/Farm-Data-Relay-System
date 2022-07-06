@@ -255,7 +255,7 @@ void mqtt_publish(const char* payload){
   #ifdef USE_WIFI
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
-    SDsend(SD_FILENAME);
+    send_SD(SD_FILENAME);
   }
   #endif
 }
