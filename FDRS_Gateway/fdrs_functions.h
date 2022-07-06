@@ -189,9 +189,6 @@ void logToSD() {
   logfile.close();
   #endif
 }
-void reconnect(int attempts){
-  reconnect(attempts, false);
-}
 void reconnect(int attempts, bool silent) {
 #ifdef USE_WIFI
 
@@ -218,6 +215,9 @@ void reconnect(int attempts, bool silent) {
 
   if(!silent) DBG(" Connecting MQTT failed.");
 #endif
+}
+void reconnect(int attempts){
+  reconnect(attempts, false);
 }
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
