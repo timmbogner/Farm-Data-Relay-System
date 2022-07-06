@@ -83,4 +83,4 @@
 
 // SD card logging config -- Needed only for SD-card logging
 #define SD_SS 0     //SD card Chipselect pin (Use a different pins for LoRa and SD)
-#define SD_FILENAME "fdrs_log.txt"
+#define SD_FILENAME "fdrs_log.csv"  // length max. 32
