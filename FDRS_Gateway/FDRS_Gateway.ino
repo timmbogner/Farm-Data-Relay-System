@@ -69,6 +69,9 @@ void setup() {
 #ifdef USE_SD_LOG
   begin_SD();
 #endif
+#ifdef USE_SPIFFS_LOG
+  begin_FS();
+#endif
   
   //DBG(sizeof(DataReading));
 #ifdef USE_WIFI
