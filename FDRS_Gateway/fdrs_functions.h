@@ -248,7 +248,7 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 void mqtt_publish(const char* payload){
   #ifdef USE_WIFI
   if(!client.publish(TOPIC_DATA, payload)){
-    DBG("Error on sending MQTT");
+    DBG(" Error on sending MQTT");
     logToSD();
   }
   #endif
