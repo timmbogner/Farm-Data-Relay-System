@@ -136,7 +136,7 @@ void loop() {
   }
   client.loop(); // for recieving incoming messages and maintaining connection
 
-  //timeClient.update();  //update internal clock if possible
+  timeClient.update();  //update internal clock if possible
   #endif
 #ifdef USE_SD_LOG
 unsigned long current_millis = millis();
