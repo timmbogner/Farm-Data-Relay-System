@@ -17,6 +17,8 @@
 #include <ArduinoJson.h>
 #ifdef USE_WIFI
 #include <PubSubClient.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
 #endif
 #ifdef USE_LORA
 #include <LoRa.h>
@@ -133,11 +135,13 @@ void loop() {
     reconnect(1, true);
   }
   client.loop(); // for recieving incoming messages and maintaining connection
+
+  //timeClient.update();  //update internal clock if possible
   #endif
 #ifdef USE_SD_LOG
 unsigned long current_millis = millis();
-if(current_millis-last_millis > 100){
-  tenths_of_a_second_since_reset+=(current_millis-last_millis)/100;
+if(current_millis-last_millis >= 1000){
+  seconds_since_reset+=(current_millis-last_millis)/1000;
   last_millis=current_millis;
 }
 #endif

@@ -80,7 +80,7 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 
 #ifdef USE_SD_LOG
 unsigned long last_millis = 0;
-unsigned long tenths_of_a_second_since_reset = 0;
+unsigned long seconds_since_reset = 0;
 #endif
 
 DataReading theData[256];
@@ -118,6 +118,8 @@ CRGB leds[NUM_LEDS];
 #endif
 #ifdef USE_WIFI
 PubSubClient client(espClient);
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
 const char* ssid = FDRS_WIFI_SSID;
 const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
@@ -178,7 +180,11 @@ void logToSD(char filename[32]) {
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
   for (int i = 0; i < ln; i++) {
-    logfile.print(tenths_of_a_second_since_reset/10.0);
+    #ifdef USE_WIFI
+    logfile.print(timeClient.getEpochTime());
+    #else
+    logfile.print(seconds_since_reset);
+    #endif
     logfile.print(",");
     logfile.print(theData[i].id);
     logfile.print(",");
