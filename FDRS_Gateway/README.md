@@ -28,6 +28,9 @@ BAND and SF (spreading factor) can also be configured in 'fdrs_globals.h' if ena
 Enables WiFi. Used only on the MQTT gateway.
 
 SSID, password, and MQTT credentials are also configurable in 'fdrs_globals.h'.
+### ```#define USE_SD_LOG```
+Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT message fails. Make sure to set the correct SD_SS (chip/slave select) pin in the lines below.
+
 ### ```#define USE_LED```
 This option initializes FastLED! I haven't developed this very much, perhaps you have ideas?
 
