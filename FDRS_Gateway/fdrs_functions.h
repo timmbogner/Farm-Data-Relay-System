@@ -175,7 +175,7 @@ void getSerial() {
 
   }
 }
-void SDsend(char filename[32]) {
+void sendSD(char filename[32]) {
   #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
