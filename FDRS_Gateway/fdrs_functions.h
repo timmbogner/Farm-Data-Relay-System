@@ -175,7 +175,7 @@ void getSerial() {
 
   }
 }
-void logToSD(char filename[32]) {
+void SDsend(char filename[32]) {
   #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
@@ -255,7 +255,7 @@ void mqtt_publish(const char* payload){
   #ifdef USE_WIFI
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
-    logToSD(SD_FILENAME);
+    SDsend(SD_FILENAME);
   }
   #endif
 }
