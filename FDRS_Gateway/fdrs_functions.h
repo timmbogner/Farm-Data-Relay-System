@@ -176,21 +176,17 @@ void getSerial() {
 void logToSD() {
   #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
-  DynamicJsonDocument doc(24576);
-  for (int i = 0; i < ln; i++) {
-    doc[i]["id"]   = theData[i].id;
-    doc[i]["type"] = theData[i].t;
-    doc[i]["data"] = theData[i].d;
-  }
-  String outgoingString;
-  serializeJson(doc, outgoingString);
-
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
-  logfile.print(tenths_of_a_second_since_reset/10.0);
-  logfile.print(" : ");
-  logfile.println(outgoingString);
+  for (int i = 0; i < ln; i++) {
+    logfile.print(tenths_of_a_second_since_reset/10.0);
+    logfile.print(",");
+    logfile.print(theData[i].id);
+    logfile.print(",");
+    logfile.print(theData[i].t);
+    logfile.print(",");
+    logfile.print(theData[i].d);
+  }
   logfile.close();
-
   #endif
 }
 void reconnect(int attempts){
