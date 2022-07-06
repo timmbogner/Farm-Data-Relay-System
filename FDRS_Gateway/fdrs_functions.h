@@ -277,7 +277,7 @@ void mqtt_publish(const char* payload){
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
     send_SD(SD_FILENAME);
-    send_FS(SD_FILENAME);
+    send_FS(SPIFFS_FILENAME);
   }
   #endif
 }
