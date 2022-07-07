@@ -36,10 +36,12 @@
 #define RXD2 14
 #define TXD2 15
 
-//LoRa Configuration -- Needed only if using LoRa
+//SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
 #define SCK 5
 #define MISO 19
 #define MOSI 27
+
+//LoRa Configuration -- Needed only if using LoRa
 #define SS 18
 #define RST 14
 #define DIO0 26

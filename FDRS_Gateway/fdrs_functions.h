@@ -625,6 +625,9 @@ void begin_espnow() {
 void begin_lora(){
   #ifdef USE_LORA
   DBG("Initializing LoRa!");
+  #ifdef ESP32
+  SPI.begin(SCK, MISO, MOSI);
+  #endif
   LoRa.setPins(SS, RST, DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     DBG(" Initialization failed!");
@@ -637,7 +640,9 @@ void begin_lora(){
 void begin_SD(){
   #ifdef USE_SD_LOG
   DBG("Initializing SD card...");
-
+  #ifdef ESP32
+  SPI.begin(SCK, MISO, MOSI);
+  #endif
   if (!SD.begin(SD_SS)) {
     DBG(" Initialization failed!");
     while (1);
