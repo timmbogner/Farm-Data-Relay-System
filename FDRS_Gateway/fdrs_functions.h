@@ -196,9 +196,9 @@ void send_SD(char filename[32]) {
   #endif
 }
 void send_FS(char filename[32]) {
-  #ifdef USE_SPIFFS_LOG
+  #ifdef USE_FS_LOG
   DBG("Logging to internal flash.");
-  File logfile = SPIFFS.open(filename, "a");
+  File logfile = LittleFS.open(filename, "a");
   for (int i = 0; i < ln; i++) {
     #ifdef USE_WIFI
     logfile.print(timeClient.getEpochTime());
@@ -213,7 +213,6 @@ void send_FS(char filename[32]) {
     logfile.println(theData[i].d);
   }
   logfile.close();
-  }
   #endif
 }
 void reconnect(int attempts, bool silent) {
@@ -277,7 +276,7 @@ void mqtt_publish(const char* payload){
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
     send_SD(SD_FILENAME);
-    send_FS(SPIFFS_FILENAME);
+    send_FS(FS_FILENAME);
   }
   #endif
 }
@@ -669,17 +668,17 @@ void begin_SD(){
   #endif
 }
 void begin_FS(){
-  #ifdef USE_SPIFFS_LOG
-  DBG("Initializing SPIFFS...");
+  #ifdef USE_FS_LOG
+  DBG("Initializing LittleFS...");
 
-  if(!SPIFFS.begin())
+  if(!LittleFS.begin())
   {
     Serial.println(" initialization failed");
     while (1);
   }
   else
   {
-    Serial.println(" SPIFFS initialized");
+    Serial.println(" LittleFS initialized");
   }
   #endif
 }
