@@ -75,7 +75,7 @@ public:
   void begin(void);
 
   /**
-   * @brief Set the data sor the next transmission.
+   * @brief Set the data for the next transmission.
    * 
    * @param data Data for the next transmission
    * @param type The ID for the type of data that is being sent.
