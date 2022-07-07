@@ -61,7 +61,9 @@ void setup() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, LORA_SS);
+#ifdef ESP32
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+#endif
   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     while (1);

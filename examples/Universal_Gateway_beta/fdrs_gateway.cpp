@@ -544,7 +544,9 @@ void LoRa_FDRSGateWay::init(uint8_t mac[6]){
     memcpy(_mac,mac,6);
 
     DBG("Initializing LoRa!");
-    SPI.begin(_sck, _miso, _mosi, _ss);
+    #ifdef ESP32
+        SPI.begin(_sck, _miso, _mosi);
+    #endif
     LoRa.setPins(_ss, _rst, _dio0);
     if (!LoRa.begin(_band)) {
         DBG(" LoRa initialize failed");

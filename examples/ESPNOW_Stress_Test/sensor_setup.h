@@ -15,10 +15,12 @@
 //#define POWER_CTRL    14
 //#define DEBUG
 
-//LoRa Configuration
+//SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
 #define SPI_SCK 5
 #define SPI_MISO 19
 #define SPI_MOSI 27
+
+//LoRa Configuration
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26

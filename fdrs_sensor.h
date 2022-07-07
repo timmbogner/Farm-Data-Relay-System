@@ -95,7 +95,7 @@ void beginFDRS() {
   DBG(LORA_BAND);
   DBG(LORA_SF);
 #ifdef ESP32
-  SPI.begin(SPI_SCK, MISO, MOSI, LORA_SS);
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 #endif
   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
