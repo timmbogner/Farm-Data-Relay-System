@@ -175,7 +175,7 @@ void getSerial() {
 
   }
 }
-void send_SD(char filename[32]) {
+void send_SD(const char filename[32]) {
   #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
@@ -195,10 +195,10 @@ void send_SD(char filename[32]) {
   logfile.close();
   #endif
 }
-void send_FS(char filename[32]) {
-  #ifdef USE_SPIFFS_LOG
+void send_FS(const char filename[32]) {
+  #ifdef USE_FS_LOG
   DBG("Logging to internal flash.");
-  File logfile = SPIFFS.open(filename, "a");
+  File logfile = LittleFS.open(filename, "a");
   for (int i = 0; i < ln; i++) {
     #ifdef USE_WIFI
     logfile.print(timeClient.getEpochTime());
@@ -213,15 +213,14 @@ void send_FS(char filename[32]) {
     logfile.println(theData[i].d);
   }
   logfile.close();
-  }
   #endif
 }
-void reconnect(int attempts, bool silent) {
+void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
 
   if(!silent) DBG("Connecting MQTT...");
   
-  for (int i = 1; i<=attempts; i++) {
+  for (short int i = 1; i<=attempts; i++) {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
@@ -230,11 +229,11 @@ void reconnect(int attempts, bool silent) {
       return;
     } else {
       if(!silent) {
-        char msg[15];
+        char msg[23];
         sprintf(msg, " Attempt %d/%d",i,attempts);
         DBG(msg);
       }
-      if(attempts=!1){
+      if((attempts=!1)){
         delay(3000);
       }
     }
@@ -249,7 +248,7 @@ void reconnect(int attempts){
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
   DBG(topic);
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     incomingString += (char)message[i];
   }
   StaticJsonDocument<2048> doc;
@@ -277,7 +276,7 @@ void mqtt_publish(const char* payload){
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
     send_SD(SD_FILENAME);
-    send_FS(SPIFFS_FILENAME);
+    send_FS(FS_FILENAME);
   }
   #endif
 }
@@ -647,7 +646,7 @@ void begin_espnow() {
 void begin_lora(){
   #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  LoRa.setPins(SS, RST, DIO0);
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     DBG(" Initialization failed!");
     while (1);
@@ -669,17 +668,17 @@ void begin_SD(){
   #endif
 }
 void begin_FS(){
-  #ifdef USE_SPIFFS_LOG
-  DBG("Initializing SPIFFS...");
+  #ifdef USE_FS_LOG
+  DBG("Initializing LittleFS...");
 
-  if(!SPIFFS.begin())
+  if(!LittleFS.begin())
   {
     Serial.println(" initialization failed");
     while (1);
   }
   else
   {
-    Serial.println(" SPIFFS initialized");
+    Serial.println(" LittleFS initialized");
   }
   #endif
 }

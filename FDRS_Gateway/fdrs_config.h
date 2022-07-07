@@ -19,7 +19,7 @@
 //#define USE_LORA
 //#define USE_WIFI      //Used only for MQTT gateway
 //#define USE_SD_LOG      //Used only for SD-card logging
-//#define USE_SPIFFS_LOG      //Used only for SPIFFS logging (esp internal filesystem)
+//#define USE_FS_LOG      //Used only for SPIFFS logging (esp internal filesystem)
 
 // Peer addresses
 #define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
@@ -87,4 +87,4 @@
 #define SD_FILENAME "fdrs_log.csv"  // length max. 32
 
 // SPIFFS logging config -- Needed only for SPIFFS logging
-#define SPIFFS_FILENAME "fdrs_log.csv"  // length max. 32
+#define FS_FILENAME "fdrs_log.csv"  // length max. 32
