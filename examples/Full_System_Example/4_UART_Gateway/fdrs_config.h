@@ -54,17 +54,17 @@
 #define TXD2 15
 
 //LoRa Configuration -- Needed only if using LoRa
-#define SCK 5
-#define MISO 19
-#define MOSI 27
-#define SS 18
-#define RST 14
-#define DIO0 26
+#define SPI_SCK 5
+#define SPI_MISO 19
+#define SPI_MOSI 27
+#define LORA_SS 18
+#define LORA_RST 14
+#define LORA_DIO0 26
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-//#define BAND 915E6
-//#define SF 7
+//#define LORA_BAND 915E6
+//#define LORA_SF 7
 
 // Buffer Delays - in milliseconds
 //#define ESPNOW1_DELAY  0

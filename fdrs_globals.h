@@ -9,7 +9,7 @@
 #define GLOBAL_MQTT_USER   "Your MQTT Username"
 #define GLOBAL_MQTT_PASS   "Your MQTT Password"
 
-#define GLOBAL_BAND 915E6 //LoRa Frequency Band
-#define GLOBAL_SF 7  //LoRa Spreading Factor
+#define GLOBAL_LORA_BAND 915E6 //LoRa Frequency Band
+#define GLOBAL_LORA_SF 7  //LoRa Spreading Factor
 
 #endif GLOBALS

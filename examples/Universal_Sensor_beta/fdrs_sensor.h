@@ -40,8 +40,8 @@
 #define FDRS_BAND GLOBAL_BAND
 #define FDRS_SF GLOBAL_SF
 #else
-#define FDRS_BAND BAND
-#define FDRS_SF SF
+#define FDRS_BAND LORA_BAND
+#define FDRS_SF LORA_SF
 #endif
 
 #ifdef DEBUG

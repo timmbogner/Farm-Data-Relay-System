@@ -16,15 +16,15 @@
 #define DEBUG
 
 //LoRa Configuration
-#define SCK 5
-#define MISO 19
-#define MOSI 27
-#define SS 18
+#define SPI_SCK 5
+#define SPI_MISO 19
+#define SPI_MOSI 27
+#define LORA_SS 18
 // RST: 23 for T-Beam or Paxcounter, 14 for Lora32 V1
-#define RST 23
-#define DIO0 26
+#define LORA_RST 23
+#define LORA_DIO0 26
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define BAND 866E6
-#define SF 7
+#define LORA_BAND 866E6
+#define LORA_SF 7

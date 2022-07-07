@@ -61,8 +61,8 @@ void setup() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  SPI.begin(SCK, MISO, MOSI, SS);
-  LoRa.setPins(SS, RST, DIO0);
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, LORA_SS);
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     while (1);
   }
