@@ -175,7 +175,7 @@ void getSerial() {
 
   }
 }
-void send_SD(char filename[32]) {
+void sendSD(const char filename[32]) {
   #ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
@@ -195,7 +195,7 @@ void send_SD(char filename[32]) {
   logfile.close();
   #endif
 }
-void send_FS(char filename[32]) {
+void sendFS(const char filename[32]) {
   #ifdef USE_FS_LOG
   DBG("Logging to internal flash.");
   File logfile = LittleFS.open(filename, "a");
@@ -275,8 +275,8 @@ void mqtt_publish(const char* payload){
   #ifdef USE_WIFI
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
-    send_SD(SD_FILENAME);
-    send_FS(FS_FILENAME);
+    sendSD(SD_FILENAME);
+    sendFS(FS_FILENAME);
   }
   #endif
 }
