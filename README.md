@@ -13,6 +13,9 @@ To install FDRS, download the project folder and move it to your Arduino librari
   
 This [LoRa library](https://github.com/sandeepmistry/arduino-LoRa) is required only if you are using LoRa.
 
+[MQTT](https://github.com/knolleary/pubsubclient/) required for MQTT Gateways.
+
+
 ### [Sensors](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/FDRS_Sensor)
 Sensors gather data and send it to a gateway via ESP-NOW or LoRa. 
   
