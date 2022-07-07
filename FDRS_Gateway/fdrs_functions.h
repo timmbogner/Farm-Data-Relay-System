@@ -215,12 +215,12 @@ void sendFS(const char filename[32]) {
   logfile.close();
   #endif
 }
-void reconnect(int attempts, bool silent) {
+void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
 
   if(!silent) DBG("Connecting MQTT...");
   
-  for (int i = 1; i<=attempts; i++) {
+  for (short int i = 1; i<=attempts; i++) {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
@@ -229,11 +229,11 @@ void reconnect(int attempts, bool silent) {
       return;
     } else {
       if(!silent) {
-        char msg[15];
+        char msg[23];
         sprintf(msg, " Attempt %d/%d",i,attempts);
         DBG(msg);
       }
-      if(attempts=!1){
+      if((attempts=!1)){
         delay(3000);
       }
     }
@@ -248,7 +248,7 @@ void reconnect(int attempts){
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
   DBG(topic);
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     incomingString += (char)message[i];
   }
   StaticJsonDocument<2048> doc;
