@@ -18,7 +18,7 @@ If available and enabled, the device enters deep-sleep. If ```#DEEP_SLEEP``` is 
 The identifier of this individual device. Should be a 16-bit integer (0-65535). 
 ### ```#define GTWY_MAC  0xnn```
 The UNIT_MAC of the gateway that this device will send its data to.
-### ```#define DEBUG```
+### ```#define FDRS_DEBUG```
 This definition enables debug messages to be sent over the serial port. If disabled, no serial interface will be initialized. 
 ### ```#define USE_ESPNOW```
 Enables/disables ESP-NOW.

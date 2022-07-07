@@ -22,7 +22,7 @@ FDRSBase::~FDRSBase(){
 }
 
 void FDRSBase::begin() {
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
     Serial.begin(115200);
 #endif
     DBG("FDRS Sensor ID " + String(_reading_id) + " initializing...");

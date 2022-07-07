@@ -4,7 +4,7 @@
 //  This is the 'meat and potatoes' of FDRS, and should not be fooled with unless improving/adding features. 
 //  Developed by Timm Bogner (timmbogner@gmail.com) 
 
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
@@ -16,7 +16,7 @@
 #define UART_IF Serial
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #define FDRS_WIFI_PASS GLOBAL_PASS
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR

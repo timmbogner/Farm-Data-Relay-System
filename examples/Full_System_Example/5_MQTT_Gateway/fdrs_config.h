@@ -3,7 +3,7 @@
 //  GATEWAY 2.000 Configuration
 
 #include <fdrs_globals.h> // Comment if you want to set specific values for this individually
-#define DEBUG             //Enable debugging information over serial
+#define FDRS_DEBUG             //Enable debugging information over serial
 
 #define UNIT_MAC     0x05  // The address of this gateway
 

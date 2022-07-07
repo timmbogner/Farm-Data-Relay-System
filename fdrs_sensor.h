@@ -17,7 +17,7 @@
 #include <LoRa.h>
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_BAND GLOBAL_BAND
 #define FDRS_SF GLOBAL_SF
 #else
@@ -25,7 +25,7 @@
 #define FDRS_SF SF
 #endif
 
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
@@ -50,7 +50,7 @@ DataReading fdrsData[espnow_size];
 uint8_t data_count = 0;
 
 void beginFDRS() {
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
   Serial.begin(115200);
 #endif
   DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
@@ -92,8 +92,8 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  DBG(BAND);
-  DBG(SF);
+  DBG(FDRS_BAND);
+  DBG(FDRS_SF);
 #ifdef ESP32
   SPI.begin(SCK, MISO, MOSI, SS);
 #endif

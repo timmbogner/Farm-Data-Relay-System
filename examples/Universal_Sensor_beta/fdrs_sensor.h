@@ -16,8 +16,8 @@
 #define ENABLE_DEBUG 1 
 
 #if ENABLE_DEBUG == 1
-#ifndef DEBUG
-#define DEBUG
+#ifndef FDRS_DEBUG
+#define FDRS_DEBUG
 #endif
 #endif
 
@@ -36,7 +36,7 @@
 #include "LoRa.h"
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_BAND GLOBAL_BAND
 #define FDRS_SF GLOBAL_SF
 #else
@@ -44,7 +44,7 @@
 #define FDRS_SF SF
 #endif
 
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
