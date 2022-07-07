@@ -16,7 +16,7 @@
 #define UART_IF Serial
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #define FDRS_WIFI_PASS GLOBAL_PASS
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
