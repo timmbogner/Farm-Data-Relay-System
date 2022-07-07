@@ -30,9 +30,6 @@
 #include <SPI.h>
 #include <SD.h>
 #endif
-#ifdef USE_FS_LOG
-#include <LittleFS.h>
-#endif
 #include "fdrs_functions.h"
 
 void setup() {
@@ -72,7 +69,7 @@ void setup() {
 #ifdef USE_SD_LOG
   begin_SD();
 #endif
-#ifdef USE_FS_LOG
+#ifdef USE_SPIFFS_LOG
   begin_FS();
 #endif
   
