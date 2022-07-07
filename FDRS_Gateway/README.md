@@ -16,7 +16,7 @@ In this example, the gateway is set to take any ESP-NOW packet it receives and s
 ## Options
 ### ```#define UNIT_MAC (0xNN)```
 The UNIT_MAC is the ESP-NOW and LoRa address of the gateway. This is the address that nodes or other gateways will use to pass data to this device.
-### ```#define DEBUG```
+### ```#define FDRS_DEBUG```
 This definition enables debug messages to be sent over the serial port. If disabled, the USB serial port is still used to echo data being sent via the sendSerial() command.
 ### ```#define RXD2 (pin)``` and ```TXD2 (pin)```
 These are the pins for inter-device serial communication. The single ESP8266 serial interface is not configurable, and thus these options only apply to ESP32 boards. 

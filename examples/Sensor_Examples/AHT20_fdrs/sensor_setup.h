@@ -13,7 +13,7 @@
 //#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-#define DEBUG
+#define FDRS_DEBUG
 
 //LoRa Configuration
 #define SCK 5

@@ -31,8 +31,8 @@ transmitLoRa	KEYWORD2
 ##########################################################
 # Literals (LITERAL1)
 ##########################################################
-DEBUG	LITERAL1
-DEBUG	LITERAL1
+FDRS_DEBUG	LITERAL1
+FDRS_DEBUG	LITERAL1
 DEEP_SLEEP	LITERAL1
 FDRS_BAND	LITERAL1
 FDRS_SF	LITERAL1

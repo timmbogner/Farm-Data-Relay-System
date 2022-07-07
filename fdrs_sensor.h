@@ -25,7 +25,7 @@
 #define FDRS_SF SF
 #endif
 
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
@@ -50,7 +50,7 @@ DataReading fdrsData[espnow_size];
 uint8_t data_count = 0;
 
 void beginFDRS() {
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
   Serial.begin(115200);
 #endif
   DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
