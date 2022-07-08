@@ -180,27 +180,39 @@ void sendSD(const char filename[32]) {
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
   for (int i = 0; i < ln; i++) {
+    char linebuf[32];
     #ifdef USE_WIFI
-    logfile.print(timeClient.getEpochTime());
+    sprintf(linebuf, "%ld,%d,%d,%g",timeClient.getEpochTime(),theData[i].id,theData[i].t,theData[i].d);
     #else
-    logfile.print(seconds_since_reset);
+    sprintf(linebuf, "%ld,%d,%d,%g",seconds_since_reset,theData[i].id,theData[i].t,theData[i].d);
     #endif
-    logfile.print(",");
-    logfile.print(theData[i].id);
-    logfile.print(",");
-    logfile.print(theData[i].t);
-    logfile.print(",");
-    logfile.println(theData[i].d);
+    logfile.println(linebuf);
   }
   logfile.close();
   #endif
 }
-void reconnect(int attempts, bool silent) {
+void sendFS(const char filename[32]) {
+  #ifdef USE_FS_LOG
+  DBG("Logging to internal flash.");
+  File logfile = LittleFS.open(filename, "a");
+  for (int i = 0; i < ln; i++) {
+    char linebuf[32];
+    #ifdef USE_WIFI
+    sprintf(linebuf, "%ld,%d,%d,%g",timeClient.getEpochTime(),theData[i].id,theData[i].t,theData[i].d);
+    #else
+    sprintf(linebuf, "%ld,%d,%d,%g",seconds_since_reset,theData[i].id,theData[i].t,theData[i].d);
+    #endif
+    logfile.println(linebuf);
+  }
+  logfile.close();
+  #endif
+}
+void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
 
   if(!silent) DBG("Connecting MQTT...");
   
-  for (int i = 1; i<=attempts; i++) {
+  for (short int i = 1; i<=attempts; i++) {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
@@ -209,11 +221,11 @@ void reconnect(int attempts, bool silent) {
       return;
     } else {
       if(!silent) {
-        char msg[15];
+        char msg[23];
         sprintf(msg, " Attempt %d/%d",i,attempts);
         DBG(msg);
       }
-      if(attempts=!1){
+      if((attempts=!1)){
         delay(3000);
       }
     }
@@ -228,7 +240,7 @@ void reconnect(int attempts){
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
   DBG(topic);
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     incomingString += (char)message[i];
   }
   StaticJsonDocument<2048> doc;
@@ -256,6 +268,7 @@ void mqtt_publish(const char* payload){
   if(!client.publish(TOPIC_DATA, payload)){
     DBG(" Error on sending MQTT");
     sendSD(SD_FILENAME);
+    sendFS(FS_FILENAME);
   }
   #endif
 }
@@ -648,6 +661,21 @@ void begin_SD(){
     while (1);
   }else{
     DBG(" SD initialized.");
+  }
+  #endif
+}
+void begin_FS(){
+  #ifdef USE_FS_LOG
+  DBG("Initializing LittleFS...");
+
+  if(!LittleFS.begin())
+  {
+    Serial.println(" initialization failed");
+    while (1);
+  }
+  else
+  {
+    Serial.println(" LittleFS initialized");
   }
   #endif
 }

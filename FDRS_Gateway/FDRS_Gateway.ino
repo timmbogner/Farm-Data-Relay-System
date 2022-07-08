@@ -30,6 +30,9 @@
 #include <SPI.h>
 #include <SD.h>
 #endif
+#ifdef USE_FS_LOG
+#include <LittleFS.h>
+#endif
 //#include <fdrs_functions.h>  //Use global functions file
 #include "fdrs_functions.h"  //Use local functions file
 
@@ -69,6 +72,9 @@ void setup() {
 #endif
 #ifdef USE_SD_LOG
   begin_SD();
+#endif
+#ifdef USE_FS_LOG
+  begin_FS();
 #endif
   
   //DBG(sizeof(DataReading));
