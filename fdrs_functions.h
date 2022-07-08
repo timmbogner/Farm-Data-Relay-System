@@ -625,10 +625,10 @@ void begin_espnow() {
 void begin_lora(){
   #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  #ifdef ESP32
-  SPI.begin(SCK, MISO, MOSI);
-  #endif
-  LoRa.setPins(SS, RST, DIO0);
+#ifdef ESP32
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+#endif
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     DBG(" Initialization failed!");
     while (1);
