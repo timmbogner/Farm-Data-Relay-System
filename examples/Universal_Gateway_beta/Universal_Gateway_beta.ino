@@ -76,7 +76,7 @@ std::vector<DataReading_t> serial_data;
 
 #if defined(LORA_GET) || defined(LORA_SEND)
 
-LoRa_FDRSGateWay LoRaGW(MISO,MOSI,SCK,SS,RST,DIO0,BAND,SF);
+LoRa_FDRSGateWay LoRaGW(SPI_MISO,SPI_MOSI,SPI_SCK,LORA_SS,LORA_RST,LORA_DIO0,LORA_BAND,LORA_SF);
 
 #endif
 

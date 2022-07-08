@@ -16,15 +16,15 @@
 #define UART_IF Serial
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #define FDRS_WIFI_PASS GLOBAL_PASS
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
 #define FDRS_MQTT_PORT GLOBAL_MQTT_PORT
 #define FDRS_MQTT_USER GLOBAL_MQTT_USER
 #define FDRS_MQTT_PASS GLOBAL_MQTT_PASS
-#define FDRS_BAND GLOBAL_BAND
-#define FDRS_SF GLOBAL_SF
+#define FDRS_BAND GLOBAL_LORA_BAND
+#define FDRS_SF GLOBAL_LORA_SF
 #else
 #define FDRS_WIFI_SSID WIFI_SSID
 #define FDRS_WIFI_PASS WIFI_PASS
@@ -32,8 +32,8 @@
 #define FDRS_MQTT_PORT MQTT_PORT
 #define FDRS_MQTT_USER MQTT_USER
 #define FDRS_MQTT_PASS MQTT_PASS
-#define FDRS_BAND BAND
-#define FDRS_SF SF
+#define FDRS_BAND LORA_BAND
+#define FDRS_SF LORA_SF
 #endif
 
 #if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
@@ -78,6 +78,11 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 //uint8_t LoRaAddress[] = {0x42, 0x00};
 #endif
 
+#ifdef USE_SD_LOG
+unsigned long last_millis = 0;
+unsigned long seconds_since_reset = 0;
+#endif
+
 DataReading theData[256];
 uint8_t ln;
 uint8_t newData = 0;
@@ -113,6 +118,8 @@ CRGB leds[NUM_LEDS];
 #endif
 #ifdef USE_WIFI
 PubSubClient client(espClient);
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
 const char* ssid = FDRS_WIFI_SSID;
 const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
@@ -125,6 +132,8 @@ const char* mqtt_pass = FDRS_MQTT_PASS;
 const char* mqtt_user = NULL;
 const char* mqtt_pass = NULL;
 #endif
+
+
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -166,6 +175,56 @@ void getSerial() {
 
   }
 }
+void sendSD(const char filename[32]) {
+  #ifdef USE_SD_LOG
+  DBG("Logging to SD card.");
+  File logfile = SD.open(filename, FILE_WRITE);
+  for (int i = 0; i < ln; i++) {
+    #ifdef USE_WIFI
+    logfile.print(timeClient.getEpochTime());
+    #else
+    logfile.print(seconds_since_reset);
+    #endif
+    logfile.print(",");
+    logfile.print(theData[i].id);
+    logfile.print(",");
+    logfile.print(theData[i].t);
+    logfile.print(",");
+    logfile.println(theData[i].d);
+  }
+  logfile.close();
+  #endif
+}
+void reconnect(int attempts, bool silent) {
+#ifdef USE_WIFI
+
+  if(!silent) DBG("Connecting MQTT...");
+  
+  for (int i = 1; i<=attempts; i++) {
+    // Attempt to connect
+    if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
+      // Subscribe
+      client.subscribe(TOPIC_COMMAND);
+      if(!silent) DBG(" MQTT Connected");
+      return;
+    } else {
+      if(!silent) {
+        char msg[15];
+        sprintf(msg, " Attempt %d/%d",i,attempts);
+        DBG(msg);
+      }
+      if(attempts=!1){
+        delay(3000);
+      }
+    }
+  }
+
+  if(!silent) DBG(" Connecting MQTT failed.");
+#endif
+}
+void reconnect(int attempts){
+  reconnect(attempts, false);
+}
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
   DBG(topic);
@@ -191,6 +250,14 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
     DBG("Incoming MQTT.");
 
   }
+}
+void mqtt_publish(const char* payload){
+  #ifdef USE_WIFI
+  if(!client.publish(TOPIC_DATA, payload)){
+    DBG(" Error on sending MQTT");
+    sendSD(SD_FILENAME);
+  }
+  #endif
 }
 
 void getLoRa() {
@@ -275,7 +342,7 @@ void sendMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
+  mqtt_publish((char*) outgoingString.c_str());
 #endif
 }
 
@@ -496,23 +563,8 @@ void releaseMQTT() {
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
-  client.publish(TOPIC_DATA, (char*) outgoingString.c_str());
+  mqtt_publish((char*) outgoingString.c_str());
   lenMQTT = 0;
-#endif
-}
-void reconnect() {
-#ifdef USE_WIFI
-  // Loop until reconnected
-  while (!client.connected()) {
-    // Attempt to connect
-    if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
-      // Subscribe
-      client.subscribe(TOPIC_COMMAND);
-    } else {
-      DBG("Connecting MQTT.");
-      delay(5000);
-    }
-  }
 #endif
 }
 void begin_espnow() {
@@ -569,4 +621,33 @@ void begin_espnow() {
 #endif
 #endif
   DBG(" ESP-NOW Initialized.");
+}
+void begin_lora(){
+  #ifdef USE_LORA
+  DBG("Initializing LoRa!");
+#ifdef ESP32
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+#endif
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
+  if (!LoRa.begin(FDRS_BAND)) {
+    DBG(" Initialization failed!");
+    while (1);
+  }
+  LoRa.setSpreadingFactor(FDRS_SF);
+  DBG(" LoRa initialized.");
+  #endif
+}
+void begin_SD(){
+  #ifdef USE_SD_LOG
+  DBG("Initializing SD card...");
+  #ifdef ESP32
+  SPI.begin(SCK, MISO, MOSI);
+  #endif
+  if (!SD.begin(SD_SS)) {
+    DBG(" Initialization failed!");
+    while (1);
+  }else{
+    DBG(" SD initialized.");
+  }
+  #endif
 }

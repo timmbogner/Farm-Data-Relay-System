@@ -17,6 +17,8 @@
 #include <ArduinoJson.h>
 #ifdef USE_WIFI
 #include <PubSubClient.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
 #endif
 #ifdef USE_LORA
 #include <LoRa.h>
@@ -24,7 +26,12 @@
 #ifdef USE_LED
 #include <FastLED.h>
 #endif
-#include <fdrs_functions.h>
+#ifdef USE_SD_LOG
+#include <SPI.h>
+#include <SD.h>
+#endif
+#include <fdrs_functions.h>  //Use global functions file
+//#include "fdrs_functions.h"  //Use local functions file
 
 void setup() {
 #if defined(ESP8266)
@@ -51,23 +58,17 @@ void setup() {
   DBG("WiFi Connected");
   client.setServer(mqtt_server, mqtt_port);
   if (!client.connected()) {
-    DBG("Connecting MQTT...");
-    reconnect();
+    reconnect(5);
   }
-  DBG("MQTT Connected");
   client.setCallback(mqtt_callback);
 #else
   begin_espnow();
 #endif
 #ifdef USE_LORA
-  DBG("Initializing LoRa!");
-  SPI.begin(SCK, MISO, MOSI, SS);
-  LoRa.setPins(SS, RST, DIO0);
-  if (!LoRa.begin(FDRS_BAND)) {
-    while (1);
-  }
-  LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa initialized.");
+  begin_lora();
+#endif
+#ifdef USE_SD_LOG
+  begin_SD();
 #endif
   
   //DBG(sizeof(DataReading));
@@ -130,12 +131,20 @@ void loop() {
     getSerial();
   }
   getLoRa();
-#ifdef USE_WIFI
+  #ifdef USE_WIFI
   if (!client.connected()) {
-    DBG("Connecting MQTT...");
-    reconnect();
+    reconnect(1, true);
   }
-  client.loop();
+  client.loop(); // for recieving incoming messages and maintaining connection
+
+  timeClient.update();  //update internal clock if possible
+  #endif
+#ifdef USE_SD_LOG
+unsigned long current_millis = millis();
+if(current_millis-last_millis >= 1000){
+  seconds_since_reset+=(current_millis-last_millis)/1000;
+  last_millis=current_millis;
+}
 #endif
   if (newData) {
     switch (newData) {

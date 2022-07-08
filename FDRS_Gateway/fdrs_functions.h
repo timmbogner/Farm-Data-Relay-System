@@ -16,15 +16,15 @@
 #define UART_IF Serial
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #define FDRS_WIFI_PASS GLOBAL_PASS
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
 #define FDRS_MQTT_PORT GLOBAL_MQTT_PORT
 #define FDRS_MQTT_USER GLOBAL_MQTT_USER
 #define FDRS_MQTT_PASS GLOBAL_MQTT_PASS
-#define FDRS_BAND GLOBAL_BAND
-#define FDRS_SF GLOBAL_SF
+#define FDRS_BAND GLOBAL_LORA_BAND
+#define FDRS_SF GLOBAL_LORA_SF
 #else
 #define FDRS_WIFI_SSID WIFI_SSID
 #define FDRS_WIFI_PASS WIFI_PASS
@@ -32,8 +32,8 @@
 #define FDRS_MQTT_PORT MQTT_PORT
 #define FDRS_MQTT_USER MQTT_USER
 #define FDRS_MQTT_PASS MQTT_PASS
-#define FDRS_BAND BAND
-#define FDRS_SF SF
+#define FDRS_BAND LORA_BAND
+#define FDRS_SF LORA_SF
 #endif
 
 #if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
@@ -646,7 +646,10 @@ void begin_espnow() {
 void begin_lora(){
   #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  LoRa.setPins(SS, RST, DIO0);
+#ifdef ESP32
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+#endif
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     DBG(" Initialization failed!");
     while (1);
@@ -658,7 +661,9 @@ void begin_lora(){
 void begin_SD(){
   #ifdef USE_SD_LOG
   DBG("Initializing SD card...");
-
+  #ifdef ESP32
+  SPI.begin(SCK, MISO, MOSI);
+  #endif
   if (!SD.begin(SD_SS)) {
     DBG(" Initialization failed!");
     while (1);

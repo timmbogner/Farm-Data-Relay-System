@@ -33,7 +33,8 @@
 #ifdef USE_FS_LOG
 #include <LittleFS.h>
 #endif
-#include "fdrs_functions.h"
+//#include <fdrs_functions.h>  //Use global functions file
+#include "fdrs_functions.h"  //Use local functions file
 
 void setup() {
 #if defined(ESP8266)
