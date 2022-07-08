@@ -3,7 +3,7 @@
 //  GATEWAY 2.000 Configuration
 
 //#include <fdrs_globals.h> //Uncomment if you install the globals file
-#define DEBUG     //Enable USB-Serial debugging
+#define FDRS_DEBUG     //Enable USB-Serial debugging
 
 #define UNIT_MAC     0x01  // The address of this gateway
 

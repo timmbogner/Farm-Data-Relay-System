@@ -11,7 +11,7 @@
 
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-#define DEBUG
+#define FDRS_DEBUG
 
 //SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
 #define SPI_SCK 5
