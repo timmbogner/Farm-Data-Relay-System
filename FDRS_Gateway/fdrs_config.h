@@ -18,6 +18,7 @@
 
 //#define USE_LORA
 //#define USE_WIFI      //Used only for MQTT gateway
+//#define USE_SD_LOG      //Used only for SD-card logging
 
 // Peer addresses
 #define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
@@ -36,15 +37,16 @@
 #define TXD2 15
 
 //SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
+
 #define SPI_SCK 5
 #define SPI_MISO 19
 #define SPI_MOSI 27
-
 
 //LoRa Configuration -- Needed only if using LoRa
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
+
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
@@ -81,3 +83,8 @@
 #define TOPIC_DATA "fdrs/data"
 #define TOPIC_STATUS "fdrs/status"
 #define TOPIC_COMMAND "fdrs/command" 
+
+
+// SD card logging config -- Needed only for SD-card logging
+#define SD_SS 0     //SD card Chipselect pin (Use a different pins for LoRa and SD)
+#define SD_FILENAME "fdrs_log.csv"  // length max. 32
