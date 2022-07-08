@@ -16,8 +16,8 @@
 #define ENABLE_DEBUG 1 
 
 #if ENABLE_DEBUG == 1
-#ifndef DEBUG
-#define DEBUG
+#ifndef FDRS_DEBUG
+#define FDRS_DEBUG
 #endif
 #endif
 
@@ -44,7 +44,7 @@
 #define FDRS_SF LORA_SF
 #endif
 
-#ifdef DEBUG
+#ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)

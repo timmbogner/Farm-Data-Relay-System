@@ -11,7 +11,7 @@ DataReading	KEYWORD1
 ##########################################################
 # Methods and Functions (KEYWORD2)
 ##########################################################
-DBG	KEYWORD2
+FDRS_DBG	KEYWORD2
 beginFDRS	KEYWORD2
 bufferESPNOW	KEYWORD2
 bufferLoRa	KEYWORD2
@@ -31,8 +31,7 @@ transmitLoRa	KEYWORD2
 ##########################################################
 # Literals (LITERAL1)
 ##########################################################
-DEBUG	LITERAL1
-DEBUG	LITERAL1
+FDRS_DEBUG	LITERAL1
 DEEP_SLEEP	LITERAL1
 FDRS_BAND	LITERAL1
 FDRS_GLOBALS	LITERAL1
