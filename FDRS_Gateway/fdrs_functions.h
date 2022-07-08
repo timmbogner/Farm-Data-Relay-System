@@ -180,17 +180,13 @@ void sendSD(const char filename[32]) {
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
   for (int i = 0; i < ln; i++) {
+    char linebuf[32];
     #ifdef USE_WIFI
-    logfile.print(timeClient.getEpochTime());
+    sprintf(linebuf, "%ld,%d,%d,%g",timeClient.getEpochTime(),theData[i].id,theData[i].t,theData[i].d);
     #else
-    logfile.print(seconds_since_reset);
+    sprintf(linebuf, "%ld,%d,%d,%g",seconds_since_reset,theData[i].id,theData[i].t,theData[i].d);
     #endif
-    logfile.print(",");
-    logfile.print(theData[i].id);
-    logfile.print(",");
-    logfile.print(theData[i].t);
-    logfile.print(",");
-    logfile.println(theData[i].d);
+    logfile.println(linebuf);
   }
   logfile.close();
   #endif
@@ -200,17 +196,13 @@ void sendFS(const char filename[32]) {
   DBG("Logging to internal flash.");
   File logfile = LittleFS.open(filename, "a");
   for (int i = 0; i < ln; i++) {
+    char linebuf[32];
     #ifdef USE_WIFI
-    logfile.print(timeClient.getEpochTime());
+    sprintf(linebuf, "%ld,%d,%d,%g",timeClient.getEpochTime(),theData[i].id,theData[i].t,theData[i].d);
     #else
-    logfile.print(seconds_since_reset);
+    sprintf(linebuf, "%ld,%d,%d,%g",seconds_since_reset,theData[i].id,theData[i].t,theData[i].d);
     #endif
-    logfile.print(",");
-    logfile.print(theData[i].id);
-    logfile.print(",");
-    logfile.print(theData[i].t);
-    logfile.print(",");
-    logfile.println(theData[i].d);
+    logfile.println(linebuf);
   }
   logfile.close();
   #endif
