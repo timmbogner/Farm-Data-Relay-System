@@ -23,7 +23,7 @@ These are the pins for inter-device serial communication. The single ESP8266 ser
 ### ```#define USE_LORA```
 Enables LoRa. Make sure that you set the LoRa module configuration parameters in the lines below.
 
-BAND and SF (spreading factor) can also be configured in 'fdrs_globals.h' if enabled.
+LORA_BAND and LORA_SF (spreading factor) can also be configured in 'fdrs_globals.h' if enabled.
 ### ```#define USE_WIFI```
 Enables WiFi. Used only on the MQTT gateway.
 

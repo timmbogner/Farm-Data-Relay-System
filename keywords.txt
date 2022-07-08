@@ -5,25 +5,41 @@
 ##########################################################
 # Datatypes and Class names (KEYWORD1)
 ##########################################################
-
 DataReading	KEYWORD1
+
 
 ##########################################################
 # Methods and Functions (KEYWORD2)
 ##########################################################
-
-beginFDRS	KEYWORD2
-loadFDRS	KEYWORD2
-sendFDRS	KEYWORD2
-sleepFDRS	KEYWORD2
 DBG	KEYWORD2
-getLoRa	KEYWORD2
-sendESPNOW	KEYWORD2
-sendSerial	KEYWORD2
-sendMQTT	KEYWORD2
+beginFDRS	KEYWORD2
 bufferESPNOW	KEYWORD2
-bufferSerial	KEYWORD2
-bufferMQTT	KEYWORD2
 bufferLoRa	KEYWORD2
-transmitLoRa	KEYWORD2
+bufferMQTT	KEYWORD2
+bufferSerial	KEYWORD2
+getLoRa	KEYWORD2
 getSerial	KEYWORD2
+loadFDRS	KEYWORD2
+sendESPNOW	KEYWORD2
+sendFDRS	KEYWORD2
+sendMQTT	KEYWORD2
+sendSerial	KEYWORD2
+sleepFDRS	KEYWORD2
+transmitLoRa	KEYWORD2
+
+
+##########################################################
+# Literals (LITERAL1)
+##########################################################
+DEBUG	LITERAL1
+DEBUG	LITERAL1
+DEEP_SLEEP	LITERAL1
+FDRS_BAND	LITERAL1
+FDRS_GLOBALS	LITERAL1
+FDRS_SF	LITERAL1
+//GTWY_MAC	LITERAL1
+MAC_PREFIX	LITERAL1
+POWER_CTRL	LITERAL1
+READING_ID	LITERAL1
+UNIT_MAC	LITERAL1
+USE_LORA	LITERAL1

@@ -17,12 +17,12 @@
 #include <LoRa.h>
 #endif
 
-#ifdef GLOBALS
+#ifdef FDRS_GLOBALS
 #define FDRS_BAND GLOBAL_BAND
 #define FDRS_SF GLOBAL_SF
 #else
-#define FDRS_BAND BAND
-#define FDRS_SF SF
+#define FDRS_BAND LORA_BAND
+#define FDRS_SF LORA_SF
 #endif
 
 #ifdef DEBUG
@@ -92,12 +92,12 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  DBG(BAND);
-  DBG(SF);
+  DBG(LORA_BAND);
+  DBG(LORA_SF);
 #ifdef ESP32
-  SPI.begin(SCK, MISO, MOSI, SS);
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 #endif
-  LoRa.setPins(SS, RST, DIO0);
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
     DBG("Unable to initialize LoRa!");
     while (1);
