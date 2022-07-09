@@ -18,8 +18,8 @@
 #endif
 
 #ifdef FDRS_GLOBALS
-#define FDRS_BAND GLOBAL_BAND
-#define FDRS_SF GLOBAL_SF
+#define FDRS_BAND GLOBAL_LORA_BAND
+#define FDRS_SF GLOBAL_LORA_SF
 #else
 #define FDRS_BAND LORA_BAND
 #define FDRS_SF LORA_SF
@@ -92,8 +92,8 @@ void beginFDRS() {
 #endif
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
-  DBG(LORA_BAND);
-  DBG(LORA_SF);
+  DBG(FDRS_BAND);
+  DBG(FDRS_SF);
 #ifdef ESP32
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 #endif
