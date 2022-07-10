@@ -154,28 +154,28 @@ if(current_millis-last_millis >= 1000){
 #endif
   if (newData) {
     switch (newData) {
-      case event_espnowg:     //ESP-NOW General
+      case event_espnowg:
         ESPNOWG_ACT
         break;
-      case event_espnow1:     //ESP-NOW #1
+      case event_espnow1:
         ESPNOW1_ACT
         break;
-      case event_espnow2:     //ESP-NOW #2
+      case event_espnow2:
         ESPNOW2_ACT
         break;
-      case event_serial:     //Serial
+      case event_serial:
         SERIAL_ACT
         break;
-      case event_mqtt:     //MQTT
+      case event_mqtt:
         MQTT_ACT
         break;
-      case event_lorag:     //LoRa General
+      case event_lorag:
         LORAG_ACT
         break;
-      case event_lora1:     //LoRa #1
+      case event_lora1:
         LORA1_ACT
         break;
-      case event_lora2:     //LoRa #2
+      case event_lora2:
         LORA2_ACT
         break;
     }

@@ -159,9 +159,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&incMAC, mac, sizeof(incMAC));
   DBG("Incoming ESP-NOW.");
   ln = len / sizeof(DataReading);
-  if (memcmp(&incMAC, &ESPNOW1, 6) == 0) newData = event_espnow1;
-  else if (memcmp(&incMAC, &ESPNOW2, 6) == 0) newData = event_espnow2;
-  else newData = event_espnowg;
+  if (memcmp(&incMAC, &ESPNOW1, 6) == 0) {
+    newData = event_espnow1;
+    return;
+  }
+  if (memcmp(&incMAC, &ESPNOW2, 6) == 0) {
+    newData = event_espnow2;
+    return;
+  }
+  newData = event_espnowg;
 }
 void getSerial() {
   String incomingString =  UART_IF.readStringUntil('\n');
@@ -290,18 +296,20 @@ void getLoRa() {
     uint8_t packet[packetSize];
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
-    //    for (int i = 0; i < packetSize; i++) {
-    //      UART_IF.println(packet[i], HEX);
-    //    }
-    if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
-      memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
-      memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
-      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) newData = event_lora1;     //Check if it is from a registered sender
-      else if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) newData = event_lora2;
-      else newData = event_lorag;
-      ln = (packetSize - 5) / sizeof(DataReading);
-      DBG("Incoming LoRa.");
-
+    ln = (packetSize - 5) / sizeof(DataReading);
+    DBG("Incoming LoRa.");
+    if (memcmp(&packet, &selfAddress[3], 3) == 0) {   //Check if addressed to this device
+      memcpy(&incLORAMAC, &packet[3], 2);             //Split off address portion of packet
+      memcpy(&theData, &packet[5], packetSize - 5);   //Split off data portion of packet
+      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) {      //Check if it is from a registered sender
+        newData = event_lora1;
+        return;
+      }
+      if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) {
+        newData = event_lora2;
+        return;
+      }
+      newData = event_lorag;
     }
   }
 #endif
