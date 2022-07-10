@@ -145,7 +145,7 @@ void loop() {
 
   timeClient.update();  //update internal clock if possible
   #endif
-#ifdef USE_SD_LOG
+#ifndef USE_WIFI
 unsigned long current_millis = millis();
 if(current_millis-last_millis >= 1000){
   seconds_since_reset+=(current_millis-last_millis)/1000;
