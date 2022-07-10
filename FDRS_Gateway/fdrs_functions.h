@@ -207,7 +207,7 @@ void releaseLogBuffer()
   #endif
   #ifdef USE_FS_LOG
   DBG("Releasing Log buffer to internal flash.");
-  File logfile = LittleFS.open(filename, "a");
+  File logfile = LittleFS.open(FS_FILENAME, "a");
   logfile.print(logBuffer);
   logfile.close();
   #endif
