@@ -145,13 +145,13 @@ void loop() {
 
   timeClient.update();  //update internal clock if possible
   #endif
-#ifndef USE_WIFI
-unsigned long current_millis = millis();
-if(current_millis-last_millis >= 1000){
-  seconds_since_reset+=(current_millis-last_millis)/1000;
-  last_millis=current_millis;
-}
-#endif
+  #ifndef USE_WIFI
+  unsigned long current_millis = millis();
+  if(current_millis-last_millis >= 1000){
+    seconds_since_reset+=(current_millis-last_millis)/1000;
+    last_millis=current_millis;
+  }
+  #endif
   if (newData) {
     switch (newData) {
       case event_espnowg:
