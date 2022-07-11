@@ -6,12 +6,15 @@
 # Datatypes and Class names (KEYWORD1)
 ##########################################################
 DataReading	KEYWORD1
-
+FDRSBase	KEYWORD1
+FDRSLoRa	KEYWORD1
+FDRS_EspNow	KEYWORD1
 
 ##########################################################
 # Methods and Functions (KEYWORD2)
 ##########################################################
 FDRS_DBG	KEYWORD2
+begin	KEYWORD2
 beginFDRS	KEYWORD2
 bufferESPNOW	KEYWORD2
 bufferLoRa	KEYWORD2
@@ -19,26 +22,34 @@ bufferMQTT	KEYWORD2
 bufferSerial	KEYWORD2
 getLoRa	KEYWORD2
 getSerial	KEYWORD2
+load	KEYWORD2
 loadFDRS	KEYWORD2
 sendESPNOW	KEYWORD2
 sendFDRS	KEYWORD2
 sendMQTT	KEYWORD2
 sendSerial	KEYWORD2
+sleep	KEYWORD2
 sleepFDRS	KEYWORD2
 transmitLoRa	KEYWORD2
-
 
 ##########################################################
 # Literals (LITERAL1)
 ##########################################################
-FDRS_DEBUG	LITERAL1
 DEEP_SLEEP	LITERAL1
 FDRS_BAND	LITERAL1
+FDRS_DEBUG	LITERAL1
 FDRS_GLOBALS	LITERAL1
 FDRS_SF	LITERAL1
-//GTWY_MAC	LITERAL1
+GTWY_MAC	LITERAL1
+GTWY_MAC	LITERAL1
+LORA_DIO0	LITERAL1
+LORA_RST	LITERAL1
+LORA_SS	LITERAL1
 MAC_PREFIX	LITERAL1
 POWER_CTRL	LITERAL1
 READING_ID	LITERAL1
+SPI_MISO	LITERAL1
+SPI_MOSI	LITERAL1
+SPI_SCK	LITERAL1
 UNIT_MAC	LITERAL1
 USE_LORA	LITERAL1
