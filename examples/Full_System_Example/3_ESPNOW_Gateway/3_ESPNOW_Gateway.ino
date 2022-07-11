@@ -5,7 +5,7 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 
-#include "fdrs_config.h"
+#include "fdrs_gateway_config.h"
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
