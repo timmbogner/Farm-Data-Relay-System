@@ -86,9 +86,10 @@
 #define TOPIC_COMMAND "fdrs/command" 
 
 
-// SD card logging config -- Needed only for SD-card logging
-#define SD_SS 0     //SD card Chipselect pin (Use a different pins for LoRa and SD)
-#define SD_FILENAME "fdrs_log.csv"  // length max. 32
+// Logging settings
+#define LOGBUF_DELAY 10000      // Log Buffer Delay - in milliseconds               -- Needed only for SD-card OR internal flash logging
 
-// Internal flash logging config -- Needed only for internal flash logging
-#define FS_FILENAME "fdrs_log.csv"  // length max. 32
+#define SD_SS 0     //SD card Chipselect pin (Use a different pins for LoRa and SD) -- Needed only for SD-card logging
+#define SD_FILENAME "fdrs_log.csv"  // length max. 32                               -- Needed only for SD-card logging
+
+#define FS_FILENAME "fdrs_log.csv"  // length max. 32                               -- Needed only for internal flash logging

@@ -85,51 +85,57 @@ void setup() {
 
 void loop() {
   #ifdef ESPNOWG_DELAY
-  if (millis() > timeESPNOWG) {
-    timeESPNOWG += ESPNOWG_DELAY;
+  if ((millis() - timeESPNOWG) >= ESPNOWG_DELAY) {
+    timeESPNOWG = millis();
     if  (lenESPNOWG > 0) releaseESPNOW(0);
   }
   #endif
   #ifdef ESPNOW1_DELAY
-  if (millis() > timeESPNOW1) {
-    timeESPNOW1 += ESPNOW1_DELAY;
+  if ((millis() - timeESPNOW1) >= ESPNOW1_DELAY) {
+    timeESPNOW1 = millis();
     if (lenESPNOW1 > 0)   releaseESPNOW(1);
   }
   #endif
   #ifdef ESPNOW2_DELAY
-  if (millis() > timeESPNOW2) {
-    timeESPNOW2 += ESPNOW2_DELAY;
+  if ((millis() - timeESPNOW2) >= ESPNOW2_DELAY) {
+    timeESPNOW2 = millis();
     if (lenESPNOW2 > 0) releaseESPNOW(2);
   }
   #endif
   #ifdef SERIAL_DELAY
-  if (millis() > timeSERIAL) {
-    timeSERIAL  += SERIAL_DELAY;
+  if ((millis() - timeSERIAL) >= SERIAL_DELAY) {
+    timeSERIAL  = millis();
     if (lenSERIAL  > 0) releaseSerial();
   }
   #endif
   #ifdef MQTT_DELAY
-  if (millis() > timeMQTT) {
-    timeMQTT += MQTT_DELAY;
+  if ((millis() - timeMQTT) >= MQTT_DELAY) {
+    timeMQTT = millis();
     if (lenMQTT    > 0) releaseMQTT();
   }
   #endif
   #ifdef LORAG_DELAY
-  if (millis() > timeLORAG) {
-    timeLORAG += LORAG_DELAY;
+  if ((millis() - timeLORAG) >= LORAG_DELAY) {
+    timeLORAG = millis();
     if (lenLORAG    > 0) releaseLoRa(0);
   }
   #endif
   #ifdef LORA1_DELAY
-  if (millis() > timeLORA1) {
-    timeLORA1 += LORA1_DELAY;
+  if ((millis() - timeLORA1) >= LORA1_DELAY) {
+    timeLORA1 = millis();
     if (lenLORA1    > 0) releaseLoRa(1);
   }
   #endif
   #ifdef LORA2_DELAY
-  if (millis() > timeLORA2) {
-    timeLORA2 += LORA2_DELAY;
+  if ((millis() - timeLORA2) >= LORA2_DELAY) {
+    timeLORA2 = millis();
     if (lenLORA2    > 0) releaseLoRa(2);
+  }
+  #endif
+  #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+  if ((millis() - timeLOGBUF) >= LOGBUF_DELAY){
+    timeLOGBUF = millis();
+    if (logBufferPos > 0) releaseLogBuffer();
   }
   #endif
 

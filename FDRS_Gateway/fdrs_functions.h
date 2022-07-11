@@ -93,6 +93,7 @@ unsigned long last_millis = 0;
 unsigned long seconds_since_reset = 0;
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
+uint32_t timeLOGBUF = 0;
 #endif
 
 DataReading theData[256];
