@@ -5,7 +5,7 @@
 //  Sends ESP-NOW packets at approximately 60Hz.
 //
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include <fdrs_sensor.h>
 
 void setup() {

@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include <fdrs_globals.h> // uncomment if you want to set specific values for this sensor in sensor_setup.h
+#include <fdrs_globals.h> // uncomment if you want to set specific values for this sensor in fdrs_gateway_config.h
 #define FDRS_DEBUG
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
