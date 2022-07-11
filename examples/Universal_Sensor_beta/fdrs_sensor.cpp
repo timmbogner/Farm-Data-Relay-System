@@ -8,7 +8,7 @@ uint8_t LoRaAddress[] = {0x42, 0x00};
 uint32_t wait_time = 0;
 
 
-FDRSBase::FDRSBase(uint8_t gtwy_mac,uint8_t reading_id): 
+FDRSBase::FDRSBase(uint8_t gtwy_mac,uint16_t reading_id): 
                 _gtwy_mac(gtwy_mac),
                 _espnow_size(250 / sizeof(DataReading_t)),
                 _reading_id(reading_id),
@@ -77,7 +77,7 @@ void FDRSBase::sleep(int seconds){
 }
 
 
-FDRS_EspNow::FDRS_EspNow(uint8_t gtwy_mac,uint8_t reading_id): 
+FDRS_EspNow::FDRS_EspNow(uint8_t gtwy_mac,uint16_t reading_id): 
                 FDRSBase(gtwy_mac,reading_id)
 {
 
@@ -129,7 +129,7 @@ void FDRS_EspNow::transmit(DataReading_t *fdrsData, uint8_t _data_count){
 #ifdef USE_LORA
 
 FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac, 
-                    uint8_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck,
+                    uint16_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck,
                     uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf): 
                 FDRSBase(gtwy_mac,reading_id),
                      _miso(miso),
