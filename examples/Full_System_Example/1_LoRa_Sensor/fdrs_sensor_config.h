@@ -4,7 +4,7 @@
 //  (This file will soon be known as 'sensor_config.h')
 //
 
-#include <fdrs_globals.h> // Comment if you want to set specific values for this sensor in sensor_setup.h
+#include <fdrs_globals.h> // Comment if you want to set specific values for this sensor in fdrs_sensor_config.h
 
 #define READING_ID    1   //Unique ID for this sensor
 #define GTWY_MAC      0x04 //Address of the nearest gateway

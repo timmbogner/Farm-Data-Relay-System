@@ -3,7 +3,7 @@
 
 // Modified by Timm Bogner for Farm Data Relay System -- Untested because I don't have a DHT sensor onhand. 
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include <fdrs_sensor.h>
 #include "DHT.h"
 

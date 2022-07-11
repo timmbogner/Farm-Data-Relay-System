@@ -4,7 +4,7 @@
 //
 //  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include <Adafruit_BME280.h>
 #include <fdrs_sensor.h>
 
