@@ -1,9 +1,19 @@
 //  FARM DATA RELAY SYSTEM
 //
 //  GATEWAY 2.000 Functions
-//  This is the 'meat and potatoes' of FDRS, and should not be fooled with unless improving/adding features. 
-//  Developed by Timm Bogner (timmbogner@gmail.com) 
-
+//  This is the 'meat and potatoes' of FDRS, and should not be fooled with unless improving/adding features.
+//  Developed by Timm Bogner (timmbogner@gmail.com)
+enum {
+  event_clear,
+  event_espnowg,
+  event_espnow1,
+  event_espnow2,
+  event_serial,
+  event_mqtt,
+  event_lorag,
+  event_lora1,
+  event_lora2
+};
 #ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
@@ -85,7 +95,7 @@ unsigned long seconds_since_reset = 0;
 
 DataReading theData[256];
 uint8_t ln;
-uint8_t newData = 0;
+uint8_t newData = event_clear;
 
 DataReading ESPNOW1buffer[256];
 uint8_t lenESPNOW1 = 0;
@@ -149,9 +159,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&incMAC, mac, sizeof(incMAC));
   DBG("Incoming ESP-NOW.");
   ln = len / sizeof(DataReading);
-  if (memcmp(&incMAC, &ESPNOW1, 6) == 0) newData = 1;
-  else if (memcmp(&incMAC, &ESPNOW2, 6) == 0) newData = 2;
-  else newData = 3;
+  if (memcmp(&incMAC, &ESPNOW1, 6) == 0) {
+    newData = event_espnow1;
+    return;
+  }
+  if (memcmp(&incMAC, &ESPNOW2, 6) == 0) {
+    newData = event_espnow2;
+    return;
+  }
+  newData = event_espnowg;
 }
 void getSerial() {
   String incomingString =  UART_IF.readStringUntil('\n');
@@ -170,71 +186,71 @@ void getSerial() {
       theData[i].d = doc[i]["data"];
     }
     ln = s;
-    newData = 4;
+    newData = event_serial;
     DBG("Incoming Serial.");
 
   }
 }
 void sendSD(const char filename[32]) {
-  #ifdef USE_SD_LOG
+#ifdef USE_SD_LOG
   DBG("Logging to SD card.");
   File logfile = SD.open(filename, FILE_WRITE);
   for (int i = 0; i < ln; i++) {
     char linebuf[32];
-    #ifdef USE_WIFI
-    sprintf(linebuf, "%ld,%d,%d,%g",timeClient.getEpochTime(),theData[i].id,theData[i].t,theData[i].d);
-    #else
-    sprintf(linebuf, "%ld,%d,%d,%g",seconds_since_reset,theData[i].id,theData[i].t,theData[i].d);
-    #endif
+#ifdef USE_WIFI
+    sprintf(linebuf, "%ld,%d,%d,%g", timeClient.getEpochTime(), theData[i].id, theData[i].t, theData[i].d);
+#else
+    sprintf(linebuf, "%ld,%d,%d,%g", seconds_since_reset, theData[i].id, theData[i].t, theData[i].d);
+#endif
     logfile.println(linebuf);
   }
   logfile.close();
-  #endif
+#endif
 }
 void sendFS(const char filename[32]) {
-  #ifdef USE_FS_LOG
+#ifdef USE_FS_LOG
   DBG("Logging to internal flash.");
   File logfile = LittleFS.open(filename, "a");
   for (int i = 0; i < ln; i++) {
     char linebuf[32];
-    #ifdef USE_WIFI
-    sprintf(linebuf, "%ld,%d,%d,%g",timeClient.getEpochTime(),theData[i].id,theData[i].t,theData[i].d);
-    #else
-    sprintf(linebuf, "%ld,%d,%d,%g",seconds_since_reset,theData[i].id,theData[i].t,theData[i].d);
-    #endif
+#ifdef USE_WIFI
+    sprintf(linebuf, "%ld,%d,%d,%g", timeClient.getEpochTime(), theData[i].id, theData[i].t, theData[i].d);
+#else
+    sprintf(linebuf, "%ld,%d,%d,%g", seconds_since_reset, theData[i].id, theData[i].t, theData[i].d);
+#endif
     logfile.println(linebuf);
   }
   logfile.close();
-  #endif
+#endif
 }
 void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
 
-  if(!silent) DBG("Connecting MQTT...");
-  
-  for (short int i = 1; i<=attempts; i++) {
+  if (!silent) DBG("Connecting MQTT...");
+
+  for (short int i = 1; i <= attempts; i++) {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
       client.subscribe(TOPIC_COMMAND);
-      if(!silent) DBG(" MQTT Connected");
+      if (!silent) DBG(" MQTT Connected");
       return;
     } else {
-      if(!silent) {
+      if (!silent) {
         char msg[23];
-        sprintf(msg, " Attempt %d/%d",i,attempts);
+        sprintf(msg, " Attempt %d/%d", i, attempts);
         DBG(msg);
       }
-      if((attempts=!1)){
+      if ((attempts = !1)) {
         delay(3000);
       }
     }
   }
 
-  if(!silent) DBG(" Connecting MQTT failed.");
+  if (!silent) DBG(" Connecting MQTT failed.");
 #endif
 }
-void reconnect(int attempts){
+void reconnect(int attempts) {
   reconnect(attempts, false);
 }
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
@@ -258,19 +274,19 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
       theData[i].d = doc[i]["data"];
     }
     ln = s;
-    newData = 5;
+    newData = event_mqtt;
     DBG("Incoming MQTT.");
 
   }
 }
-void mqtt_publish(const char* payload){
-  #ifdef USE_WIFI
-  if(!client.publish(TOPIC_DATA, payload)){
+void mqtt_publish(const char* payload) {
+#ifdef USE_WIFI
+  if (!client.publish(TOPIC_DATA, payload)) {
     DBG(" Error on sending MQTT");
     sendSD(SD_FILENAME);
     sendFS(FS_FILENAME);
   }
-  #endif
+#endif
 }
 
 void getLoRa() {
@@ -280,19 +296,20 @@ void getLoRa() {
     uint8_t packet[packetSize];
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
-    //    for (int i = 0; i < packetSize; i++) {
-    //      UART_IF.println(packet[i], HEX);
-    //    }
-    if (memcmp(&packet, &selfAddress[3], 3) == 0) {        //Check if addressed to this device
-      memcpy(&incLORAMAC, &packet[3], 2);                  //Split off address portion of packet
-      memcpy(&theData, &packet[5], packetSize - 5);        //Split off data portion of packet
-      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) newData = 7;     //Check if it is from a registered sender
-      else if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) newData = 8;
-      else newData = 6;
-      ln = (packetSize - 5) / sizeof(DataReading);
-      newData = 6;
-      DBG("Incoming LoRa.");
-
+    ln = (packetSize - 5) / sizeof(DataReading);
+    DBG("Incoming LoRa.");
+    if (memcmp(&packet, &selfAddress[3], 3) == 0) {   //Check if addressed to this device
+      memcpy(&incLORAMAC, &packet[3], 2);             //Split off address portion of packet
+      memcpy(&theData, &packet[5], packetSize - 5);   //Split off data portion of packet
+      if (memcmp(&incLORAMAC, &LoRa1, 2) == 0) {      //Check if it is from a registered sender
+        newData = event_lora1;
+        return;
+      }
+      if (memcmp(&incLORAMAC, &LoRa2, 2) == 0) {
+        newData = event_lora2;
+        return;
+      }
+      newData = event_lorag;
     }
   }
 #endif
@@ -635,8 +652,8 @@ void begin_espnow() {
 #endif
   DBG(" ESP-NOW Initialized.");
 }
-void begin_lora(){
-  #ifdef USE_LORA
+void begin_lora() {
+#ifdef USE_LORA
   DBG("Initializing LoRa!");
 #ifdef ESP32
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
@@ -648,34 +665,34 @@ void begin_lora(){
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa initialized.");
-  #endif
+#endif
 }
-void begin_SD(){
-  #ifdef USE_SD_LOG
+void begin_SD() {
+#ifdef USE_SD_LOG
   DBG("Initializing SD card...");
-  #ifdef ESP32
+#ifdef ESP32
   SPI.begin(SCK, MISO, MOSI);
-  #endif
+#endif
   if (!SD.begin(SD_SS)) {
     DBG(" Initialization failed!");
     while (1);
-  }else{
+  } else {
     DBG(" SD initialized.");
   }
-  #endif
+#endif
 }
-void begin_FS(){
-  #ifdef USE_FS_LOG
+void begin_FS() {
+#ifdef USE_FS_LOG
   DBG("Initializing LittleFS...");
 
-  if(!LittleFS.begin())
+  if (!LittleFS.begin())
   {
-    Serial.println(" initialization failed");
+    DBG(" initialization failed");
     while (1);
   }
   else
   {
-    Serial.println(" LittleFS initialized");
+    DBG(" LittleFS initialized");
   }
-  #endif
+#endif
 }

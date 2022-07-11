@@ -63,10 +63,10 @@ public:
   * @brief Construct a new FDRSBase object
   * 
   * @param gtwy_mac     The network MAC
-  * @param reading_id   The network identifier for the sensor
+  * @param reading_id   The identifier for the sensor
   */
 
-  FDRSBase(uint8_t gtwy_mac,uint8_t reading_id);
+  FDRSBase(uint8_t gtwy_mac,uint16_t reading_id);
   ~FDRSBase();
 
   /**
@@ -101,7 +101,7 @@ private:
 
   uint8_t _gtwy_mac;
   const uint16_t _espnow_size;
-  uint8_t _reading_id;
+  uint16_t _reading_id;
   uint8_t _data_count;
   DataReading_t *fdrsData;
 
@@ -111,7 +111,7 @@ private:
   virtual void init(void) = 0;
 
   /**
-   * @brief Required impalamnetation of how a sensor will send its data out on the network.
+   * @brief Required implementation of how a sensor will send its data out on the network.
    * 
    * @param fdrsData    Pointer to the data that the sensor will be seding.
    * @param _data_count The number of data packets the sensor will be sending.
@@ -127,10 +127,10 @@ public:
    * @brief Construct a new fdrs espnow object
    * 
    * @param gtwy_mac    The network MAC.
-   * @param reading_id  The network identifier for the sensor.
+   * @param reading_id  The identifier for the sensor.
    */
 
-  FDRS_EspNow(uint8_t gtwy_mac, uint8_t reading_id);
+  FDRS_EspNow(uint8_t gtwy_mac, uint16_t reading_id);
 
 private:
 
@@ -159,7 +159,7 @@ public:
    * @brief Construct a new FDRSLoRa object
    * 
    * @param gtwy_mac    The network MAC.
-   * @param reading_id  The network identifier for the sensor.
+   * @param reading_id  The identifier for the sensor.
    * @param miso        Master in slave out pin.
    * @param mosi        Master out slave in pin.
    * @param sck         Master clock pin.
@@ -170,7 +170,7 @@ public:
    * @param sf          LoRa spread factor
    */
 
-  FDRSLoRa(uint8_t gtwy_mac, uint8_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf);
+  FDRSLoRa(uint8_t gtwy_mac, uint16_t reading_id,uint8_t miso,uint8_t mosi,uint8_t sck, uint8_t ss,uint8_t rst,uint8_t dio0,uint32_t band,uint8_t sf);
 
 private:
 
