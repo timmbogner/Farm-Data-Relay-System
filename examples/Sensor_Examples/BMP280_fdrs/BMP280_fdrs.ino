@@ -5,7 +5,7 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //  Connect sensor SDA and SCL pins to those of the ESP.
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include <Adafruit_BMP280.h>
 #include <fdrs_sensor.h>
 

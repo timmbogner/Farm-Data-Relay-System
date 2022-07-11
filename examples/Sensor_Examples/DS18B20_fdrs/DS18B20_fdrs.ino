@@ -5,7 +5,7 @@
 
 #define ONE_WIRE_BUS  13   //Pin that the DS18B20 is connected to
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include <fdrs_sensor.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>

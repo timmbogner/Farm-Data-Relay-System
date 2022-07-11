@@ -5,13 +5,13 @@
 //  Under construction, feedback is appreciated!
 //
 
-#include "fdrs_config.h"
+#include "fdrs_gateway_config.h"
 
 #ifdef USE_LED
 #include <FastLED.h>
 #endif
 #include "fdrs_gateway.h"
-#include "fdrs_config.h"
+#include "fdrs_gateway_config.h"
 
 #ifdef USE_LED
 CRGB leds[NUM_LEDS];

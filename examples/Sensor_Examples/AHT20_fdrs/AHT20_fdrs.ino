@@ -4,7 +4,7 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include <Adafruit_AHTX0.h>
 #include <fdrs_sensor.h>
 

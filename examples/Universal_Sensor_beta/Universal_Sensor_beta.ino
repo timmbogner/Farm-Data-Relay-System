@@ -8,7 +8,7 @@
 //
 
 
-#include "sensor_setup.h"
+#include "fdrs_sensor_config.h"
 #include "fdrs_sensor.h"
 
 FDRSLoRa FDRS(GTWY_MAC,READING_ID,SPI_MISO,SPI_MOSI,SPI_SCK,LORA_SS,LORA_RST,LORA_DIO0,FDRS_BAND,FDRS_SF);

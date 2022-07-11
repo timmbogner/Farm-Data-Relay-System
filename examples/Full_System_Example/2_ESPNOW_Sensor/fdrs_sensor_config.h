@@ -4,11 +4,13 @@
 //  (This file will soon be known as 'sensor_config.h')
 //
 
-//#include <fdrs_globals.h> //Uncomment when you install the globals file
+#include <fdrs_globals.h> // Comment if you want to set specific values for this sensor in fdrs_sensor_config.h
 
-#define READING_ID    1   //Unique ID for this sensor
-#define GTWY_MAC      0x04 //Address of the nearest gateway
+#define READING_ID    2   //Unique ID for this sensor
+#define GTWY_MAC      0x03 //Address of the nearest gateway
 
+#define USE_ESPNOW
+//#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
 #define FDRS_DEBUG
@@ -25,5 +27,5 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define LORA_BAND 915E6
-#define LORA_SF 7
+//#define LORA_BAND 915E6
+//#define LORA_SF 7
