@@ -88,12 +88,9 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 //uint8_t LoRaAddress[] = {0x42, 0x00};
 #endif
 
-#ifndef USE_WIFI
+#if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 unsigned long last_millis = 0;
 unsigned long seconds_since_reset = 0;
-#endif
-
-#if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 #endif
