@@ -76,6 +76,7 @@ void FDRSBase::sleep(int seconds){
   delay(seconds * 1000);
 }
 
+#ifdef USE_ESPNOW
 
 FDRS_EspNow::FDRS_EspNow(uint8_t gtwy_mac,uint16_t reading_id): 
                 FDRSBase(gtwy_mac,reading_id)
@@ -125,6 +126,8 @@ void FDRS_EspNow::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     delay(5);
     DBG(" ESP-NOW sent.");
 }
+
+#endif USE_ESPNOW
 
 #ifdef USE_LORA
 
@@ -178,4 +181,4 @@ void FDRSLoRa::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     DBG(" LoRa sent.");
 }
 
-#endif
+#endif USE_LORA

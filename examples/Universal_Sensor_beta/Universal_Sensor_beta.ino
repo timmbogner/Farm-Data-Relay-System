@@ -7,11 +7,19 @@
 //  An example of how to send data using "fdrs_sensor.h".
 //
 
+// compile error when defined here - why?
+//#define USE_LORA
+//#define USE_ESPNOW
+
 
 #include "fdrs_sensor_config.h"
 #include "fdrs_sensor.h"
 
+#if defined(USE_LORA)
 FDRSLoRa FDRS(GTWY_MAC,READING_ID,SPI_MISO,SPI_MOSI,SPI_SCK,LORA_SS,LORA_RST,LORA_DIO0,FDRS_BAND,FDRS_SF);
+#elif defined(USE_ESPNOW)
+FDRS_EspNow FDRS(GTWY_MAC, READING_ID); 
+#endif
 
 float data1;
 float data2;
@@ -33,5 +41,5 @@ float readTemp() {
 }
 
 float readHum() {
-  return 21.0345;
+  return random(0,100);
 }
