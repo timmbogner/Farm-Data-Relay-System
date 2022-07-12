@@ -10,7 +10,7 @@
 #define __FDRS_SENSOR__H__
 
 #include "fdrs_types.h"
-#include "fdrs_datatypes.h"
+#include <fdrs_datatypes.h>
 
 //1 to enable debugging prints. 0 disables the debugging prints
 #define ENABLE_DEBUG 1 
@@ -33,12 +33,12 @@
 #endif
 
 #ifdef USE_LORA
-#include "LoRa.h"
+#include <LoRa.h>
 #endif
 
 #ifdef FDRS_GLOBALS
-#define FDRS_BAND GLOBAL_BAND
-#define FDRS_SF GLOBAL_SF
+#define FDRS_BAND GLOBAL_LORA_BAND
+#define FDRS_SF GLOBAL_LORA_SF
 #else
 #define FDRS_BAND LORA_BAND
 #define FDRS_SF LORA_SF
