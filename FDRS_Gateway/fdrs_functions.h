@@ -89,8 +89,6 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 #endif
 
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
-unsigned long last_millis = 0;
-unsigned long seconds_since_reset = 0;
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
@@ -131,8 +129,6 @@ CRGB leds[NUM_LEDS];
 #endif
 #ifdef USE_WIFI
 PubSubClient client(espClient);
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
 const char* ssid = FDRS_WIFI_SSID;
 const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
@@ -220,11 +216,7 @@ void sendLog()
   for (int i = 0; i < ln; i++)
   {
     char linebuf[34]; // size depends on resulting length of the formatting string
-    #ifdef USE_WIFI
-    sprintf(linebuf, "%ld,%d,%d,%g\r\n", timeClient.getEpochTime(), theData[i].id, theData[i].t, theData[i].d);
-    #else
-    sprintf(linebuf, "%ld,%d,%d,%g\r\n", seconds_since_reset, theData[i].id, theData[i].t, theData[i].d);
-    #endif
+    sprintf(linebuf, "%lld,%d,%d,%g\r\n", time(nullptr), theData[i].id, theData[i].t, theData[i].d);
 
     if (logBufferPos+strlen(linebuf) >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
     {

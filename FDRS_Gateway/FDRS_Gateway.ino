@@ -18,7 +18,6 @@
 #ifdef USE_WIFI
 #include <PubSubClient.h>
 #include <WiFiUdp.h>
-#include <NTPClient.h>
 #endif
 #ifdef USE_LORA
 #include <LoRa.h>
@@ -32,6 +31,9 @@
 #endif
 #ifdef USE_FS_LOG
 #include <LittleFS.h>
+#endif
+#if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+#include <time.h>
 #endif
 //#include <fdrs_functions.h>  //Use global functions file
 #include "fdrs_functions.h"  //Use local functions file
@@ -149,14 +151,6 @@ void loop() {
   }
   client.loop(); // for recieving incoming messages and maintaining connection
 
-  timeClient.update();  //update internal clock if possible
-  #endif
-  #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
-  unsigned long current_millis = millis();
-  if(current_millis-last_millis >= 1000){
-    seconds_since_reset+=(current_millis-last_millis)/1000;
-    last_millis=current_millis;
-  }
   #endif
   if (newData) {
     switch (newData) {
