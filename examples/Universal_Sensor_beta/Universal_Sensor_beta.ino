@@ -33,5 +33,5 @@ float readTemp() {
 }
 
 float readHum() {
-  return 21.0345;
+  return random(0,100);
 }
