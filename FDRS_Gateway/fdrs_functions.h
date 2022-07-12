@@ -88,9 +88,12 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 //uint8_t LoRaAddress[] = {0x42, 0x00};
 #endif
 
-#ifdef USE_SD_LOG
+#if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 unsigned long last_millis = 0;
 unsigned long seconds_since_reset = 0;
+char logBuffer[512];
+uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
+uint32_t timeLOGBUF = 0;
 #endif
 
 DataReading theData[256];
@@ -191,37 +194,46 @@ void getSerial() {
 
   }
 }
-void sendSD(const char filename[32]) {
-#ifdef USE_SD_LOG
-  DBG("Logging to SD card.");
-  File logfile = SD.open(filename, FILE_WRITE);
-  for (int i = 0; i < ln; i++) {
-    char linebuf[32];
-#ifdef USE_WIFI
-    sprintf(linebuf, "%ld,%d,%d,%g", timeClient.getEpochTime(), theData[i].id, theData[i].t, theData[i].d);
-#else
-    sprintf(linebuf, "%ld,%d,%d,%g", seconds_since_reset, theData[i].id, theData[i].t, theData[i].d);
-#endif
-    logfile.println(linebuf);
-  }
+#if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+void releaseLogBuffer()
+{
+  #ifdef USE_SD_LOG
+  DBG("Releasing Log buffer to SD");
+  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
+  logfile.print(logBuffer);
   logfile.close();
-#endif
+  #endif
+  #ifdef USE_FS_LOG
+  DBG("Releasing Log buffer to internal flash.");
+  File logfile = LittleFS.open(FS_FILENAME, "a");
+  logfile.print(logBuffer);
+  logfile.close();
+  #endif
+  memset(&(logBuffer[0]), 0, sizeof(logBuffer)/sizeof(char));
+  logBufferPos = 0;
 }
-void sendFS(const char filename[32]) {
-#ifdef USE_FS_LOG
-  DBG("Logging to internal flash.");
-  File logfile = LittleFS.open(filename, "a");
-  for (int i = 0; i < ln; i++) {
-    char linebuf[32];
-#ifdef USE_WIFI
-    sprintf(linebuf, "%ld,%d,%d,%g", timeClient.getEpochTime(), theData[i].id, theData[i].t, theData[i].d);
-#else
-    sprintf(linebuf, "%ld,%d,%d,%g", seconds_since_reset, theData[i].id, theData[i].t, theData[i].d);
 #endif
-    logfile.println(linebuf);
+void sendLog()
+{
+  #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+  DBG("Logging to buffer");
+  for (int i = 0; i < ln; i++)
+  {
+    char linebuf[34]; // size depends on resulting length of the formatting string
+    #ifdef USE_WIFI
+    sprintf(linebuf, "%ld,%d,%d,%g\r\n", timeClient.getEpochTime(), theData[i].id, theData[i].t, theData[i].d);
+    #else
+    sprintf(linebuf, "%ld,%d,%d,%g\r\n", seconds_since_reset, theData[i].id, theData[i].t, theData[i].d);
+    #endif
+
+    if (logBufferPos+strlen(linebuf) >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
+    {
+      releaseLogBuffer();
+    }
+    memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
+    logBufferPos+=strlen(linebuf);
   }
-  logfile.close();
-#endif
+  #endif
 }
 void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
@@ -283,8 +295,7 @@ void mqtt_publish(const char* payload) {
 #ifdef USE_WIFI
   if (!client.publish(TOPIC_DATA, payload)) {
     DBG(" Error on sending MQTT");
-    sendSD(SD_FILENAME);
-    sendFS(FS_FILENAME);
+    sendLog();
   }
 #endif
 }
