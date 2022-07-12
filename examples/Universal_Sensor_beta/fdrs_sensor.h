@@ -22,6 +22,7 @@
 #endif
 
 #define USE_LORA
+//#define USE_ESPNOW
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -37,12 +38,14 @@
 #endif
 
 #ifdef FDRS_GLOBALS
+
+//#ifdef FDRS_GLOBAL_LORA
 #define FDRS_BAND GLOBAL_LORA_BAND
 #define FDRS_SF GLOBAL_LORA_SF
 #else
 #define FDRS_BAND LORA_BAND
 #define FDRS_SF LORA_SF
-#endif
+#endif //FDRS_GLOBAL_LORA
 
 #ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
