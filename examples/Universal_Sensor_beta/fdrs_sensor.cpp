@@ -48,7 +48,7 @@ void FDRSBase::send(void) {
 }
 
 void FDRSBase::load(float data, uint8_t type) {
-  DBG("Data loaded. Type: " + String(type));
+  DBG("Data: " + String(data) + " loaded. Type: " + String(type));
   if (_data_count > _espnow_size){
     send();
   } 
@@ -152,8 +152,8 @@ FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac,
 void FDRSLoRa::init(void){
 
     DBG("Initializing LoRa!");
-    DBG(_band);
-    DBG(_sf);
+    DBG("LoRa Band: " + String(_band));
+    DBG("LoRa SF  : " + String(_sf));
 #ifdef ESP32
   SPI.begin(_sck, _miso, _mosi);
 #endif
