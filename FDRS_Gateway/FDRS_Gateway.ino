@@ -45,7 +45,7 @@ void setup() {
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
-  DBG("Address:" + String (UNIT_MAC, HEX));
+  DGBLN("Address:" + String (UNIT_MAC, HEX));
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   leds[0] = CRGB::Blue;
@@ -55,12 +55,12 @@ void setup() {
   delay(10);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    DBG("Connecting to WiFi...");
-    DBG(FDRS_WIFI_SSID);
+    DGBLN("Connecting to WiFi...");
+    DGBLN(FDRS_WIFI_SSID);
 
     delay(500);
   }
-  DBG("WiFi Connected");
+  DGBLN("WiFi Connected");
   client.setServer(mqtt_server, mqtt_port);
   if (!client.connected()) {
     reconnect(5);
@@ -79,7 +79,7 @@ void setup() {
   begin_FS();
 #endif
   
-  //DBG(sizeof(DataReading));
+  //DGBLN(sizeof(DataReading));
 #ifdef USE_WIFI
    client.publish(TOPIC_STATUS, "FDRS initialized");
 #endif

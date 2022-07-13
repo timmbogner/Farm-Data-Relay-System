@@ -15,9 +15,9 @@ enum {
   event_lora2
 };
 #ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
+#define DBGLN(a) (Serial.println(a))
 #else
-#define DBG(a)
+#define DBGLN(a)
 #endif
 
 #if defined (ESP32)
@@ -156,7 +156,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
   memcpy(&theData, incomingData, sizeof(theData));
   memcpy(&incMAC, mac, sizeof(incMAC));
-  DBG("Incoming ESP-NOW.");
+  DBGLN("Incoming ESP-NOW.");
   ln = len / sizeof(DataReading);
   if (memcmp(&incMAC, &ESPNOW1, 6) == 0) {
     newData = event_espnow1;
@@ -173,8 +173,8 @@ void getSerial() {
   DynamicJsonDocument doc(24576);
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    //    DBG("json parse err");
-    //    DBG(incomingString);
+    //    DBGLN("json parse err");
+    //    DBGLN(incomingString);
     return;
   } else {
     int s = doc.size();
@@ -186,7 +186,7 @@ void getSerial() {
     }
     ln = s;
     newData = event_serial;
-    DBG("Incoming Serial.");
+    DBGLN("Incoming Serial.");
 
   }
 }
@@ -194,13 +194,13 @@ void getSerial() {
 void releaseLogBuffer()
 {
   #ifdef USE_SD_LOG
-  DBG("Releasing Log buffer to SD");
+  DBGLN("Releasing Log buffer to SD");
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
   logfile.print(logBuffer);
   logfile.close();
   #endif
   #ifdef USE_FS_LOG
-  DBG("Releasing Log buffer to internal flash.");
+  DBGLN("Releasing Log buffer to internal flash.");
   File logfile = LittleFS.open(FS_FILENAME, "a");
   logfile.print(logBuffer);
   logfile.close();
@@ -212,7 +212,7 @@ void releaseLogBuffer()
 void sendLog()
 {
   #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
-  DBG("Logging to buffer");
+  DBGLN("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
     char linebuf[34]; // size depends on resulting length of the formatting string
@@ -230,20 +230,20 @@ void sendLog()
 void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
 
-  if (!silent) DBG("Connecting MQTT...");
+  if (!silent) DBGLN("Connecting MQTT...");
 
   for (short int i = 1; i <= attempts; i++) {
     // Attempt to connect
     if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass)) {
       // Subscribe
       client.subscribe(TOPIC_COMMAND);
-      if (!silent) DBG(" MQTT Connected");
+      if (!silent) DBGLN(" MQTT Connected");
       return;
     } else {
       if (!silent) {
         char msg[23];
         sprintf(msg, " Attempt %d/%d", i, attempts);
-        DBG(msg);
+        DBGLN(msg);
       }
       if ((attempts = !1)) {
         delay(3000);
@@ -251,7 +251,7 @@ void reconnect(short int attempts, bool silent) {
     }
   }
 
-  if (!silent) DBG(" Connecting MQTT failed.");
+  if (!silent) DBGLN(" Connecting MQTT failed.");
 #endif
 }
 void reconnect(int attempts) {
@@ -259,15 +259,15 @@ void reconnect(int attempts) {
 }
 void mqtt_callback(char* topic, byte * message, unsigned int length) {
   String incomingString;
-  DBG(topic);
+  DBGLN(topic);
   for (unsigned int i = 0; i < length; i++) {
     incomingString += (char)message[i];
   }
   StaticJsonDocument<2048> doc;
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    DBG("json parse err");
-    DBG(incomingString);
+    DBGLN("json parse err");
+    DBGLN(incomingString);
     return;
   } else {
     int s = doc.size();
@@ -279,14 +279,14 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
     }
     ln = s;
     newData = event_mqtt;
-    DBG("Incoming MQTT.");
+    DBGLN("Incoming MQTT.");
 
   }
 }
 void mqtt_publish(const char* payload) {
 #ifdef USE_WIFI
   if (!client.publish(TOPIC_DATA, payload)) {
-    DBG(" Error on sending MQTT");
+    DBGLN(" Error on sending MQTT");
     sendLog();
   }
 #endif
@@ -300,7 +300,7 @@ void getLoRa() {
     uint8_t incLORAMAC[2];
     LoRa.readBytes((uint8_t *)&packet, packetSize);
     ln = (packetSize - 5) / sizeof(DataReading);
-    DBG("Incoming LoRa.");
+    DBGLN("Incoming LoRa.");
     if (memcmp(&packet, &selfAddress[3], 3) == 0) {   //Check if addressed to this device
       memcpy(&incLORAMAC, &packet[3], 2);             //Split off address portion of packet
       memcpy(&theData, &packet[5], packetSize - 5);   //Split off data portion of packet
@@ -319,7 +319,7 @@ void getLoRa() {
 }
 
 void sendESPNOW(uint8_t address) {
-  DBG("Sending ESP-NOW.");
+  DBGLN("Sending ESP-NOW.");
   uint8_t NEWPEER[] = {MAC_PREFIX, address};
 #if defined(ESP32)
   esp_now_peer_info_t peerInfo;
@@ -328,7 +328,7 @@ void sendESPNOW(uint8_t address) {
   peerInfo.encrypt = false;
   memcpy(peerInfo.peer_addr, NEWPEER, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer");
+    DBGLN("Failed to add peer");
     return;
   }
 #endif
@@ -348,7 +348,7 @@ void sendESPNOW(uint8_t address) {
 }
 
 void sendSerial() {
-  DBG("Sending Serial.");
+  DBGLN("Sending Serial.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < ln; i++) {
     doc[i]["id"]   = theData[i].id;
@@ -366,7 +366,7 @@ void sendSerial() {
 }
 void sendMQTT() {
 #ifdef USE_WIFI
-  DBG("Sending MQTT.");
+  DBGLN("Sending MQTT.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < ln; i++) {
     doc[i]["id"]   = theData[i].id;
@@ -380,7 +380,7 @@ void sendMQTT() {
 }
 
 void bufferESPNOW(uint8_t interface) {
-  DBG("Buffering ESP-NOW.");
+  DBGLN("Buffering ESP-NOW.");
 
   switch (interface) {
     case 0:
@@ -404,7 +404,7 @@ void bufferESPNOW(uint8_t interface) {
   }
 }
 void bufferSerial() {
-  DBG("Buffering Serial.");
+  DBGLN("Buffering Serial.");
   for (int i = 0; i < ln; i++) {
     SERIALbuffer[lenSERIAL + i] = theData[i];
   }
@@ -412,7 +412,7 @@ void bufferSerial() {
   //UART_IF.println("SENDSERIAL:" + String(lenSERIAL) + " ");
 }
 void bufferMQTT() {
-  DBG("Buffering MQTT.");
+  DBGLN("Buffering MQTT.");
   for (int i = 0; i < ln; i++) {
     MQTTbuffer[lenMQTT + i] = theData[i];
   }
@@ -425,7 +425,7 @@ void bufferMQTT() {
 //  lenLORA += ln;
 //}
 void bufferLoRa(uint8_t interface) {
-  DBG("Buffering LoRa.");
+  DBGLN("Buffering LoRa.");
   switch (interface) {
     case 0:
       for (int i = 0; i < ln; i++) {
@@ -449,7 +449,7 @@ void bufferLoRa(uint8_t interface) {
 }
 
 void releaseESPNOW(uint8_t interface) {
-  DBG("Releasing ESP-NOW.");
+  DBGLN("Releasing ESP-NOW.");
   switch (interface) {
     case 0:
       {
@@ -503,7 +503,7 @@ void releaseESPNOW(uint8_t interface) {
 }
 #ifdef USE_LORA
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
-  DBG("Transmitting LoRa.");
+  DBGLN("Transmitting LoRa.");
 
   uint8_t pkt[5 + (len * sizeof(DataReading))];
   memcpy(&pkt, mac, 3);
@@ -517,7 +517,7 @@ void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
 
 void releaseLoRa(uint8_t interface) {
 #ifdef USE_LORA
-  DBG("Releasing LoRa.");
+  DBGLN("Releasing LoRa.");
 
   switch (interface) {
     case 0:
@@ -574,7 +574,7 @@ void releaseLoRa(uint8_t interface) {
 #endif
 }
 void releaseSerial() {
-  DBG("Releasing Serial.");
+  DBGLN("Releasing Serial.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < lenSERIAL; i++) {
     doc[i]["id"]   = SERIALbuffer[i].id;
@@ -587,7 +587,7 @@ void releaseSerial() {
 }
 void releaseMQTT() {
 #ifdef USE_WIFI
-  DBG("Releasing MQTT.");
+  DBGLN("Releasing MQTT.");
   DynamicJsonDocument doc(24576);
   for (int i = 0; i < lenMQTT; i++) {
     doc[i]["id"]   = MQTTbuffer[i].id;
@@ -601,7 +601,7 @@ void releaseMQTT() {
 #endif
 }
 void begin_espnow() {
-  DBG("Initializing ESP-NOW!");
+  DBGLN("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
@@ -623,7 +623,7 @@ void begin_espnow() {
 #elif defined(ESP32)
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
-    DBG("Error initializing ESP-NOW");
+    DBGLN("Error initializing ESP-NOW");
     return;
   }
   esp_now_register_send_cb(OnDataSent);
@@ -635,67 +635,67 @@ void begin_espnow() {
 
   memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer bcast");
+    DBGLN("Failed to add peer bcast");
     return;
   }
 #ifdef ESPNOW1_PEER
   memcpy(peerInfo.peer_addr, ESPNOW1, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer 1");
+    DBGLN("Failed to add peer 1");
     return;
   }
 #endif
 #ifdef ESPNOW2_PEER
   memcpy(peerInfo.peer_addr, ESPNOW2, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer 2");
+    DBGLN("Failed to add peer 2");
     return;
   }
 #endif
 #endif
-  DBG(" ESP-NOW Initialized.");
+  DBGLN(" ESP-NOW Initialized.");
 }
 void begin_lora() {
 #ifdef USE_LORA
-  DBG("Initializing LoRa!");
+  DBGLN("Initializing LoRa!");
 #ifdef ESP32
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 #endif
   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
-    DBG(" Initialization failed!");
+    DBGLN(" Initialization failed!");
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa initialized.");
+  DBGLN(" LoRa initialized.");
 #endif
 }
 void begin_SD() {
 #ifdef USE_SD_LOG
-  DBG("Initializing SD card...");
+  DBGLN("Initializing SD card...");
 #ifdef ESP32
   SPI.begin(SCK, MISO, MOSI);
 #endif
   if (!SD.begin(SD_SS)) {
-    DBG(" Initialization failed!");
+    DBGLN(" Initialization failed!");
     while (1);
   } else {
-    DBG(" SD initialized.");
+    DBGLN(" SD initialized.");
   }
 #endif
 }
 void begin_FS() {
 #ifdef USE_FS_LOG
-  DBG("Initializing LittleFS...");
+  DBGLN("Initializing LittleFS...");
 
   if (!LittleFS.begin())
   {
-    DBG(" initialization failed");
+    DBGLN(" initialization failed");
     while (1);
   }
   else
   {
-    DBG(" LittleFS initialized");
+    DBGLN(" LittleFS initialized");
   }
 #endif
 }

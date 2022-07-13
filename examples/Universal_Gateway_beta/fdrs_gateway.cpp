@@ -120,7 +120,7 @@ void ESP_FDRSGateWay::init(uint8_t inturnal_mac[5]){
     // Register first peer
     memcpy(peerInfo.peer_addr, _broadcast_mac, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        DBG("Failed to add peer bcast");
+        DGBLN("Failed to add peer bcast");
         return;
     }
 #endif
@@ -151,7 +151,7 @@ void ESP_FDRSGateWay::setup(void){
     
     
     if(esp_now_init() != ESP_OK) {
-        DBG("Error initializing ESP-NOW");
+        DGBLN("Error initializing ESP-NOW");
         return;
     }
 
@@ -160,7 +160,7 @@ void ESP_FDRSGateWay::setup(void){
 
 #endif
 
-    DBG("ESP-NOW Initialized.");
+    DGBLN("ESP-NOW Initialized.");
 
 }
 
@@ -210,7 +210,7 @@ void ESP_FDRSGateWay::list_peer(uint8_t peer_mac[6]){
     peerInfo.encrypt = false;
     memcpy(peerInfo.peer_addr, peer_mac, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        DBG("Failed to add peer 1");
+        DGBLN("Failed to add peer 1");
         return;
     }
 #endif
@@ -357,15 +357,15 @@ void MQTT_FDRSGateWay::mqtt_callback(char* topic, byte * message, unsigned int l
     }
 
     String incomingString;
-    DBG(topic);
+    DGBLN(topic);
     for (int i = 0; i < length; i++) {
         incomingString += (char)message[i];
     }
     StaticJsonDocument<2048> doc;
     DeserializationError error = deserializeJson(doc, incomingString);
     if (error) {    // Test if parsing succeeds.
-        DBG("json parse err");
-        DBG(incomingString);
+        DGBLN("json parse err");
+        DGBLN(incomingString);
         return;
     }
     int s = doc.size();
@@ -379,7 +379,7 @@ void MQTT_FDRSGateWay::mqtt_callback(char* topic, byte * message, unsigned int l
         _buffer.push_back(data);
         memset(&data,0,sizeof(DataReading_t));
     }
-    DBG("Incoming MQTT.");
+    DGBLN("Incoming MQTT.");
     
 }
 
@@ -387,18 +387,18 @@ void MQTT_FDRSGateWay::init(void){
     delay(10);
     WiFi.begin(_ssid, _password);
     while (WiFi.status() != WL_CONNECTED) {
-        DBG("Connecting to WiFi... ");
-        DBG(_ssid);
+        DGBLN("Connecting to WiFi... ");
+        DGBLN(_ssid);
 
         delay(500);
     }
-    DBG("WiFi Connected");
+    DGBLN("WiFi Connected");
     _client->setServer(_server, _port);
     if (!_client->connected()) {
-        DBG("Connecting MQTT...");
+        DGBLN("Connecting MQTT...");
         reconnect();
     }
-    DBG("MQTT Connected");
+    DGBLN("MQTT Connected");
     _client->setCallback(MQTT_FDRSGateWay::mqtt_callback);
 
     _client->publish(TOPIC_STATUS, "FDRS initialized");
@@ -413,14 +413,14 @@ void MQTT_FDRSGateWay::reconnect() {
             _client->subscribe(TOPIC_COMMAND);
             break;
         }
-        DBG("Connecting MQTT.");
+        DGBLN("Connecting MQTT.");
         delay(5000);
     }
 }
 
 void MQTT_FDRSGateWay::send(std::vector<DataReading_t> data) {
 
-    DBG("Releasing MQTT.");
+    DGBLN("Releasing MQTT.");
     DynamicJsonDocument doc(24576);
     for (int i = 0; i < data.size(); i++) {
         doc[i]["id"]   = data[i].id;
@@ -474,8 +474,8 @@ void Serial_FDRSGateWay::pull(void){
     DeserializationError error = deserializeJson(doc, incomingString);
     // Test if parsing succeeds.
     if (error) {    
-    // DBG("json parse err");
-    // DBG(incomingString);
+    // DGBLN("json parse err");
+    // DGBLN(incomingString);
         return;
     }
 
@@ -490,7 +490,7 @@ void Serial_FDRSGateWay::pull(void){
         _buffer.push_back(data);
         memset(&data,0,sizeof(DataReading_t));
     }
-    DBG("Incoming Serial.");
+    DGBLN("Incoming Serial.");
 
 }
 
@@ -506,7 +506,7 @@ void Serial_FDRSGateWay::get(void){
 
 void Serial_FDRSGateWay::send(std::vector<DataReading_t> data){
 
-    DBG("Releasing Serial.");
+    DGBLN("Releasing Serial.");
     DynamicJsonDocument doc(24576);
     for (int i = 0; i < data.size(); i++) {
         doc[i]["id"]   = data[i].id;
@@ -543,17 +543,17 @@ void LoRa_FDRSGateWay::init(uint8_t mac[6]){
 
     memcpy(_mac,mac,6);
 
-    DBG("Initializing LoRa!");
+    DGBLN("Initializing LoRa!");
     #ifdef ESP32
         SPI.begin(_sck, _miso, _mosi);
     #endif
     LoRa.setPins(_ss, _rst, _dio0);
     if (!LoRa.begin(_band)) {
-        DBG(" LoRa initialize failed");
+        DGBLN(" LoRa initialize failed");
         return;
     }
     LoRa.setSpreadingFactor(_sf);
-    DBG(" LoRa initialized.");
+    DGBLN(" LoRa initialized.");
 }
 
 void LoRa_FDRSGateWay::add_peer(uint8_t peer_mac[6]){
@@ -625,7 +625,7 @@ void LoRa_FDRSGateWay::get(void){
         }  
     }
 
-    DBG("Incoming LoRa.");
+    DGBLN("Incoming LoRa.");
 
 }
 
@@ -660,7 +660,7 @@ void LoRa_FDRSGateWay::forward(uint8_t *peer_mac ,std::vector<DataReading_t> dat
 }
 
 void LoRa_FDRSGateWay::transmit(DataReading_t *packet, uint8_t len) {
-    DBG("Transmitting LoRa.");
+    DGBLN("Transmitting LoRa.");
     uint8_t pkt[5 + (len * sizeof(DataReading_t))];
     memcpy(&pkt, _mac, 3);
     memcpy(&pkt[3], &_mac[4], 2);
