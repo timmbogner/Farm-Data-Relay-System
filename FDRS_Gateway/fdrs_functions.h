@@ -15,8 +15,10 @@ enum {
   event_lora2
 };
 #ifdef FDRS_DEBUG
+#define DBG(a) (Serial.print(a))
 #define DBGLN(a) (Serial.println(a))
 #else
+#define DBG(a)
 #define DBGLN(a)
 #endif
 
