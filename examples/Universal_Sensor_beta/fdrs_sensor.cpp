@@ -65,11 +65,11 @@ void FDRSBase::sleep(int seconds){
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
-  esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
+  esp_sleep_enable_timer_wakeup(seconds * 1000000);
   esp_deep_sleep_start();
 #endif
 #ifdef ESP8266
-  ESP.deepSleep(sleep_time * 1000000);
+  ESP.deepSleep(seconds * 1000000);
 #endif
 #endif
   DBG(" Delaying.");
