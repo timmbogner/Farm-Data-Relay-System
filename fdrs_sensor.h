@@ -26,9 +26,9 @@
 #endif
 
 #ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
+#define DBGLN(a) (Serial.println(a))
 #else
-#define DBG(a)
+#define DBGLN(a)
 #endif
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
@@ -53,16 +53,20 @@ void beginFDRS() {
 #ifdef FDRS_DEBUG
   Serial.begin(115200);
 #endif
-  DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
-  DBG(" Gateway: " + String (GTWY_MAC, HEX));
+  DBGLN
+("FDRS Sensor ID " + String(READING_ID) + " initializing...");
+  DBGLN
+(" Gateway: " + String (GTWY_MAC, HEX));
 #ifdef POWER_CTRL
-  DBG("Powering up the sensor array!");
+  DBGLN
+("Powering up the sensor array!");
   pinMode(POWER_CTRL, OUTPUT);
   digitalWrite(POWER_CTRL, 1);
 #endif
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
 #ifdef USE_ESPNOW
-  DBG("Initializing ESP-NOW!");
+  DBGLN
+("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
 #if defined(ESP8266)
@@ -74,7 +78,8 @@ void beginFDRS() {
   esp_now_add_peer(gatewayAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
   if (esp_now_init() != ESP_OK) {
-    DBG("Error initializing ESP-NOW");
+    DBGLN
+  ("Error initializing ESP-NOW");
     return;
   }
   esp_now_peer_info_t peerInfo;
@@ -84,26 +89,33 @@ void beginFDRS() {
   // Register first peer
   memcpy(peerInfo.peer_addr, gatewayAddress, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer");
+    DBGLN
+  ("Failed to add peer");
     return;
   }
 #endif
-  DBG(" ESP-NOW Initialized.");
+  DBGLN
+(" ESP-NOW Initialized.");
 #endif
 #ifdef USE_LORA
-  DBG("Initializing LoRa!");
-  DBG(FDRS_BAND);
-  DBG(FDRS_SF);
+  DBGLN
+("Initializing LoRa!");
+  DBGLN
+(FDRS_BAND);
+  DBGLN
+(FDRS_SF);
 #ifdef ESP32
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 #endif
   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
-    DBG("Unable to initialize LoRa!");
+    DBGLN
+  ("Unable to initialize LoRa!");
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa Initialized.");
+  DBGLN
+(" LoRa Initialized.");
 #endif
 }
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
@@ -118,20 +130,24 @@ void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
 #endif
 }
 void sendFDRS() {
-  DBG("Sending FDRS Packet!");
+  DBGLN
+("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
   delay(5);
-  DBG(" ESP-NOW sent.");
+  DBGLN
+(" ESP-NOW sent.");
 #endif
 #ifdef USE_LORA
   transmitLoRa(gtwyAddress, fdrsData, data_count);
-  DBG(" LoRa sent.");
+  DBGLN
+(" LoRa sent.");
 #endif
   data_count = 0;
 }
 void loadFDRS(float d, uint8_t t) {
-  DBG("Data loaded. Type: " + String(t));
+  DBGLN
+("Data loaded. Type: " + String(t));
   if (data_count > espnow_size) sendFDRS();
   DataReading dr;
   dr.id = READING_ID;
@@ -141,9 +157,11 @@ void loadFDRS(float d, uint8_t t) {
   data_count++;
 }
 void sleepFDRS(int sleep_time) {
-  DBG("Sleepytime!");
+  DBGLN
+("Sleepytime!");
 #ifdef DEEP_SLEEP
-  DBG(" Deep sleeping.");
+  DBGLN
+(" Deep sleeping.");
 #ifdef ESP32
   esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
   esp_deep_sleep_start();
@@ -152,6 +170,7 @@ void sleepFDRS(int sleep_time) {
   ESP.deepSleep(sleep_time * 1000000);
 #endif
 #endif
-  DBG(" Delaying.");
+  DBGLN
+(" Delaying.");
   delay(sleep_time * 1000);
 }

@@ -31,7 +31,7 @@ void loop() {
   // we are only interested in GPGGA (U-Blox M6N) or GNGGA (U-Blox M8N)lines.  
   if (startsWith(currentNMEALine, "$GNGGA") || startsWith(currentNMEALine, "$GPGGA")) {
     
-    DBG(currentNMEALine);
+    DGBLN(currentNMEALine);
   
     // just in case someone needs UTC, quality or #satelites, just uncomment and do what you have to do with them. :)
     //char * gpsUTC                   = getNthValueOf(currentNMEALine, ',', 1);

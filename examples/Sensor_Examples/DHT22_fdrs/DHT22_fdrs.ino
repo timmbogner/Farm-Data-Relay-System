@@ -18,7 +18,7 @@ DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
   beginFDRS();
-  DBG("DHTxx Sketch!");
+  DGBLN("DHTxx Sketch!");
   dht.begin();
 }
 
@@ -32,7 +32,7 @@ void loop() {
 
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t)) {
-  DBG("Failed to read from DHT sensor!");
+  DGBLN("Failed to read from DHT sensor!");
     return;
   }
   loadFDRS(h, HUMIDITY_T);

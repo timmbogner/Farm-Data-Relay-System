@@ -48,9 +48,9 @@
 #endif //FDRS_GLOBAL_LORA
 
 #ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
+#define DGBLN(a) (Serial.println(a))
 #else
-#define DBG(a)
+#define DGBLN(a)
 #endif
 
 extern const uint8_t prefix[5];

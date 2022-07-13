@@ -25,10 +25,10 @@ void FDRSBase::begin() {
 #ifdef FDRS_DEBUG
     Serial.begin(115200);
 #endif
-    DBG("FDRS Sensor ID " + String(_reading_id) + " initializing...");
-    DBG(" Gateway: " + String (_gtwy_mac, HEX));
+    DGBLN("FDRS Sensor ID " + String(_reading_id) + " initializing...");
+    DGBLN(" Gateway: " + String (_gtwy_mac, HEX));
 #ifdef POWER_CTRL
-    DBG("Powering up the sensor array!");
+    DGBLN("Powering up the sensor array!");
     pinMode(POWER_CTRL, OUTPUT);
     digitalWrite(POWER_CTRL, 1);
 #endif
@@ -38,7 +38,7 @@ void FDRSBase::begin() {
 }
 
 void FDRSBase::send(void) {
-  DBG("Sending FDRS Packet!");
+  DGBLN("Sending FDRS Packet!");
 
   if(_data_count == 0){
         return;
@@ -48,7 +48,7 @@ void FDRSBase::send(void) {
 }
 
 void FDRSBase::load(float data, uint8_t type) {
-  DBG("Data loaded. Type: " + String(type));
+  DGBLN("Data loaded. Type: " + String(type));
   if (_data_count > _espnow_size){
     send();
   } 
@@ -61,9 +61,9 @@ void FDRSBase::load(float data, uint8_t type) {
 }
 
 void FDRSBase::sleep(int seconds){
-  DBG("Sleepytime!");
+  DGBLN("Sleepytime!");
 #ifdef DEEP_SLEEP
-  DBG(" Deep sleeping.");
+  DGBLN(" Deep sleeping.");
 #ifdef ESP32
   esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
   esp_deep_sleep_start();
@@ -72,7 +72,7 @@ void FDRSBase::sleep(int seconds){
   ESP.deepSleep(sleep_time * 1000000);
 #endif
 #endif
-  DBG(" Delaying.");
+  DGBLN(" Delaying.");
   delay(seconds * 1000);
 }
 
@@ -91,7 +91,7 @@ FDRS_EspNow::FDRS_EspNow(uint8_t gtwy_mac,uint16_t reading_id):
 void FDRS_EspNow::init(void){
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
 
-    DBG("Initializing ESP-NOW!");
+    DGBLN("Initializing ESP-NOW!");
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
 #if defined(ESP8266)
@@ -103,7 +103,7 @@ void FDRS_EspNow::init(void){
     esp_now_add_peer(_gatewayAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
     if(esp_now_init() != ESP_OK){
-        DBG("Error initializing ESP-NOW");
+        DGBLN("Error initializing ESP-NOW");
         return;
 
     }
@@ -114,17 +114,17 @@ void FDRS_EspNow::init(void){
   // Register first peer
     memcpy(peerInfo.peer_addr, _gatewayAddress, 6);
     if(esp_now_add_peer(&peerInfo) != ESP_OK) {
-        DBG("Failed to add peer");
+        DGBLN("Failed to add peer");
         return;
     }
 #endif
-  DBG(" ESP-NOW Initialized.");
+  DGBLN(" ESP-NOW Initialized.");
 }
 
 void FDRS_EspNow::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     esp_now_send(_gatewayAddress, (uint8_t *) fdrsData, _data_count * sizeof(DataReading_t));
     delay(5);
-    DBG(" ESP-NOW sent.");
+    DGBLN(" ESP-NOW sent.");
 }
 
 #endif USE_ESPNOW
@@ -151,19 +151,19 @@ FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac,
 
 void FDRSLoRa::init(void){
 
-    DBG("Initializing LoRa!");
-    DBG(_band);
-    DBG(_sf);
+    DGBLN("Initializing LoRa!");
+    DGBLN(_band);
+    DGBLN(_sf);
 #ifdef ESP32
   SPI.begin(_sck, _miso, _mosi);
 #endif
     LoRa.setPins(_ss, _rst, _dio0);
     if (!LoRa.begin(_band)) {
-        DBG("LoRa Initialize Failed.");
+        DGBLN("LoRa Initialize Failed.");
         while (1);
     }
     LoRa.setSpreadingFactor(_sf);
-    DBG("LoRa Initialized.");
+    DGBLN("LoRa Initialized.");
 }
 
 void FDRSLoRa::buildPacket(uint8_t* mac, DataReading_t * packet, uint8_t len) {
@@ -178,7 +178,7 @@ void FDRSLoRa::buildPacket(uint8_t* mac, DataReading_t * packet, uint8_t len) {
 
 void FDRSLoRa::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     buildPacket(_gatewayAddress, fdrsData, _data_count);
-    DBG(" LoRa sent.");
+    DGBLN(" LoRa sent.");
 }
 
 #endif USE_LORA
