@@ -53,16 +53,31 @@ void beginFDRS() {
 #ifdef FDRS_DEBUG
   Serial.begin(115200);
 #endif
+<<<<<<< HEAD
   DBGLN("FDRS Sensor ID " + String(READING_ID) + " initializing...");
   DBGLN(" Gateway: " + String (GTWY_MAC, HEX));
 #ifdef POWER_CTRL
   DBGLN("Powering up the sensor array!");
+=======
+  DBGLN
+("FDRS Sensor ID " + String(READING_ID) + " initializing...");
+  DBGLN
+(" Gateway: " + String (GTWY_MAC, HEX));
+#ifdef POWER_CTRL
+  DBGLN
+("Powering up the sensor array!");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
   pinMode(POWER_CTRL, OUTPUT);
   digitalWrite(POWER_CTRL, 1);
 #endif
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
 #ifdef USE_ESPNOW
+<<<<<<< HEAD
   DBGLN("Initializing ESP-NOW!");
+=======
+  DBGLN
+("Initializing ESP-NOW!");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
 #if defined(ESP8266)
@@ -74,7 +89,12 @@ void beginFDRS() {
   esp_now_add_peer(gatewayAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
   if (esp_now_init() != ESP_OK) {
+<<<<<<< HEAD
     DBGLN("Error initializing ESP-NOW");
+=======
+    DBGLN
+  ("Error initializing ESP-NOW");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
     return;
   }
   esp_now_peer_info_t peerInfo;
@@ -84,6 +104,7 @@ void beginFDRS() {
   // Register first peer
   memcpy(peerInfo.peer_addr, gatewayAddress, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+<<<<<<< HEAD
     DBGLN("Failed to add peer");
     return;
   }
@@ -94,16 +115,43 @@ void beginFDRS() {
   DBGLN("Initializing LoRa!");
   DBGLN(FDRS_BAND);
   DBGLN(FDRS_SF);
+=======
+    DBGLN
+  ("Failed to add peer");
+    return;
+  }
+#endif
+  DBGLN
+(" ESP-NOW Initialized.");
+#endif
+#ifdef USE_LORA
+  DBGLN
+("Initializing LoRa!");
+  DBGLN
+(FDRS_BAND);
+  DBGLN
+(FDRS_SF);
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
 #ifdef ESP32
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 #endif
   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
   if (!LoRa.begin(FDRS_BAND)) {
+<<<<<<< HEAD
     DBGLN("Unable to initialize LoRa!");
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBGLN(" LoRa Initialized.");
+=======
+    DBGLN
+  ("Unable to initialize LoRa!");
+    while (1);
+  }
+  LoRa.setSpreadingFactor(FDRS_SF);
+  DBGLN
+(" LoRa Initialized.");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
 #endif
 }
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
@@ -118,6 +166,7 @@ void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
 #endif
 }
 void sendFDRS() {
+<<<<<<< HEAD
   DBGLN("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
@@ -127,11 +176,30 @@ void sendFDRS() {
 #ifdef USE_LORA
   transmitLoRa(gtwyAddress, fdrsData, data_count);
   DBGLN(" LoRa sent.");
+=======
+  DBGLN
+("Sending FDRS Packet!");
+#ifdef USE_ESPNOW
+  esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
+  delay(5);
+  DBGLN
+(" ESP-NOW sent.");
+#endif
+#ifdef USE_LORA
+  transmitLoRa(gtwyAddress, fdrsData, data_count);
+  DBGLN
+(" LoRa sent.");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
 #endif
   data_count = 0;
 }
 void loadFDRS(float d, uint8_t t) {
+<<<<<<< HEAD
   DBGLN("Data loaded. Type: " + String(t));
+=======
+  DBGLN
+("Data loaded. Type: " + String(t));
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
   if (data_count > espnow_size) sendFDRS();
   DataReading dr;
   dr.id = READING_ID;
@@ -141,9 +209,17 @@ void loadFDRS(float d, uint8_t t) {
   data_count++;
 }
 void sleepFDRS(int sleep_time) {
+<<<<<<< HEAD
   DBGLN("Sleepytime!");
 #ifdef DEEP_SLEEP
   DBGLN(" Deep sleeping.");
+=======
+  DBGLN
+("Sleepytime!");
+#ifdef DEEP_SLEEP
+  DBGLN
+(" Deep sleeping.");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
 #ifdef ESP32
   esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
   esp_deep_sleep_start();
@@ -152,6 +228,11 @@ void sleepFDRS(int sleep_time) {
   ESP.deepSleep(sleep_time * 1000000);
 #endif
 #endif
+<<<<<<< HEAD
   DBGLN(" Delaying.");
+=======
+  DBGLN
+(" Delaying.");
+>>>>>>> b8061526408576e5736a4562445c1922112a2471
   delay(sleep_time * 1000);
 }
