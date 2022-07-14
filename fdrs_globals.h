@@ -1,3 +1,10 @@
+/*  FARM DATA RELAY SYSTEM
+*
+*  "fdrs_globals.h"
+*
+*  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+*/
+
 #ifndef FDRS_GLOBALS
 #define FDRS_GLOBALS
 #define GLOBAL_SSID "Your SSID"
