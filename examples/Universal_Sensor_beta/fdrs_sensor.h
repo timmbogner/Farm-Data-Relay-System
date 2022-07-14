@@ -11,6 +11,7 @@
 
 #include "fdrs_types.h"
 #include <fdrs_datatypes.h>
+#include "fdrs_sensor_config.h"
 
 //1 to enable debugging prints. 0 disables the debugging prints
 #define ENABLE_DEBUG 1 

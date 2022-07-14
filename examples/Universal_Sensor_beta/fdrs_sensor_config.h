@@ -17,7 +17,7 @@
 //#define POWER_CTRL    14
 
 // Uncomment the sensor type you want to use 
-//#define USE_LORA
+#define USE_LORA
 //#define USE_ESPNOW
 
 //Pins for UART data interface (ESP32 only)
