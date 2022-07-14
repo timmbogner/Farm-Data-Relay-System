@@ -11,4 +11,4 @@
 #define GLOBAL_LORA_BAND 915E6 //LoRa Frequency Band
 #define GLOBAL_LORA_SF 7  //LoRa Spreading Factor
 
-#endif FDRS_GLOBALS
+#endif //FDRS_GLOBALS

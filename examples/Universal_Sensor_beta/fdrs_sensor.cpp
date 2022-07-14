@@ -127,7 +127,7 @@ void FDRS_EspNow::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     DBG(" ESP-NOW sent.");
 }
 
-#endif USE_ESPNOW
+#endif //USE_ESPNOW
 
 #ifdef USE_LORA
 
@@ -181,4 +181,4 @@ void FDRSLoRa::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     DBG(" LoRa sent.");
 }
 
-#endif USE_LORA
+#endif //USE_LORA
