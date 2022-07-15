@@ -6,16 +6,12 @@
 //
 
 #include "fdrs_gateway_config.h"
+#include "fdrs_gateway.h"
 
 #ifdef USE_LED
 #include <FastLED.h>
-#endif
-#include "fdrs_gateway.h"
-#include "fdrs_gateway_config.h"
-
-#ifdef USE_LED
 CRGB leds[NUM_LEDS];
-#endif
+#endif //USE_LED
 
 uint8_t selfAddress[6] =   {MAC_PREFIX, UNIT_MAC};
 
