@@ -48,7 +48,7 @@ void FDRSBase::send(void) {
 }
 
 void FDRSBase::load(float data, uint8_t type) {
-  DBG("Data loaded. Type: " + String(type));
+  DBG("Data: " + String(data) + " loaded. Type: " + String(type));
   if (_data_count > _espnow_size){
     send();
   } 
@@ -65,11 +65,11 @@ void FDRSBase::sleep(int seconds){
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
-  esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
+  esp_sleep_enable_timer_wakeup(seconds * 1000000);
   esp_deep_sleep_start();
 #endif
 #ifdef ESP8266
-  ESP.deepSleep(sleep_time * 1000000);
+  ESP.deepSleep(seconds * 1000000);
 #endif
 #endif
   DBG(" Delaying.");
@@ -127,7 +127,7 @@ void FDRS_EspNow::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     DBG(" ESP-NOW sent.");
 }
 
-#endif USE_ESPNOW
+#endif //USE_ESPNOW
 
 #ifdef USE_LORA
 
@@ -152,8 +152,8 @@ FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac,
 void FDRSLoRa::init(void){
 
     DBG("Initializing LoRa!");
-    DBG(_band);
-    DBG(_sf);
+    DBG("LoRa Band: " + String(_band));
+    DBG("LoRa SF  : " + String(_sf));
 #ifdef ESP32
   SPI.begin(_sck, _miso, _mosi);
 #endif
@@ -181,4 +181,4 @@ void FDRSLoRa::transmit(DataReading_t *fdrsData, uint8_t _data_count){
     DBG(" LoRa sent.");
 }
 
-#endif USE_LORA
+#endif //USE_LORA

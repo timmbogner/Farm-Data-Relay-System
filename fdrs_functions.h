@@ -635,6 +635,8 @@ void begin_lora(){
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa initialized.");
+  DBG("LoRa Band: " + String(FDRS_BAND));
+  DBG("LoRa SF  : " + String(FDRS_SF));
   #endif
 }
 void begin_SD(){

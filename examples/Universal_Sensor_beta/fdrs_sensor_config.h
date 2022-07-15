@@ -17,7 +17,7 @@
 //#define POWER_CTRL    14
 
 // Uncomment the sensor type you want to use 
-//#define USE_LORA
+#define USE_LORA
 //#define USE_ESPNOW
 
 //Pins for UART data interface (ESP32 only)
@@ -50,4 +50,4 @@
 //#define MQTT_USER   "Your MQTT Username"
 //#define MQTT_PASS   "Your MQTT Password"
 
-#endif __FDRS_SENSOR_CONFIG__H__
+#endif //__FDRS_SENSOR_CONFIG__H__

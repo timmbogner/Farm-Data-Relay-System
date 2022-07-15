@@ -7,12 +7,7 @@
 //  An example of how to send data using "fdrs_sensor.h".
 //
 
-// compile error when defined here - why?
-//#define USE_LORA
-//#define USE_ESPNOW
-
-
-#include "fdrs_sensor_config.h"
+//#include "fdrs_sensor_config.h"
 #include "fdrs_sensor.h"
 
 #if defined(USE_LORA)

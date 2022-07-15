@@ -36,4 +36,4 @@ typedef struct Peer_t{
 }Peer_t;
 
 
-#endif
+#endif //__FDRS_TYPES_H__
