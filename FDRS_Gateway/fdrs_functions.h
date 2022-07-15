@@ -3,6 +3,11 @@
 //  GATEWAY 2.000 Functions
 //  This is the 'meat and potatoes' of FDRS, and should not be fooled with unless improving/adding features.
 //  Developed by Timm Bogner (timmbogner@gmail.com)
+
+#ifndef __FDRS_FUNCTIONS_H__
+#define __FDRS_FUNCTIONS_H__
+
+
 enum {
   event_clear,
   event_espnowg,
@@ -571,7 +576,7 @@ void releaseLoRa(uint8_t interface) {
         break;
       }
   }
-#endif
+#endif //USE_LORA
 }
 void releaseSerial() {
   DBG("Releasing Serial.");
@@ -652,7 +657,7 @@ void begin_espnow() {
     return;
   }
 #endif
-#endif
+#endif //ESP8266
   DBG(" ESP-NOW Initialized.");
 }
 void begin_lora() {
@@ -668,7 +673,7 @@ void begin_lora() {
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa initialized.");
-#endif
+#endif //USE_LORA
 }
 void begin_SD() {
 #ifdef USE_SD_LOG
@@ -682,7 +687,7 @@ void begin_SD() {
   } else {
     DBG(" SD initialized.");
   }
-#endif
+#endif //USE_SD_LOG
 }
 void begin_FS() {
 #ifdef USE_FS_LOG
@@ -699,3 +704,5 @@ void begin_FS() {
   }
 #endif
 }
+
+#endif //__FDRS_FUNCTIONS_H__

@@ -30,4 +30,4 @@
 #define LONGITUDE_T     22 // GPS Longitude
 #define ALTITUDE_T      23 // GPS Altitude
 
-#endif
+#endif //FDRS_DATA_TYPES

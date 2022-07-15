@@ -110,7 +110,7 @@ private:
   DataReading_t *fdrsData;
 
   /**
-   * @brief Required impalamnetation of a paticulare sensors initialization.
+   * @brief Required implementation of a paticulare sensors initialization.
    */
   virtual void init(void) = 0;
 
