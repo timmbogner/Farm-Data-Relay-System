@@ -4,7 +4,8 @@
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
-#include <fdrs_datatypes.h>
+#include "fdrs_datatypes.h"
+#include "fdrs_sensor_config.h"
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -117,7 +118,7 @@ void beginFDRS() {
 //  USED to get ACKs from LoRa gateway at this point.  May be used in the future to get other data
 // Return true if ACK received otherwise False
 // TODO need to handle NAK
-packetCRC getLoRaAck() {
+crcResult getLoRaAck() {
 #ifdef USE_LORA
   int packetSize = LoRa.parsePacket();
   if (packetSize) {  // TODO: check for max packet size??
