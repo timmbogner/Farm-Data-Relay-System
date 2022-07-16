@@ -29,5 +29,6 @@
 #define LATITUDE_T      21 // GPS Latitude
 #define LONGITUDE_T     22 // GPS Longitude
 #define ALTITUDE_T      23 // GPS Altitude
+#define ACK_T           24 // ACK packets
 
 #endif //FDRS_DATA_TYPES
