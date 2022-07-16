@@ -133,7 +133,7 @@ crcResult getLoRaAck() {
     LoRa.readBytes((uint8_t *)&packet, packetSize);
     
     packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
-    DBGLN("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, FreqError: " + String(LoRa.packetFrequencyError()) + "Hz, PacketCRC: 0x" + String(packetCRC,16));
+    DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, FreqError: " + String(LoRa.packetFrequencyError()) + "Hz, PacketCRC: 0x" + String(packetCRC,16));
     if (memcmp(&packet, &LoRaAddress, 2) == 0) {   //Check if addressed to this device (2 bytes)
       // TODO: Do we check if the ln == 1 && .t == CRC_T?  If so then we should not do any more processing as the packet is an ACK packet and there is no need
       memcpy(&destMAC, &packet[0], 2);             //Split off address portion of packet (2 bytes)
@@ -141,7 +141,7 @@ crcResult getLoRaAck() {
       memcpy(ackPacket, &packet[4], packetSize - 6);   //Split off data portion of packet (N bytes)
       // Calculate the received packet CRC
       if(packetCRC == 0xFFFF) {
-        DBGLN("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
+        DBG("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
         return packet_NOACK;
       }
       else {
@@ -154,7 +154,7 @@ crcResult getLoRaAck() {
           // DataReading ACK = { .d = 1, // set this to something else????
           //                     .id = destMAC,
           //                     .t = CRC_T };
-          DBGLN("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+          DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
           //transmitLoRa(loraGwAddress, &ACK, 1);
           return packet_CRCOK;
         }
@@ -164,14 +164,14 @@ crcResult getLoRaAck() {
           //                     .t = CRC_T };
           
           // Send NAK packet to sensor
-          DBGLN("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+          DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
           //transmitLoRa(loraGwAddress, &NAK, 1);
           return packet_CRCBAD;
         }
       }
     }
     else {
-      DBGLN("Incoming LoRa packet of " + String(packetSize) + " bytes received, not destined to our gateway.");
+      DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received, not destined to our gateway.");
       return packet_NULL;
     }
   }
@@ -192,7 +192,7 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
   }
   memcpy(&pkt[(len * sizeof(DataReading) + 4)], &calcCRC, 2);
   //pkt[(len * sizeof(DataReading) + 4)] = calcCRC; // Append calculated CRC to the last 2 bytes of the packet
-  DBGLN("Transmitting LoRa of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16));
+  DBG("Transmitting LoRa of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
@@ -216,10 +216,10 @@ void sendFDRS() {
     returnCRC = getLoRaAck();
   }
   if(returnCRC == packet_ACK) {
-    DBGLN("LoRa ACK Received!");
+    DBG("LoRa ACK Received!");
   }
   else {
-    DBGLN("LoRa Timeout waiting for ACK!");
+    DBG("LoRa Timeout waiting for ACK!");
   }
 #endif
   data_count = 0;
