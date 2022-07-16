@@ -40,10 +40,17 @@ typedef struct __attribute__((packed)) DataReading {
 
 } DataReading;
 
+enum crcResult{
+  CRC_NULL,
+  CRC_OK,
+  CRC_BAD,
+} returnCRC = CRC_NULL;
+
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
-uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
-uint8_t LoRaAddress[] = {0x42, 0x00};
+uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
+uint16_t LoRaAddress = 0x4200;
+
 
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
@@ -106,18 +113,94 @@ void beginFDRS() {
   DBG(" LoRa Initialized.");
 #endif
 }
-void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
+
+//  USED to get ACKs from LoRa gateway at this point.  May be used in the future to get other data
+// Return true if ACK received otherwise False
+// TODO need to handle NAK
+packetCRC getLoRaAck() {
 #ifdef USE_LORA
-  uint8_t pkt[5 + (len * sizeof(DataReading))];
-  memcpy(&pkt, mac, 3);  //
-  memcpy(&pkt[3], &LoRaAddress, 2);
-  memcpy(&pkt[5], packet, len * sizeof(DataReading));
+  int packetSize = LoRa.parsePacket();
+  if (packetSize) {  // TODO: check for max packet size??
+    uint8_t packet[packetSize];
+    uint16_t sourceMAC = 0x0000;
+    uint16_t destMAC = 0x0000;
+    uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
+    uint16_t calcCRC = 0x0000; // CRC calculated from received LoRa packet
+    unsigned long ln = (packetSize - 6) / sizeof(DataReading);
+    DataReading ackPacket[ln];  // I mean it shouldn't need to be this large but who knows what we're gonna get?  Do we need to check memory overrun?
+  
+    LoRa.readBytes((uint8_t *)&packet, packetSize);
+    
+    packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
+    DBGLN("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, FreqError: " + String(LoRa.packetFrequencyError()) + "Hz, PacketCRC: 0x" + String(packetCRC,16));
+    if (memcmp(&packet, &LoRaAddress, 2) == 0) {   //Check if addressed to this device (2 bytes)
+      // TODO: Do we check if the ln == 1 && .t == CRC_T?  If so then we should not do any more processing as the packet is an ACK packet and there is no need
+      memcpy(&destMAC, &packet[0], 2);             //Split off address portion of packet (2 bytes)
+      memcpy(&sourceMAC, &packet[2], 2);             //Split off address portion of packet (2 bytes)
+      memcpy(ackPacket, &packet[4], packetSize - 6);   //Split off data portion of packet (N bytes)
+      // Calculate the received packet CRC
+      if(packetCRC == 0xFFFF) {
+        DBGLN("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
+        return packet_NOACK;
+      }
+      else {
+        for(int i = 0; i < (packetSize - 2); i++) { // Last 2 bytes of packet are the CRC so do not include them in calculation
+          calcCRC = crc16_update(calcCRC, packet[i]);
+        }
+        if(calcCRC == packetCRC) {
+          // TODO: Queue up or Send ACK
+          // Create ACK DataReading Struct
+          // DataReading ACK = { .d = 1, // set this to something else????
+          //                     .id = destMAC,
+          //                     .t = CRC_T };
+          DBGLN("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+          //transmitLoRa(loraGwAddress, &ACK, 1);
+          return packet_CRCOK;
+        }
+        else {
+          // DataReading NAK = { .d = -1, // set this to something else???
+          //                     .id = destMAC,
+          //                     .t = CRC_T };
+          
+          // Send NAK packet to sensor
+          DBGLN("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+          //transmitLoRa(loraGwAddress, &NAK, 1);
+          return packet_CRCBAD;
+        }
+      }
+    }
+    else {
+      DBGLN("Incoming LoRa packet of " + String(packetSize) + " bytes received, not destined to our gateway.");
+      return packet_NULL;
+    }
+  }
+#endif
+}
+
+void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
+#ifdef USE_LORA
+  uint8_t pkt[6 + (len * sizeof(DataReading))];
+  uint16_t calcCRC;
+
+  memcpy(&pkt[0], destMAC, 2);  //
+  memcpy(&pkt[2], &LoRaAddress, 2);
+  memcpy(&pkt[4], packet, len * sizeof(DataReading));
+  // IF ACKs are disabled set CRC to fixed value (0xFFFF??)
+  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
+    calcCRC = crc16_update(calcCRC, pkt[i]);
+  }
+  memcpy(&pkt[(len * sizeof(DataReading) + 4)], &calcCRC, 2);
+  //pkt[(len * sizeof(DataReading) + 4)] = calcCRC; // Append calculated CRC to the last 2 bytes of the packet
+  DBGLN("Transmitting LoRa of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
 #endif
 }
+
 void sendFDRS() {
+  unsigned long loraAckTimeout;
+
   DBG("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
@@ -125,10 +208,21 @@ void sendFDRS() {
   DBG(" ESP-NOW sent.");
 #endif
 #ifdef USE_LORA
-  transmitLoRa(gtwyAddress, fdrsData, data_count);
+  transmitLoRa(&gtwyAddress, fdrsData, data_count);
   DBG(" LoRa sent.");
+  loraAckTimeout = millis() + 2000; // 2000ms timeout waiting for LoRa ACK
+  while((returnCRC != packet_NULL) && (millis() < loraAckTimeout)) {
+    returnCRC = getLoRaAck();
+  }
+  if(returnCRC == packet_ACK) {
+    DBGLN("LoRa ACK Received!");
+  }
+  else {
+    DBGLN("LoRa Timeout waiting for ACK!");
+  }
 #endif
   data_count = 0;
+  returnCRC = CRC_NULL;
 }
 void loadFDRS(float d, uint8_t t) {
   DBG("Data loaded. Type: " + String(t));
@@ -154,4 +248,33 @@ void sleepFDRS(int sleep_time) {
 #endif
   DBG(" Delaying.");
   delay(sleep_time * 1000);
+}
+
+
+// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
+
+/** @ingroup util_crc16
+    Processor-independent CRC-16 calculation.
+    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+    Initial value: 0xFFFF
+    This CRC is normally used in disk-drive controllers.
+    @param uint16_t crc (0x0000..0xFFFF)
+    @param uint8_t a (0x00..0xFF)
+    @return calculated CRC (0x0000..0xFFFF)
+*/
+
+static uint16_t crc16_update(uint16_t crc, uint8_t a)
+{
+  int i;
+
+  crc ^= a;
+  for (i = 0; i < 8; ++i)
+  {
+    if (crc & 1)
+      crc = (crc >> 1) ^ 0xA001;
+    else
+      crc = (crc >> 1);
+  }
+
+  return crc;
 }
