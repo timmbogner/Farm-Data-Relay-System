@@ -9,7 +9,7 @@ Using an assigned MAC address scheme allows for the whole system to be configure
 ### Installation
 To install FDRS, download the project folder and move it to your Arduino libraries folder. You will then be able to access all of the FDRS sketch files from the examples menu.
 
-You must install the following libraries in order to use all of the features from FDRS: 
+Install the libraries that you need:
 - [ArduinoJson](https://arduinojson.org/) (mandatory)
 - [LoRa library](https://github.com/sandeepmistry/arduino-LoRa) by sandeepmistry (required if using LoRa)
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) (required for MQTT Gateways)
