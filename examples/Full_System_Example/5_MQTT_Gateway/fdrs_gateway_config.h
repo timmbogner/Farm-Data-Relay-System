@@ -2,14 +2,14 @@
 //
 //  GATEWAY 2.000 Configuration
 
-#include <fdrs_globals.h> // Comment if you want to set specific values for this individually
-#define FDRS_DEBUG             //Enable debugging information over serial
+#include <fdrs_globals.h>
+#define FDRS_DEBUG     //Enable USB-Serial debugging
 
 #define UNIT_MAC     0x05  // The address of this gateway
 
-//Actions -- Define what happens when a packet arrives at each interface:
-//Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(),
-// bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
+// Actions -- Define what happens when a packet arrives at each interface:
+// Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(),
+//  bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
 
 #define ESPNOWG_ACT    
 #define SERIAL_ACT     sendMQTT();    
@@ -35,15 +35,25 @@
 #define RXD2 14
 #define TXD2 15
 
-//SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
+//Logging settings  --  Logging will occur when MQTT is disconnected
+//#define USE_SD_LOG        //Enable SD-card logging
+//#define USE_FS_LOG        //Enable filesystem (flash) logging
+#define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
+#define SD_SS 0             //SD card CS pin (Use different pins for LoRa and SD)
+#define SD_FILENAME "fdrs_log.csv"
+#define FS_FILENAME "fdrs_log.csv"
+
+// SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
+
 #define SPI_SCK 5
 #define SPI_MISO 19
 #define SPI_MOSI 27
 
-//LoRa Configuration -- Needed only if using LoRa
+// LoRa Configuration -- Needed only if using LoRa
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
+
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
@@ -57,22 +67,22 @@
 //#define ESPNOWG_DELAY  0
 //#define SERIAL_DELAY   0
 //#define MQTT_DELAY     0
-#define LORAG_DELAY    1000
+//#define LORAG_DELAY    1000
 //#define LORA1_DELAY    1000
 //#define LORA2_DELAY    1000
 
-//#define USE_LED    //Not yet fully implemented
+// FastLED -- Not yet fully implemented
+//#define USE_LED
 #define LED_PIN    32
 #define NUM_LEDS    4
 
-//WiFi and MQTT Credentials -- Needed only for MQTT gateway
+// WiFi and MQTT Credentials -- Needed for MQTT only if "fdrs_globals.h" is not included
 #define WIFI_SSID   "Your SSID"  
 #define WIFI_PASS   "Your Password"
 #define MQTT_ADDR   "192.168.0.8"
 #define MQTT_PORT   1883 // Default MQTT port is 1883
 
-//MQTT Credentials -- Needed only if MQTT broker requires authentication
-//#define MQTT_AUTH   //uncomment to enable MQTT authentication 
+//#define MQTT_AUTH   //Enable MQTT authentication 
 #define MQTT_USER   "Your MQTT Username"
 #define MQTT_PASS   "Your MQTT Password"
 
