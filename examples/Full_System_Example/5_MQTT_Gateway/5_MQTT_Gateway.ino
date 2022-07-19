@@ -50,6 +50,9 @@ void setup() {
   leds[0] = CRGB::Blue;
   FastLED.show();
 #endif
+#ifdef USE_LORA
+  begin_lora();
+#endif
 #ifdef USE_WIFI
   delay(10);
   WiFi.begin(ssid, password);
@@ -68,9 +71,7 @@ void setup() {
 #else
   begin_espnow();
 #endif
-#ifdef USE_LORA
-  begin_lora();
-#endif
+
 #ifdef USE_SD_LOG
   begin_SD();
 #endif
@@ -151,7 +152,7 @@ void loop() {
   client.loop(); // for recieving incoming messages and maintaining connection
 
   #endif
-  if (newData) {
+  if (newData != event_clear) {
     switch (newData) {
       case event_espnowg:
         ESPNOWG_ACT

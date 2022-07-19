@@ -13,7 +13,6 @@ unsigned int theCount = 0;
 unsigned long lastTrigger = 0;
 boolean clicked = false;
 
-// Checks if motion was detected, sets LED HIGH and starts a timer
 ICACHE_RAM_ATTR void detectsMovement() {
   clicked = true;
   lastTrigger = millis();
@@ -28,7 +27,7 @@ beginFDRS();
 void loop() {
   if (clicked && millis() - lastTrigger > 100) {
     theCount++;
-    Serial.print("CLICK.");
+    Serial.print("DINK.");
     Serial.println(theCount);
     clicked = false;
     loadFDRS(theCount, RAINFALL_T);

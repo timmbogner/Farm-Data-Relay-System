@@ -12,7 +12,7 @@ void setup() {
   beginFDRS();
 }
 void loop() {
-  for (int i=0; i < 255; i++) {
+  for (uint8_t i=0; i < 255; i++) {
     loadFDRS(float(i), IT_T);
     sendFDRS();
     delay(15);
