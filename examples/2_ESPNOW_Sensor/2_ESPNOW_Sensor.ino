@@ -2,13 +2,12 @@
 //
 //  Basic Sensor Example
 //
-//  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //  An example of how to send data using "fdrs_sensor.h".
 //
-#include "fdrs_sensor_config.h"
 
-//#include <fdrs_sensor.h>   //Use global functions file
-#include "fdrs_sensor.h"   //Use local functions file
+#include "fdrs_sensor_config.h"
+#include <fdrs_sensor.h>
 
 float data1;
 float data2;
@@ -26,9 +25,9 @@ void loop() {
 }
 
 float readTemp() {
-  return 42.4;
+  return 22.069;
 }
 
 float readHum() {
-  return 21.2;
+  return (0,100);
 }

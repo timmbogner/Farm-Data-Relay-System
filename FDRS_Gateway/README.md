@@ -16,18 +16,23 @@ In this example, the gateway is set to take any ESP-NOW packet it receives and s
 ## Options
 ### ```#define UNIT_MAC (0xNN)```
 The UNIT_MAC is the ESP-NOW and LoRa address of the gateway. This is the address that nodes or other gateways will use to pass data to this device.
-### ```#define DEBUG```
+### ```#define FDRS_DEBUG```
 This definition enables debug messages to be sent over the serial port. If disabled, the USB serial port is still used to echo data being sent via the sendSerial() command.
 ### ```#define RXD2 (pin)``` and ```TXD2 (pin)```
 These are the pins for inter-device serial communication. The single ESP8266 serial interface is not configurable, and thus these options only apply to ESP32 boards. 
 ### ```#define USE_LORA```
 Enables LoRa. Make sure that you set the LoRa module configuration parameters in the lines below.
 
-BAND and SF (spreading factor) can also be configured in 'fdrs_globals.h' if enabled.
+LORA_BAND and LORA_SF (spreading factor) can also be configured in 'fdrs_globals.h' if enabled.
 ### ```#define USE_WIFI```
 Enables WiFi. Used only on the MQTT gateway.
 
 SSID, password, and MQTT credentials are also configurable in 'fdrs_globals.h'.
+### ```#define USE_SD_LOG```
+Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT message fails. Make sure to set the correct SD_SS (chip/slave select) pin in the lines below.
+
+Logging is done in the following CSV Format: ```timestamp,reading_id,datatype,value```
+
 ### ```#define USE_LED```
 This option initializes FastLED! I haven't developed this very much, perhaps you have ideas?
 
