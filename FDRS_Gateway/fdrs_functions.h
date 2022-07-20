@@ -377,6 +377,7 @@ void sendMQTT() {
     doc[i]["id"]   = theData[i].id;
     doc[i]["type"] = theData[i].t;
     doc[i]["data"] = theData[i].d;
+    doc[i]["time"] = time(nullptr);
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
