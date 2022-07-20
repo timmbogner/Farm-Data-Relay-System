@@ -6,7 +6,7 @@ This file is an example of how to set up a sensor using FDRS.
 ### ``` beginFDRS();```
 Initializes FDRS, powers up the sensor array, and begins ESP-NOW and/or LoRa.
 ### ```loadFDRS(float d, uint8_t t);```
-Loads some data into the current packet. 'd' is a floating-point integer and 't' is a byte used to represent the sensor type. Type definitions can be found below. Please feel free to contact me if you'd like to add a new sensor type.
+Loads some data into the current packet. 'd' is a float and 't' is a byte used to represent the sensor type. Type definitions can be found below. Please feel free to contact me if you'd like to add a new sensor type.
 ### ```sendFDRS();```
 Sends the current packet using ESP-NOW and/or LoRa.
 ### ``` sleepFDRS(int sleep_time)```

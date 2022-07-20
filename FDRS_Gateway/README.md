@@ -1,4 +1,4 @@
-# Gateway 2.000
+# FDRS Gateway
 The FDRS Gateway listens for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmits the packets over these interfaces using rules defined in the "Actions" section of the configuration file.
 
 ## Actions
