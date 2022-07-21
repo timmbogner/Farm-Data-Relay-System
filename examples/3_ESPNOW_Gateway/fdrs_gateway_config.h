@@ -57,8 +57,8 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define LORA_BAND 915E6
-#define LORA_SF 7
+//#define LORA_BAND 915E6
+//#define LORA_SF 7
 
 // Buffer Delays - in milliseconds - Uncomment to enable any buffer
 
@@ -77,14 +77,14 @@
 #define NUM_LEDS    4
 
 // WiFi and MQTT Credentials -- Needed for MQTT only if "fdrs_globals.h" is not included
-#define WIFI_SSID   "Your SSID"  
-#define WIFI_PASS   "Your Password"
-#define MQTT_ADDR   "192.168.0.8"
-#define MQTT_PORT   1883 // Default MQTT port is 1883
+//#define WIFI_SSID   "Your SSID"  
+//#define WIFI_PASS   "Your Password"
+//#define MQTT_ADDR   "192.168.0.8"
+//#define MQTT_PORT   1883 // Default MQTT port is 1883
 
 //#define MQTT_AUTH   //Enable MQTT authentication 
-#define MQTT_USER   "Your MQTT Username"
-#define MQTT_PASS   "Your MQTT Password"
+//#define MQTT_USER   "Your MQTT Username"
+//#define MQTT_PASS   "Your MQTT Password"
 
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"
