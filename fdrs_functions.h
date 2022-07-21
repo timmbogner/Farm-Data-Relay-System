@@ -660,6 +660,7 @@ void begin_espnow() {
 #endif //ESP8266
   DBG(" ESP-NOW Initialized.");
 }
+
 void begin_lora() {
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
@@ -677,6 +678,7 @@ void begin_lora() {
   DBG("LoRa SF  : " + String(FDRS_SF));
 #endif //USE_LORA
 }
+
 void begin_SD() {
 #ifdef USE_SD_LOG
   DBG("Initializing SD card...");
@@ -691,6 +693,7 @@ void begin_SD() {
   }
 #endif //USE_SD_LOG
 }
+
 void begin_FS() {
 #ifdef USE_FS_LOG
   DBG("Initializing LittleFS...");

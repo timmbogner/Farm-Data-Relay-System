@@ -152,8 +152,6 @@ FDRSLoRa::FDRSLoRa(uint8_t gtwy_mac,
 void FDRSLoRa::init(void){
 
     DBG("Initializing LoRa!");
-    DBG("LoRa Band: " + String(_band));
-    DBG("LoRa SF  : " + String(_sf));
 #ifdef ESP32
   SPI.begin(_sck, _miso, _mosi);
 #endif
@@ -164,6 +162,8 @@ void FDRSLoRa::init(void){
     }
     LoRa.setSpreadingFactor(_sf);
     DBG("LoRa Initialized.");
+    DBG("LoRa Band: " + String(_band));
+    DBG("LoRa SF  : " + String(_sf));
 }
 
 void FDRSLoRa::buildPacket(uint8_t* mac, DataReading_t * packet, uint8_t len) {

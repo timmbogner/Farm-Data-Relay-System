@@ -554,6 +554,8 @@ void LoRa_FDRSGateWay::init(uint8_t mac[6]){
     }
     LoRa.setSpreadingFactor(_sf);
     DBG(" LoRa initialized.");
+    DBG("LoRa Band: " + String(_band));
+    DBG("LoRa SF  : " + String(_sf));
 }
 
 void LoRa_FDRSGateWay::add_peer(uint8_t peer_mac[6]){

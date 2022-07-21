@@ -104,6 +104,8 @@ void beginFDRS() {
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa Initialized.");
+  DBG("LoRa Band: " + String(FDRS_BAND));
+  DBG("LoRa SF  : " + String(FDRS_SF));}
 #endif
 }
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
