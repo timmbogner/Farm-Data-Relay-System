@@ -35,8 +35,8 @@
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 #include <time.h>
 #endif
-#include <fdrs_functions.h>  //Use global functions file
-//#include "fdrs_functions.h"  //Use local functions file
+//#include <fdrs_functions.h>  //Use global functions file
+#include "fdrs_functions.h"  //Use local functions file
 
 void setup() {
 #if defined(ESP8266)
@@ -86,6 +86,7 @@ void setup() {
 }
 
 void loop() {
+  handleCommands();
   #ifdef ESPNOWG_DELAY
   if ((millis() - timeESPNOWG) >= ESPNOWG_DELAY) {
     timeESPNOWG = millis();

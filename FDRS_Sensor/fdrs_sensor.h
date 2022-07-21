@@ -40,6 +40,17 @@ typedef struct __attribute__((packed)) DataReading {
 
 } DataReading;
 
+enum {
+  cmd_clear,
+  cmd_ping,
+  cmd_add,
+};
+
+typedef struct __attribute__((packed)) SystemPacket {
+  uint8_t cmd;
+  uint32_t param;
+} SystemPacket;
+
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
