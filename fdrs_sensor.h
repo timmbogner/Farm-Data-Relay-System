@@ -134,7 +134,7 @@ void sendFDRS() {
 }
 
 void loadFDRS(float d, uint8_t t) {
-  DBG("Data loaded. Type: " + String(t));
+  DBG("Id: " + String(READING_ID) + " - Type: " + String(t) + " - Data loaded: " + String(d));
   if (data_count > espnow_size) sendFDRS();
   DataReading dr;
   dr.id = READING_ID;

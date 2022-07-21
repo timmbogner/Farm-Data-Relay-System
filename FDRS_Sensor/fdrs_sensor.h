@@ -105,9 +105,10 @@ void beginFDRS() {
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa Initialized.");
   DBG("LoRa Band: " + String(FDRS_BAND));
-  DBG("LoRa SF  : " + String(FDRS_SF));}
-#endif
+  DBG("LoRa SF  : " + String(FDRS_SF));
+#endif // USE_LORA
 }
+
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
 #ifdef USE_LORA
   uint8_t pkt[5 + (len * sizeof(DataReading))];
@@ -119,6 +120,7 @@ void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
   LoRa.endPacket();
 #endif
 }
+
 void sendFDRS() {
   DBG("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
@@ -132,8 +134,9 @@ void sendFDRS() {
 #endif
   data_count = 0;
 }
+
 void loadFDRS(float d, uint8_t t) {
-  DBG("Data loaded. Type: " + String(t));
+  DBG("Id: " + String(READING_ID) + " - Type: " + String(t) + " - Data loaded: " + String(d));
   if (data_count > espnow_size) sendFDRS();
   DataReading dr;
   dr.id = READING_ID;
@@ -142,6 +145,7 @@ void loadFDRS(float d, uint8_t t) {
   fdrsData[data_count] = dr;
   data_count++;
 }
+
 void sleepFDRS(int sleep_time) {
   DBG("Sleepytime!");
 #ifdef DEEP_SLEEP
