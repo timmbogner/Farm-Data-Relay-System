@@ -17,13 +17,30 @@
 #include <LoRa.h>
 #endif
 
-#ifdef FDRS_GLOBALS
-#define FDRS_BAND GLOBAL_LORA_BAND
-#define FDRS_SF GLOBAL_LORA_SF
-#else
+// enable to get detailed info from where single configuration macros have been taken
+//#define DEBUG_NODE_CONFIG
+
+#ifdef USE_LORA
+
+// select LoRa band configuration
+#if defined(LORA_BAND)
 #define FDRS_BAND LORA_BAND
+#elif defined (GLOBAL_LORA_BAND)
+#define FDRS_BAND GLOBAL_LORA_BAND
+#else 
+// ASSERT("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //LORA_BAND
+
+// select LoRa SF configuration
+#if defined(LORA_SF)
 #define FDRS_SF LORA_SF
-#endif
+#elif defined (GLOBAL_LORA_SF)
+#define FDRS_SF GLOBAL_LORA_SF
+#else 
+// ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //LORA_SF
+
+#endif //USE_LORA
 
 #ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
@@ -48,6 +65,37 @@ uint8_t LoRaAddress[] = {0x42, 0x00};
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
 uint8_t data_count = 0;
+
+
+void debugConfig() {
+#ifdef USE_LORA
+	
+	DBG("----------------------------------------------------");
+	DBG("SENSOR LORA CONFIG");
+	DBG("----------------------------------------------------");
+#if defined(LORA_BAND)
+	DBG("LoRa Band used from LORA_BAND       : " + String(FDRS_BAND));
+#elif defined (GLOBAL_LORA_BAND)
+	DBG("LoRa Band used from GLOBAL_LORA_BAND: " + String(FDRS_BAND));
+#else 
+	DBG("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	//exit(0);
+#endif //LORA-BAND
+
+#if defined(LORA_SF)
+	DBG("LoRa SF used from LORA_SF           : " + String(FDRS_SF));
+#elif defined (GLOBAL_LORA_SF)
+	DBG("LoRa SF used from GLOBAL_LORA_SF    : " + String(FDRS_SF));
+#else 
+//	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	//exit(0);
+#endif //LORA-BAND
+	DBG("----------------------------------------------------");
+	DBG("");
+#endif //USE_LORA
+}
+
 
 void beginFDRS() {
 #ifdef FDRS_DEBUG
@@ -102,9 +150,13 @@ void beginFDRS() {
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa Initialized.");
+#ifdef DEBUG_NODE_CONFIG
+  debugConfig();
+#else
   DBG("LoRa Band: " + String(FDRS_BAND));
   DBG("LoRa SF  : " + String(FDRS_SF));
-#endif
+#endif //DEBUG_NODE_CONFIG
+#endif // USE_LORA
 }
 
 void transmitLoRa(uint8_t* mac, DataReading * packet, uint8_t len) {
