@@ -729,9 +729,24 @@ void handleCommands() {
   switch (theCmd.cmd) {
     case cmd_ping:
       DBG("Ping back to sender");
+      SystemPacket sys_packet;
+      sys_packet.cmd = cmd_ping;
+#if defined(ESP32)
+      esp_now_peer_info_t peerInfo;
+      peerInfo.ifidx = WIFI_IF_STA;
+      peerInfo.channel = 0;
+      peerInfo.encrypt = false;
+      memcpy(peerInfo.peer_addr, incMAC, 6);
+      if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        DBG("Failed to add peer");
+        return;
+      }
+#endif
+      esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+        esp_now_del_peer(incMAC);
       break;
     case cmd_add:
-      DBG("Add sender to peer list");
+      DBG("Add sender to peer list (not completed)");
       break;
   }
   theCmd.cmd = cmd_clear;
