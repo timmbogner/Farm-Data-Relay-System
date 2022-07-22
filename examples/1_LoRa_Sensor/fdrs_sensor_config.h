@@ -25,5 +25,5 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define LORA_BAND 915E6
-#define LORA_SF 7
+//#define LORA_BAND 915E6
+//#define LORA_SF 7
