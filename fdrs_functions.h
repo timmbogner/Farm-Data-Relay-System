@@ -91,6 +91,10 @@ enum {
 // ASSERT("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //MQTT_PASS
 
+#if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
+#define FDRS_MQTT_AUTH
+#endif //MQTT_AUTH
+
 #endif //USE_WIFI
 
 #ifdef USE_LORA
@@ -115,11 +119,11 @@ enum {
 
 #endif //USE_LORA
 
-#if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
-#define FDRS_MQTT_AUTH
-#endif
-
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
+
+#ifdef DEBUG_NODE_CONFIG
+#include "fdrs_checkConfig.h"
+#endif
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
@@ -210,103 +214,6 @@ const char* mqtt_pass = FDRS_MQTT_PASS;
 const char* mqtt_user = NULL;
 const char* mqtt_pass = NULL;
 #endif
-
-void debugConfig() {
-
-#ifdef USE_WIFI
-	DBG("----------------------------------------------------");
-	DBG("SENSOR WIFI CONFIG:");
-#if defined(WIFI_SSID)
-	DBG("WiFi SSID used from WIFI_SSID            : " + String(FDRS_WIFI_SSID));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi SSID used from GLOBAL_SSID          : " + String(FDRS_WIFI_SSID));
-#else 
-	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //WIFI_SSID
-
-#if defined(WIFI_PASS)
-	DBG("WiFi password used from WIFI_PASS        : " + String(FDRS_WIFI_PASS));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi password used from GLOBAL_PASS      : " + String(FDRS_WIFI_PASS));
-#else 
-	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //WIFI_PASS
-
-#if defined(MQTT_ADDR)
-	DBG("MQTT address used from MQTT_ADDR         : " + String(FDRS_MQTT_ADDR));
-#elif defined (GLOBAL_MQTT_ADDR)
-	DBG("MQTT address used from GLOBAL_MQTT_ADDR  : " + String(FDRS_MQTT_ADDR));
-#else 
-	DBG("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //MQTT_ADDR
-
-
-#if defined(MQTT_PORT)
-	DBG("MQTT port used from MQTT_PORT            : " + String(FDRS_MQTT_PORT));
-#elif defined (GLOBAL_MQTT_PORT)
-	DBG("MQTT port used from GLOBAL_MQTT_ADDR     : " + String(FDRS_MQTT_PORT));
-#else 
-	DBG("Using default MQTT port                  : " + String(FDRS_MQTT_PORT));
-#endif //MQTT_PORT
-
-#ifdef FDRS_MQTT_AUTH
-	DBG("MQTT AUTHENTIFICATION CONFIG:");
-	
-//GLOBAL_MQTT_AUTH
-#if defined(MQTT_USER)
-	DBG("MQTT username used from MQTT_USER        : " + String(FDRS_MQTT_USER));
-#elif defined (GLOBAL_MQTT_USER)
-	DBG("MQTT username used from GLOBAL_MQTT_USER : " + String(FDRS_MQTT_USER));
-#else 
-	DBG("NO MQTT username defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //MQTT_USER
-
-#if defined(MQTT_PASS)
-	DBG("MQTT password used from MQTT_PASS        : " + String(FDRS_MQTT_PASS));
-#elif defined (GLOBAL_MQTT_PASS)
-	DBG("MQTT password used from GLOBAL_MQTT_PASS : " + String(FDRS_MQTT_PASS));
-#else 
-	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //MQTT_PASS
-
-#endif //FDRS_MQTT_AUTH
-	DBG("----------------------------------------------------");
-
-#endif //USE_WIFI
-
-#ifdef USE_LORA
-	
-	DBG("----------------------------------------------------");
-	DBG("SENSOR LORA CONFIG:");
-#if defined(LORA_BAND)
-	DBG("LoRa Band used from LORA_BAND       : " + String(FDRS_BAND));
-#elif defined (GLOBAL_LORA_BAND)
-	DBG("LoRa Band used from GLOBAL_LORA_BAND: " + String(FDRS_BAND));
-#else 
-	DBG("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //LORA-BAND
-
-#if defined(LORA_SF)
-	DBG("LoRa SF used from LORA_SF           : " + String(FDRS_SF));
-#elif defined (GLOBAL_LORA_SF)
-	DBG("LoRa SF used from GLOBAL_LORA_SF    : " + String(FDRS_SF));
-#else 
-//	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //LORA-BAND
-#endif //USE_LORA
-	DBG("----------------------------------------------------");
-	DBG("");
-}
-
-
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -843,12 +750,8 @@ void begin_lora() {
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-#ifdef DEBUG_NODE_CONFIG
-  debugConfig();
-#else
   DBG("LoRa Band: " + String(FDRS_BAND));
   DBG("LoRa SF  : " + String(FDRS_SF));
-#endif //DEBUG_NODE_CONFIG
 #endif // USE_LORA
 }
 

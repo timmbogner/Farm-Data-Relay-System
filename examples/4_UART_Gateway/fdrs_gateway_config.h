@@ -17,6 +17,7 @@
 #define LORAG_ACT      sendSerial();
 
 #define USE_LORA
+#define USE_ESPNOW // Missing! Gateways do not have to be ESPNOW activated. It also is making config much easier. Used it there. 
 //#define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses
