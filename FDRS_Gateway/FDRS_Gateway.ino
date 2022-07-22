@@ -45,11 +45,25 @@ void setup() {
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
+
   DBG("Address:" + String (UNIT_MAC, HEX));
+
+#ifdef DEBUG_NODE_CONFIG
+  // find out the reset reason
+  esp_reset_reason_t resetReason;
+  resetReason = esp_reset_reason();
+  if (resetReason != ESP_RST_DEEPSLEEP) {
+    checkConfig();
+  }
+#endif //DEBUG_NODE_CONFIG
+
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   leds[0] = CRGB::Blue;
   FastLED.show();
+#endif
+#ifdef USE_LORA
+  begin_lora();
 #endif
 #ifdef USE_WIFI
   delay(10);
@@ -69,9 +83,7 @@ void setup() {
 #else
   begin_espnow();
 #endif
-#ifdef USE_LORA
-  begin_lora();
-#endif
+
 #ifdef USE_SD_LOG
   begin_SD();
 #endif
@@ -152,7 +164,7 @@ void loop() {
   client.loop(); // for recieving incoming messages and maintaining connection
 
   #endif
-  if (newData) {
+  if (newData != event_clear) {
     switch (newData) {
       case event_espnowg:
         ESPNOWG_ACT
