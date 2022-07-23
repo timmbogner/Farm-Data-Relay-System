@@ -97,6 +97,8 @@ uint8_t LoRa2[] =         {mac_prefix[3], mac_prefix[4], LORA2_PEER};
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
+time_t last_mqtt_success = 0;
+time_t last_log_write = 0;
 #endif
 
 DataReading theData[256];
@@ -230,6 +232,7 @@ void sendLog()
     memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
     logBufferPos+=strlen(linebuf);
   }
+  time(&last_log_write);
   #endif
 }
 void reconnect(short int attempts, bool silent) {
@@ -288,11 +291,49 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 
   }
 }
+
+void resendLog(){
+  #ifdef USE_SD_LOG
+  /*DBG("Releasing Log buffer to SD");
+  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
+  logfile.print(logBuffer);
+  logfile.close();*/
+  #endif
+  #ifdef USE_FS_LOG
+  DBG("Resending logged values from internal flash.");
+  File logfile = LittleFS.open(FS_FILENAME, "r");
+  while(1){
+    String line = logfile.readStringUntil('\n');
+    if (line.length() > 0){  // if line contains something
+      if (!client.publish(TOPIC_DATA, line.c_str())) {
+        break;
+      }else{
+        time(&last_mqtt_success);
+      }
+    }else{
+      LittleFS.remove(FS_FILENAME); // if all values are sent
+      break;
+    }
+  }
+  logfile.close();
+  DBG(" Done");
+  #endif
+
+}
+
 void mqtt_publish(const char* payload) {
 #ifdef USE_WIFI
   if (!client.publish(TOPIC_DATA, payload)) {
     DBG(" Error on sending MQTT");
     sendLog();
+  }else{
+    #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+      if (last_log_write >= last_mqtt_success){
+        releaseLogBuffer();
+        resendLog();
+      }
+      time(&last_mqtt_success);
+    #endif
   }
 #endif
 }
