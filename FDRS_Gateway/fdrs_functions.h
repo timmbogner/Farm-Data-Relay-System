@@ -294,10 +294,23 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
 
 void resendLog(){
   #ifdef USE_SD_LOG
-  /*DBG("Releasing Log buffer to SD");
-  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
-  logfile.print(logBuffer);
-  logfile.close();*/
+  DBG("Resending logged values from SD card.");
+  File logfile = SD.open(SD_FILENAME, FILE_READ);
+  while(1){
+    String line = logfile.readStringUntil('\n');
+    if (line.length() > 0){  // if line contains something
+      if (!client.publish(TOPIC_DATA, line.c_str())) {
+        break;
+      }else{
+        time(&last_mqtt_success);
+      }
+    }else{
+      logfile.close();
+      SD.remove(SD_FILENAME); // if all values are sent
+      break;
+    }
+  }
+  DBG(" Done");
   #endif
   #ifdef USE_FS_LOG
   DBG("Resending logged values from internal flash.");
@@ -311,11 +324,11 @@ void resendLog(){
         time(&last_mqtt_success);
       }
     }else{
+      logfile.close();
       LittleFS.remove(FS_FILENAME); // if all values are sent
       break;
     }
   }
-  logfile.close();
   DBG(" Done");
   #endif
 
