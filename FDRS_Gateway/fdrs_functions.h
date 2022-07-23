@@ -222,15 +222,21 @@ void sendLog()
   DBG("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
-    char linebuf[34]; // size depends on resulting length of the formatting string
-    sprintf(linebuf, "%lld,%d,%d,%g\r\n", time(nullptr), theData[i].id, theData[i].t, theData[i].d);
-
-    if (logBufferPos+strlen(linebuf) >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
+    StaticJsonDocument<96> doc;
+    JsonObject doc_0 = doc.createNestedObject();
+    doc_0["id"] = theData[i].id;
+    doc_0["type"] = theData[i].t;
+    doc_0["data"] = theData[i].d;
+    doc_0["time"] = time(nullptr);
+    String outgoingString;
+    serializeJson(doc, outgoingString);
+    outgoingString+="\r\n";
+    if (logBufferPos+outgoingString.length() >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
     {
       releaseLogBuffer();
     }
-    memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
-    logBufferPos+=strlen(linebuf);
+    memcpy(&logBuffer[logBufferPos], outgoingString.c_str(), outgoingString.length()); //append line to buffer
+    logBufferPos+=outgoingString.length();
   }
   time(&last_log_write);
   #endif
