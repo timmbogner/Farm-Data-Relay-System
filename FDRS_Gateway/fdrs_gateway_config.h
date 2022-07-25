@@ -5,7 +5,7 @@
 #include <fdrs_globals.h>
 #define FDRS_DEBUG     //Enable USB-Serial debugging
 
-#define UNIT_MAC     0x04  // The address of this gateway
+#define UNIT_MAC     0x01  // The address of this gateway
 
 // Actions -- Define what happens when a packet arrives at each interface:
 // Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(),
