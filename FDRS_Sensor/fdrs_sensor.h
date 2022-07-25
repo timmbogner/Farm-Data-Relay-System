@@ -40,6 +40,17 @@ typedef struct __attribute__((packed)) DataReading {
 
 } DataReading;
 
+enum {
+  cmd_clear,
+  cmd_ping,
+  cmd_add,
+};
+
+typedef struct __attribute__((packed)) SystemPacket {
+  uint8_t cmd;
+  uint32_t param;
+} SystemPacket;
+
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint8_t gtwyAddress[] = {gatewayAddress[3], gatewayAddress[4], GTWY_MAC};
@@ -48,6 +59,27 @@ uint8_t LoRaAddress[] = {0x42, 0x00};
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
 uint8_t data_count = 0;
+bool is_ping = false;
+
+// Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
+#if defined(ESP8266)
+void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
+}
+void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len) {
+#elif defined(ESP32)
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+}
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+#endif
+  if (len < sizeof(DataReading)) {
+    SystemPacket command;
+    memcpy(&command, incomingData, sizeof(command));
+    if (command.cmd == cmd_ping) {
+      is_ping = true;
+      return;
+    }
+  }
+}
 
 void beginFDRS() {
 #ifdef FDRS_DEBUG
@@ -70,13 +102,18 @@ void beginFDRS() {
     return;
   }
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+  esp_now_register_recv_cb(OnDataRecv);
+
   // Register peers
   esp_now_add_peer(gatewayAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
+
   if (esp_now_init() != ESP_OK) {
     DBG("Error initializing ESP-NOW");
     return;
   }
+  esp_now_register_recv_cb(OnDataRecv);
+
   esp_now_peer_info_t peerInfo;
   peerInfo.ifidx = WIFI_IF_STA;
   peerInfo.channel = 0;
@@ -154,4 +191,27 @@ void sleepFDRS(int sleep_time) {
 #endif
   DBG(" Delaying.");
   delay(sleep_time * 1000);
+}
+
+void pingFDRS(int timeout) {
+  SystemPacket sys_packet;
+  sys_packet.cmd = cmd_ping;
+#ifdef USE_ESPNOW
+  esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+  DBG(" ESP-NOW ping sent.");
+  uint32_t ping_start = millis();
+  is_ping = false;
+  while ((millis() - ping_start) <= timeout) {
+    yield(); //do I need to yield or does it automatically?
+    if (is_ping) {
+      DBG("Ping Returned:" + String(millis() - ping_start));
+      break;
+    }
+  }
+
+#endif
+#ifdef USE_LORA
+  //transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
+  DBG(" LoRa ping not sent because it isn't implemented.");
+#endif
 }
