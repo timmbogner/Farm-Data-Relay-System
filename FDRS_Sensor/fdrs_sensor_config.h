@@ -11,6 +11,7 @@
 //#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
+#define DYNAMIC_GTWY
 #define FDRS_DEBUG
 
 //SPI Configuration -- Needed only on chipsets with multiple SPI interfaces (ESP32)
