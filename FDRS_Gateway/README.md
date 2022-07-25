@@ -20,6 +20,11 @@ The UNIT_MAC is the ESP-NOW and LoRa address of the gateway. This is the address
 This definition enables debug messages to be sent over the serial port. If disabled, the USB serial port is still used to echo data being sent via the sendSerial() command.
 ### ```#define RXD2 (pin)``` and ```TXD2 (pin)```
 These are the pins for inter-device serial communication. The single ESP8266 serial interface is not configurable, and thus these options only apply to ESP32 boards. 
+
+### ```#define USE_ESPNOW```
+Enables ESP-NOW.
+USE_ESPNOW and USE_WIFI must not be activated at the same time! 
+
 ### ```#define USE_LORA```
 Enables LoRa. Make sure that you set the LoRa module configuration parameters in the lines below.
 
