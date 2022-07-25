@@ -17,6 +17,7 @@ void setup() {
   beginFDRS();
 }
 void loop() {
+  pingFDRS(1000);
   data1 = readHum();
   loadFDRS(data1, HUMIDITY_T);
   data2 = readTemp();

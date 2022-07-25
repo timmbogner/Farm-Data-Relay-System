@@ -19,6 +19,13 @@ enum {
   event_lora1,
   event_lora2
 };
+
+enum {
+  cmd_clear,
+  cmd_ping,
+  cmd_add,
+};
+
 #ifdef FDRS_DEBUG
 #define DBG(a) (Serial.println(a))
 #else
@@ -64,6 +71,11 @@ typedef struct __attribute__((packed)) DataReading {
 
 } DataReading;
 
+typedef struct __attribute__((packed)) SystemPacket {
+  uint8_t cmd;
+  uint32_t param;
+} SystemPacket;
+
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -98,10 +110,12 @@ char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
 #endif
-
+SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
 uint8_t newData = event_clear;
+uint8_t newCmd = cmd_clear;
+
 
 DataReading ESPNOW1buffer[256];
 uint8_t lenESPNOW1 = 0;
@@ -159,6 +173,12 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
+  if (len < sizeof(DataReading)) {
+    DBG("ESP-NOW System Packet");
+    memcpy(&theCmd, incomingData, sizeof(theCmd));
+    memcpy(&incMAC, mac, sizeof(incMAC));
+    return;
+  }
   memcpy(&theData, incomingData, sizeof(theData));
   memcpy(&incMAC, mac, sizeof(incMAC));
   DBG("Incoming ESP-NOW.");
@@ -198,39 +218,39 @@ void getSerial() {
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 void releaseLogBuffer()
 {
-  #ifdef USE_SD_LOG
+#ifdef USE_SD_LOG
   DBG("Releasing Log buffer to SD");
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
   logfile.print(logBuffer);
   logfile.close();
-  #endif
-  #ifdef USE_FS_LOG
+#endif
+#ifdef USE_FS_LOG
   DBG("Releasing Log buffer to internal flash.");
   File logfile = LittleFS.open(FS_FILENAME, "a");
   logfile.print(logBuffer);
   logfile.close();
-  #endif
-  memset(&(logBuffer[0]), 0, sizeof(logBuffer)/sizeof(char));
+#endif
+  memset(&(logBuffer[0]), 0, sizeof(logBuffer) / sizeof(char));
   logBufferPos = 0;
 }
 #endif
 void sendLog()
 {
-  #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+#if defined (USE_SD_LOG) || defined (USE_FS_LOG)
   DBG("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
     char linebuf[34]; // size depends on resulting length of the formatting string
     sprintf(linebuf, "%lld,%d,%d,%g\r\n", time(nullptr), theData[i].id, theData[i].t, theData[i].d);
 
-    if (logBufferPos+strlen(linebuf) >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
+    if (logBufferPos + strlen(linebuf) >= (sizeof(logBuffer) / sizeof(char))) // if buffer would overflow, release first
     {
       releaseLogBuffer();
     }
     memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
-    logBufferPos+=strlen(linebuf);
+    logBufferPos += strlen(linebuf);
   }
-  #endif
+#endif
 }
 void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
@@ -325,13 +345,13 @@ void getLoRa() {
 
 void sendESPNOW(uint8_t address) {
   DBG("Sending ESP-NOW.");
-  uint8_t NEWPEER[] = {MAC_PREFIX, address};
+  uint8_t temp_peer[] = {MAC_PREFIX, address};
 #if defined(ESP32)
   esp_now_peer_info_t peerInfo;
   peerInfo.ifidx = WIFI_IF_STA;
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
-  memcpy(peerInfo.peer_addr, NEWPEER, 6);
+  memcpy(peerInfo.peer_addr, temp_peer, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     DBG("Failed to add peer");
     return;
@@ -343,13 +363,13 @@ void sendESPNOW(uint8_t address) {
   for (int i = 0; i < ln; i++) {
     if ( j > espnow_size) {
       j = 0;
-      esp_now_send(NEWPEER, (uint8_t *) &thePacket, sizeof(thePacket));
+      esp_now_send(temp_peer, (uint8_t *) &thePacket, sizeof(thePacket));
     }
     thePacket[j] = theData[i];
     j++;
   }
-  esp_now_send(NEWPEER, (uint8_t *) &thePacket, j * sizeof(DataReading));
-  esp_now_del_peer(NEWPEER);
+  esp_now_send(temp_peer, (uint8_t *) &thePacket, j * sizeof(DataReading));
+  esp_now_del_peer(temp_peer);
 }
 
 void sendSerial() {
@@ -619,12 +639,12 @@ void begin_espnow() {
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
   // Register peers
-#ifdef ESPNOW1_PEER
-  esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-#endif
-#ifdef ESPNOW2_PEER
-  esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-#endif
+  //#ifdef ESPNOW1_PEER
+  //  esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+  //#endif
+  //#ifdef ESPNOW2_PEER
+  //  esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+  //#endif
 #elif defined(ESP32)
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {
@@ -643,20 +663,20 @@ void begin_espnow() {
     DBG("Failed to add peer bcast");
     return;
   }
-#ifdef ESPNOW1_PEER
-  memcpy(peerInfo.peer_addr, ESPNOW1, 6);
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer 1");
-    return;
-  }
-#endif
-#ifdef ESPNOW2_PEER
-  memcpy(peerInfo.peer_addr, ESPNOW2, 6);
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    DBG("Failed to add peer 2");
-    return;
-  }
-#endif
+  //#ifdef ESPNOW1_PEER
+  //  memcpy(peerInfo.peer_addr, ESPNOW1, 6);
+  //  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+  //    DBG("Failed to add peer 1");
+  //    return;
+  //  }
+  //#endif
+  //#ifdef ESPNOW2_PEER
+  //  memcpy(peerInfo.peer_addr, ESPNOW2, 6);
+  //  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+  //    DBG("Failed to add peer 2");
+  //    return;
+  //  }
+  //#endif
 #endif //ESP8266
   DBG(" ESP-NOW Initialized.");
 }
@@ -709,5 +729,36 @@ void begin_FS() {
   }
 #endif
 }
+
+void handleCommands() {
+  switch (theCmd.cmd) {
+    case cmd_ping:
+      DBG("Ping back to sender");
+      SystemPacket sys_packet;
+      sys_packet.cmd = cmd_ping;
+#if defined(ESP32)
+      esp_now_peer_info_t peerInfo;
+      peerInfo.ifidx = WIFI_IF_STA;
+      peerInfo.channel = 0;
+      peerInfo.encrypt = false;
+      memcpy(peerInfo.peer_addr, incMAC, 6);
+      if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        DBG("Failed to add peer");
+        return;
+      }
+#endif
+      esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+        esp_now_del_peer(incMAC);
+      break;
+    case cmd_add:
+      DBG("Add sender to peer list (not completed)");
+      break;
+  }
+  theCmd.cmd = cmd_clear;
+  theCmd.param = 0;
+}
+
+
+
 
 #endif //__FDRS_FUNCTIONS_H__
