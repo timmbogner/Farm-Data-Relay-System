@@ -16,8 +16,11 @@
 #define MQTT_ACT          
 #define LORAG_ACT      
 
+// protocols -- Define which protocols the gateways should handle.
+// Warning: ESP-NOW and WiFi are mutual exclusive!
 //#define USE_LORA
-#define USE_WIFI      //Used only for MQTT gateway
+//#define USE_ESPNOW  
+#define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses
 #define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 

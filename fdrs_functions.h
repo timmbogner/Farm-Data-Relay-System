@@ -104,6 +104,10 @@ enum {
 // ASSERT("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //MQTT_PASS
 
+#if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
+#define FDRS_MQTT_AUTH
+#endif //MQTT_AUTH
+
 #endif //USE_WIFI
 
 #ifdef USE_LORA
@@ -128,11 +132,11 @@ enum {
 
 #endif //USE_LORA
 
-#if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
-#define FDRS_MQTT_AUTH
-#endif
-
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
+
+#ifdef DEBUG_NODE_CONFIG
+#include "fdrs_checkConfig.h"
+#endif
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
@@ -191,6 +195,7 @@ DataReading theData[256];
 uint8_t ln;
 uint8_t newData = event_clear;
 
+#ifdef USE_ESPNOW
 DataReading ESPNOW1buffer[256];
 uint8_t lenESPNOW1 = 0;
 uint32_t timeESPNOW1 = 0;
@@ -200,12 +205,16 @@ uint32_t timeESPNOW2 = 0;
 DataReading ESPNOWGbuffer[256];
 uint8_t lenESPNOWG = 0;
 uint32_t timeESPNOWG = 0;
+#endif //USE_ESPNOW
+
 DataReading SERIALbuffer[256];
 uint8_t lenSERIAL = 0;
 uint32_t timeSERIAL = 0;
 DataReading MQTTbuffer[256];
 uint8_t lenMQTT = 0;
 uint32_t timeMQTT = 0;
+
+#ifdef USE_LORA
 DataReading LORAGbuffer[256];
 uint8_t lenLORAG = 0;
 uint32_t timeLORAG = 0;
@@ -215,123 +224,31 @@ uint32_t timeLORA1 = 0;
 DataReading LORA2buffer[256];
 uint8_t lenLORA2 = 0;
 uint32_t timeLORA2 = 0;
+#endif //USE_LORA
 
-WiFiClient espClient;
 #ifdef USE_LED
 CRGB leds[NUM_LEDS];
-#endif
+#endif //USE_LED
+
 #ifdef USE_WIFI
+WiFiClient espClient;
 PubSubClient client(espClient);
 const char* ssid = FDRS_WIFI_SSID;
 const char* password = FDRS_WIFI_PASS;
 const char* mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
-#endif
+
 #ifdef FDRS_MQTT_AUTH
 const char* mqtt_user = FDRS_MQTT_USER;
 const char* mqtt_pass = FDRS_MQTT_PASS;
 #else
 const char* mqtt_user = NULL;
 const char* mqtt_pass = NULL;
-#endif
-
-void debugConfig() {
-
-#ifdef USE_WIFI
-	DBG("----------------------------------------------------");
-	DBG("SENSOR WIFI CONFIG:");
-#if defined(WIFI_SSID)
-	DBG("WiFi SSID used from WIFI_SSID            : " + String(FDRS_WIFI_SSID));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi SSID used from GLOBAL_SSID          : " + String(FDRS_WIFI_SSID));
-#else 
-	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //WIFI_SSID
-
-#if defined(WIFI_PASS)
-	DBG("WiFi password used from WIFI_PASS        : " + String(FDRS_WIFI_PASS));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi password used from GLOBAL_PASS      : " + String(FDRS_WIFI_PASS));
-#else 
-	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //WIFI_PASS
-
-#if defined(MQTT_ADDR)
-	DBG("MQTT address used from MQTT_ADDR         : " + String(FDRS_MQTT_ADDR));
-#elif defined (GLOBAL_MQTT_ADDR)
-	DBG("MQTT address used from GLOBAL_MQTT_ADDR  : " + String(FDRS_MQTT_ADDR));
-#else 
-	DBG("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //MQTT_ADDR
-
-
-#if defined(MQTT_PORT)
-	DBG("MQTT port used from MQTT_PORT            : " + String(FDRS_MQTT_PORT));
-#elif defined (GLOBAL_MQTT_PORT)
-	DBG("MQTT port used from GLOBAL_MQTT_ADDR     : " + String(FDRS_MQTT_PORT));
-#else 
-	DBG("Using default MQTT port                  : " + String(FDRS_MQTT_PORT));
-#endif //MQTT_PORT
-
-#ifdef FDRS_MQTT_AUTH
-	DBG("MQTT AUTHENTIFICATION CONFIG:");
-	
-//GLOBAL_MQTT_AUTH
-#if defined(MQTT_USER)
-	DBG("MQTT username used from MQTT_USER        : " + String(FDRS_MQTT_USER));
-#elif defined (GLOBAL_MQTT_USER)
-	DBG("MQTT username used from GLOBAL_MQTT_USER : " + String(FDRS_MQTT_USER));
-#else 
-	DBG("NO MQTT username defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //MQTT_USER
-
-#if defined(MQTT_PASS)
-	DBG("MQTT password used from MQTT_PASS        : " + String(FDRS_MQTT_PASS));
-#elif defined (GLOBAL_MQTT_PASS)
-	DBG("MQTT password used from GLOBAL_MQTT_PASS : " + String(FDRS_MQTT_PASS));
-#else 
-	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //MQTT_PASS
-
 #endif //FDRS_MQTT_AUTH
-	DBG("----------------------------------------------------");
 
 #endif //USE_WIFI
 
-#ifdef USE_LORA
-	
-	DBG("----------------------------------------------------");
-	DBG("SENSOR LORA CONFIG:");
-#if defined(LORA_BAND)
-	DBG("LoRa Band used from LORA_BAND       : " + String(FDRS_BAND));
-#elif defined (GLOBAL_LORA_BAND)
-	DBG("LoRa Band used from GLOBAL_LORA_BAND: " + String(FDRS_BAND));
-#else 
-	DBG("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //LORA-BAND
-
-#if defined(LORA_SF)
-	DBG("LoRa SF used from LORA_SF           : " + String(FDRS_SF));
-#elif defined (GLOBAL_LORA_SF)
-	DBG("LoRa SF used from GLOBAL_LORA_SF    : " + String(FDRS_SF));
-#else 
-//	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //LORA-BAND
-#endif //USE_LORA
-	DBG("----------------------------------------------------");
-	DBG("");
-}
-
-
-
+#ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
@@ -356,6 +273,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   }
   newData = event_espnowg;
 }
+#endif //USE_ESPNOW
 
 void getSerial() {
   String incomingString =  UART_IF.readStringUntil('\n');
@@ -379,6 +297,7 @@ void getSerial() {
 
   }
 }
+
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 void releaseLogBuffer()
 {
@@ -415,7 +334,7 @@ void sendLog()
     memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
     logBufferPos+=strlen(linebuf);
   }
-  #endif
+  #endif //USE_xx_LOG
 }
 
 void reconnect(short int attempts, bool silent) {
@@ -443,7 +362,7 @@ void reconnect(short int attempts, bool silent) {
   }
 
   if (!silent) DBG(" Connecting MQTT failed.");
-#endif
+#endif //USE_WIFI
 }
 
 void reconnect(int attempts) {
@@ -483,7 +402,7 @@ void mqtt_publish(const char* payload) {
     DBG(" Error on sending MQTT");
     sendLog();
   }
-#endif
+#endif //USE_WIFI
 }
 
 void printLoraPacket(uint8_t* p,int size) {
@@ -565,7 +484,7 @@ void getLoRa() {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
     }
   }
-#endif
+#endif //USE_LORA
 }
 
 #ifdef USE_LORA
@@ -619,6 +538,7 @@ void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
 #endif
 
 void sendESPNOW(uint8_t address) {
+#ifdef USE_ESPNOW
   DBG("Sending ESP-NOW.");
   uint8_t NEWPEER[] = {MAC_PREFIX, address};
 #if defined(ESP32)
@@ -645,6 +565,7 @@ void sendESPNOW(uint8_t address) {
   }
   esp_now_send(NEWPEER, (uint8_t *) &thePacket, j * sizeof(DataReading));
   esp_now_del_peer(NEWPEER);
+#endif //USE_ESPNOW
 }
 
 void sendSerial() {
@@ -676,10 +597,11 @@ void sendMQTT() {
   String outgoingString;
   serializeJson(doc, outgoingString);
   mqtt_publish((char*) outgoingString.c_str());
-#endif
+#endif //USE_WIFI
 }
 
 void bufferESPNOW(uint8_t interface) {
+#ifdef USE_ESPNOW
   DBG("Buffering ESP-NOW.");
 
   switch (interface) {
@@ -702,7 +624,9 @@ void bufferESPNOW(uint8_t interface) {
       lenESPNOW2 +=  ln;
       break;
   }
+#endif USE_ESPNOW
 }
+
 void bufferSerial() {
   DBG("Buffering Serial.");
   for (int i = 0; i < ln; i++) {
@@ -711,6 +635,7 @@ void bufferSerial() {
   lenSERIAL += ln;
   //UART_IF.println("SENDSERIAL:" + String(lenSERIAL) + " ");
 }
+
 void bufferMQTT() {
   DBG("Buffering MQTT.");
   for (int i = 0; i < ln; i++) {
@@ -718,6 +643,7 @@ void bufferMQTT() {
   }
   lenMQTT += ln;
 }
+
 //void bufferLoRa() {
 //  for (int i = 0; i < ln; i++) {
 //    LORAbuffer[lenLORA + i] = theData[i];
@@ -726,6 +652,7 @@ void bufferMQTT() {
 //}
 
 void bufferLoRa(uint8_t interface) {
+#ifdef USE_LORA
   DBG("Buffering LoRa.");
   switch (interface) {
     case 0:
@@ -747,9 +674,11 @@ void bufferLoRa(uint8_t interface) {
       lenLORA2 += ln;
       break;
   }
+#endif //USE_LORA
 }
 
 void releaseESPNOW(uint8_t interface) {
+#ifdef USE_ESPNOW
   DBG("Releasing ESP-NOW.");
   switch (interface) {
     case 0:
@@ -801,6 +730,7 @@ void releaseESPNOW(uint8_t interface) {
         break;
       }
   }
+#endif USE_ESPNOW
 }
 
 void releaseLoRa(uint8_t interface) {
@@ -888,10 +818,11 @@ void releaseMQTT() {
   serializeJson(doc, outgoingString);
   mqtt_publish((char*) outgoingString.c_str());
   lenMQTT = 0;
-#endif
+#endif //USE_WIFI
 }
 
 void begin_espnow() {
+#ifdef USE_ESPNOW
   DBG("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -945,6 +876,7 @@ void begin_espnow() {
 #endif
 #endif //ESP8266
   DBG(" ESP-NOW Initialized.");
+#endif //USE_ESPNOW
 }
 
 void begin_lora() {
@@ -959,12 +891,8 @@ void begin_lora() {
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-#ifdef DEBUG_NODE_CONFIG
-  debugConfig();
-#else
   DBG("LoRa Band: " + String(FDRS_BAND));
   DBG("LoRa SF  : " + String(FDRS_SF));
-#endif //DEBUG_NODE_CONFIG
 #endif // USE_LORA
 }
 
@@ -996,7 +924,7 @@ void begin_FS() {
   {
     DBG(" LittleFS initialized");
   }
-#endif
+#endif // USE_FS_LOG
 }
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71

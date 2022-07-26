@@ -18,7 +18,7 @@
 #endif
 
 // enable to get detailed info from where single configuration macros have been taken
-//#define DEBUG_NODE_CONFIG
+#define DEBUG_NODE_CONFIG
 
 #ifdef USE_LORA
 
@@ -49,6 +49,10 @@
 #endif
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
+
+#ifdef DEBUG_NODE_CONFIG
+#include "fdrs_checkConfig.h"
+#endif
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
@@ -110,39 +114,12 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 }
 
 
-void debugConfig() {
-#ifdef USE_LORA
-	
-	DBG("----------------------------------------------------");
-	DBG("SENSOR LORA CONFIG");
-	DBG("----------------------------------------------------");
-#if defined(LORA_BAND)
-	DBG("LoRa Band used from LORA_BAND       : " + String(FDRS_BAND));
-#elif defined (GLOBAL_LORA_BAND)
-	DBG("LoRa Band used from GLOBAL_LORA_BAND: " + String(FDRS_BAND));
-#else 
-	DBG("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //LORA-BAND
-
-#if defined(LORA_SF)
-	DBG("LoRa SF used from LORA_SF           : " + String(FDRS_SF));
-#elif defined (GLOBAL_LORA_SF)
-	DBG("LoRa SF used from GLOBAL_LORA_SF    : " + String(FDRS_SF));
-#else 
-//	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	//exit(0);
-#endif //LORA-BAND
-	DBG("----------------------------------------------------");
-	DBG("");
-#endif //USE_LORA
-}
-
-
 void beginFDRS() {
 #ifdef FDRS_DEBUG
   Serial.begin(115200);
+  // find out the reset reason
+  esp_reset_reason_t resetReason;
+  resetReason = esp_reset_reason();
 #endif
   DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
   DBG(" Gateway: " + String (GTWY_MAC, HEX));
@@ -185,7 +162,7 @@ void beginFDRS() {
   }
 #endif
   DBG(" ESP-NOW Initialized.");
-#endif
+#endif //USE_ESPNOW
 #ifdef USE_LORA
   DBG("Initializing LoRa!");
 #ifdef ESP32
@@ -198,13 +175,16 @@ void beginFDRS() {
   }
   LoRa.setSpreadingFactor(FDRS_SF);
   DBG(" LoRa Initialized.");
-#ifdef DEBUG_NODE_CONFIG
-  debugConfig();
-#else
+
   DBG("LoRa Band: " + String(FDRS_BAND));
   DBG("LoRa SF  : " + String(FDRS_SF));
-#endif //DEBUG_NODE_CONFIG
 #endif // USE_LORA
+#ifdef DEBUG_NODE_CONFIG
+  if (resetReason != ESP_RST_DEEPSLEEP) {
+    checkConfig();
+  }
+#endif //DEBUG_NODE_CONFIG
+
 }
 
 //  USED to get ACKs from LoRa gateway at this point.  May be used in the future to get other data
