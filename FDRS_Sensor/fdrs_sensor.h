@@ -293,13 +293,12 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
   pkt[2] = (LoRaAddress >> 8);
   pkt[3] = (LoRaAddress & 0x00FF);
   memcpy(&pkt[4], packet, len * sizeof(DataReading));
-#ifdef LORA_ACK
   for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
     //printf("CRC: %02X : %d\n",calcCRC, i);
     calcCRC = crc16_update(calcCRC, pkt[i]);
   }
-#else
-  calcCRC = LORA_NOACK_CRC;
+#ifndef LORA_ACK
+  calcCRC = crc16_update(calcCRC, 0xA1); // Recalculate CRC for No ACK
 #endif    // LORA_ACK
   pkt[len * sizeof(DataReading) + 4] = (calcCRC >> 8);
   pkt[len * sizeof(DataReading) + 5] = (calcCRC & 0x00FF);

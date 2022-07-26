@@ -59,7 +59,6 @@
 //915E6 for North America
 #define LORA_BAND 915E6
 #define LORA_SF 7
-#define LORA_NOACK_CRC 0xFFFF
 
 // Buffer Delays - in milliseconds - Uncomment to enable any buffer
 

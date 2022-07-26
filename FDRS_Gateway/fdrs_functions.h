@@ -365,30 +365,29 @@ void getLoRa() {
       }
       receivedLoRaMsg++;
       // Evaluate CRC
-      if(packetCRC == 0xFFFF) { // CRC is set that destination does not want ACK so do not send.
+      for(int i = 0; i < (packetSize - 2); i++) { // Last 2 bytes of packet are the CRC so do not include them in calculation
+        //printf("CRC: %02X : %d\n",calcCRC, i);
+        calcCRC = crc16_update(calcCRC, packet[i]);
+      }
+      if(calcCRC == packetCRC) {
+        SystemPacket ACK = { .cmd = cmd_ack, .param = CRC_OK };
+        DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+        transmitLoRa(&sourceMAC, &ACK, 1);  // Send ACK back to source
+        ackOkLoRaMsg++;
+      }
+      else if(packetCRC == crc16_update(calcCRC,0xA1)) { // Sender does not want ACK and CRC is valid
         DBG("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
         ackOkLoRaMsg++;
       }
-      else { // Calculate expected CRC and compare to what is in the packet
-        for(int i = 0; i < (packetSize - 2); i++) { // Last 2 bytes of packet are the CRC so do not include them in calculation
-          //printf("CRC: %02X : %d\n",calcCRC, i);
-          calcCRC = crc16_update(calcCRC, packet[i]);
-        }
-        if(calcCRC == packetCRC) {
-          SystemPacket ACK = { .cmd = cmd_ack, .param = CRC_OK };
-          DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
-          transmitLoRa(&sourceMAC, &ACK, 1);  // Send ACK back to source
-          ackOkLoRaMsg++;
-        }
-        else {
-          SystemPacket NAK = { .cmd = cmd_ack, .param = CRC_BAD };
-          // Send NAK packet to sensor
-          DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
-          transmitLoRa(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
-          newData = event_clear;  // do not process data as data may be corrupt
-          return;  // Exit function and do not update newData to send invalid data further on
-        }
+      else {
+        SystemPacket NAK = { .cmd = cmd_ack, .param = CRC_BAD };
+        // Send NAK packet to sensor
+        DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+        transmitLoRa(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
+        newData = event_clear;  // do not process data as data may be corrupt
+        return;  // Exit function and do not update newData to send invalid data further on
       }
+    
       if (memcmp(&sourceMAC, &LoRa1, 2) == 0) {      //Check if it is from a registered sender
         newData = event_lora1;
         return;
@@ -405,7 +404,7 @@ void getLoRa() {
   }
   else {
     if(packetSize != 0) {
-      DBG("Incoming LoRa packet of " + String(packetSize) + " not processed.");
+      DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
     }
   }
 #endif

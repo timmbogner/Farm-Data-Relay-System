@@ -28,6 +28,5 @@
 #define LORA_BAND 915E6
 #define LORA_SF 7
 //#define LORA_ACK      // Uncomment to enable request for LoRa ACKs at cost of increased battery usage
-#define LORA_NOACK_CRC 0xFFFF  // CRC value to be used when ACKs are disabled to tell gateway we do not want ACK
 #define LORA_ACK_TIMEOUT 400   // ms timeout waiting for LoRa ACKs (if enabled).  Wouldn't go less than 200ms
 #define LORA_RETRIES 2          // [0 - 3] When ACK enabled, number of sensor node tx retries when ACK not received or invalid CRC 
