@@ -43,7 +43,7 @@
 #endif //USE_LORA
 
 #ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
+#define DBG(a) (Serial.println(millis()) + ": " + a))
 #else
 #define DBG(a)
 #endif
