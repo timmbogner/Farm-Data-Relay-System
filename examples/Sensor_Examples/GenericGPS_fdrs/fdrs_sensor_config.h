@@ -4,7 +4,7 @@
 
 #include <fdrs_globals.h>
 
-#define READING_ID    1   //Unique ID for this sensor
+#define READING_ID    0x01   //Unique ID for this sensor - 8 bits hexidecimal
 #define GTWY_MAC      0x01 //Address of the nearest gateway
 
 #define USE_ESPNOW

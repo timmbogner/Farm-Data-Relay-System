@@ -14,8 +14,8 @@ If available and enabled, the device enters deep-sleep. If ```#DEEP_SLEEP``` is 
 
 ## Options
 
-### ```#define READING_ID  n```
-The identifier of this individual device. Should be a 16-bit integer (0-65535). 
+### ```#define READING_ID  0xnn```
+The identifier of this individual device. Should be a 8-bit hexidecimal value (0x00 - 0xFF).
 ### ```#define GTWY_MAC  0xnn```
 The UNIT_MAC of the gateway that this device will send its data to.
 ### ```#define FDRS_DEBUG```
