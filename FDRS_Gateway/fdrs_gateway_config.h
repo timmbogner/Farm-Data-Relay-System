@@ -41,7 +41,9 @@
 #define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
 #define SD_SS 0             //SD card CS pin (Use different pins for LoRa and SD)
 #define SD_FILENAME "fdrs_log.csv"
+#define SD_MAX_FILESIZE 1024        // maximum size of logfile in KiB
 #define FS_FILENAME "fdrs_log.csv"
+#define FS_MAX_FILESIZE 1024        // maximum size of logfile in KiB
 
 // SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
 

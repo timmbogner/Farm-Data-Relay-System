@@ -203,13 +203,17 @@ void releaseLogBuffer()
   #ifdef USE_SD_LOG
   DBG("Releasing Log buffer to SD");
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
-  logfile.print(logBuffer);
+  if((logfile.size()/1024.0) < SD_MAX_FILESIZE){
+    logfile.print(logBuffer);
+  }
   logfile.close();
   #endif
   #ifdef USE_FS_LOG
   DBG("Releasing Log buffer to internal flash.");
   File logfile = LittleFS.open(FS_FILENAME, "a");
-  logfile.print(logBuffer);
+  if((logfile.size()/1024.0) < FS_MAX_FILESIZE){
+    logfile.print(logBuffer);
+  }
   logfile.close();
   #endif
   memset(&(logBuffer[0]), 0, sizeof(logBuffer)/sizeof(char));
