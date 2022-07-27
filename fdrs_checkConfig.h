@@ -2,11 +2,11 @@
 #ifndef __FDRS_CHECKCONFIG_h__
 #define __FDRS_CHECKCONFIG_h__
 
-char* separatorLine2 = "----------------------------------------------------";
+const char* separatorLine2 = "----------------------------------------------------";
 
 // helper function for a nice little header above each section
-void printSmallSectionHeader(char* headerText) {
-	char * separatorLine   = "----------------------------------------------------";
+void printSmallSectionHeader(const char* headerText) {
+	const char * separatorLine   = "----------------------------------------------------";
 
 	DBG(separatorLine);
 	DBG(headerText);
@@ -14,8 +14,8 @@ void printSmallSectionHeader(char* headerText) {
 }
 
 // helper function for a nice little header above each section
-void printSectionHeader(char* headerText) {
-	char * separatorLine   = "----------------------------------------------------";
+void printSectionHeader(const char* headerText) {
+	const char * separatorLine   = "----------------------------------------------------";
 
 	DBG(separatorLine);
 	DBG(headerText);
@@ -23,8 +23,8 @@ void printSectionHeader(char* headerText) {
 }
 
 // helper function for a nice little header above each section
-void printConfigHeader(char* headerText) {
-	char * headerAndFooter = "====================================================";
+void printConfigHeader(const char* headerText) {
+	const char * headerAndFooter = "====================================================";
 
 	DBG(headerAndFooter);
 	DBG(headerText);
