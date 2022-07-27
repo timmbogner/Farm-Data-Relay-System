@@ -39,13 +39,13 @@ enum {
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
-#endif
+#endif // FDRS_DEBUG
 
 #if defined (ESP32)
 #define UART_IF Serial1
 #else
 #define UART_IF Serial
-#endif
+#endif // ESP32
 
 // enable to get detailed info from where single configuration macros have been taken
 #define DEBUG_NODE_CONFIG
@@ -190,12 +190,12 @@ char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
 #endif
+
 SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;
-
 
 #ifdef USE_ESPNOW
 DataReading ESPNOW1buffer[256];
@@ -324,7 +324,7 @@ void releaseLogBuffer()
   memset(&(logBuffer[0]), 0, sizeof(logBuffer) / sizeof(char));
   logBufferPos = 0;
 }
-#endif
+#endif // USE_XX_LOG
 
 void sendLog()
 {
@@ -493,7 +493,7 @@ void getLoRa() {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
     }
   }
-#endif
+#endif //USE_LORA
 }
 
 #ifdef USE_LORA
@@ -519,10 +519,8 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
   }
-
-#endif //USE_LORA
 }
-#endif
+#endif  // USE_LORA
 
 void sendESPNOW(uint8_t address) {
 #ifdef USE_ESPNOW
@@ -538,7 +536,7 @@ void sendESPNOW(uint8_t address) {
     DBG("Failed to add peer");
     return;
   }
-#endif
+#endif //ESP32
 
   DataReading thePacket[ln];
   int j = 0;
@@ -554,7 +552,7 @@ void sendESPNOW(uint8_t address) {
 
   esp_now_send(temp_peer, (uint8_t *) &thePacket, j * sizeof(DataReading));
   esp_now_del_peer(temp_peer);
-
+#endif  // USE_ESPNOW
 }
 
 void sendSerial() {
@@ -613,7 +611,7 @@ void bufferESPNOW(uint8_t interface) {
       lenESPNOW2 +=  ln;
       break;
   }
-#endif USE_ESPNOW
+#endif // USE_ESPNOW
 }
 
 void bufferSerial() {
@@ -719,7 +717,7 @@ void releaseESPNOW(uint8_t interface) {
         break;
       }
   }
-#endif USE_ESPNOW
+#endif // USE_ESPNOW
 }
 
 
