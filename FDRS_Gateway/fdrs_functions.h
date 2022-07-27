@@ -583,8 +583,6 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   }
 
 #endif //USE_LORA
-}
-#endif
 
 void sendESPNOW(uint8_t address) {
 #ifdef USE_ESPNOW
@@ -617,6 +615,7 @@ void sendESPNOW(uint8_t address) {
   esp_now_send(temp_peer, (uint8_t *) &thePacket, j * sizeof(DataReading));
   esp_now_del_peer(temp_peer);
 
+#endif
 }
 
 void sendSerial() {
@@ -676,7 +675,7 @@ void bufferESPNOW(uint8_t interface) {
       lenESPNOW2 +=  ln;
       break;
   }
-#endif USE_ESPNOW
+#endif //USE_ESPNOW
 }
 
 void bufferSerial() {
@@ -782,7 +781,7 @@ void releaseESPNOW(uint8_t interface) {
         break;
       }
   }
-#endif USE_ESPNOW
+#endif //USE_ESPNOW
 }
 
 
