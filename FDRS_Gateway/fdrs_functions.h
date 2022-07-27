@@ -362,6 +362,15 @@ void releaseLogBuffer()
 }
 #endif
 
+uint16_t stringCrc(const char input[]){
+  uint16_t calcCRC = 0x0000;
+
+  for(unsigned int i = 0; i < strlen(input); i++) {
+    calcCRC = crc16_update(calcCRC,input[i]);
+  }
+  return calcCRC;
+}
+
 void sendLog()
 {
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
@@ -376,7 +385,7 @@ void sendLog()
     doc_0["time"] = time(nullptr);
     String outgoingString;
     serializeJson(doc, outgoingString);
-    outgoingString+="\r\n";
+    outgoingString = outgoingString + " " + stringCrc(outgoingString.c_str()) + "\r\n";
     if (logBufferPos+outgoingString.length() >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
     {
       releaseLogBuffer();
@@ -473,6 +482,10 @@ void resendLog(){
   while(1){
     String line = logfile.readStringUntil('\n');
     if (line.length() > 0){  // if line contains something
+      uint16_t readCrc;
+      char data[line.length()];
+      sscanf(line.c_str(),"%s %hd",data,&readCrc);
+      if(stringCrc(data)!=readCrc){continue;} // if CRCs don't match, skip the line
       if (!client.publish(TOPIC_DATA, line.c_str())) {
         break;
       }else{
