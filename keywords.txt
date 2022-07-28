@@ -12,31 +12,46 @@
 #######################################################################
 # Datatypes and Class names (KEYWORD1)
 #######################################################################
-DataReading	KEYWORD1
-FDRSBase	KEYWORD1
-FDRSLoRa	KEYWORD1
-FDRS_EspNow	KEYWORD1
+DataReading	    KEYWORD1
+SystemPacket    KEYWORD1
+FDRSBase	    KEYWORD1
+FDRSLoRa	    KEYWORD1
+FDRS_EspNow	    KEYWORD1
 
 #######################################################################
 # Methods and Functions (KEYWORD2)
 #######################################################################
-FDRS_DBG	KEYWORD2
-begin	KEYWORD2
-beginFDRS	KEYWORD2
+FDRS_DBG	    KEYWORD2
+begin	        KEYWORD2
+beginFDRS	    KEYWORD2
+begin_espnow    KEYWORD2
+begin_FS        KEYWORD2
+begin_lora      KEYWORD2
+begin_SD        KEYWORD2
 bufferESPNOW	KEYWORD2
-bufferLoRa	KEYWORD2
-bufferMQTT	KEYWORD2
+bufferLoRa	    KEYWORD2
+bufferMQTT	    KEYWORD2
 bufferSerial	KEYWORD2
-getLoRa	KEYWORD2
-getSerial	KEYWORD2
-load	KEYWORD2
-loadFDRS	KEYWORD2
-sendESPNOW	KEYWORD2
-sendFDRS	KEYWORD2
-sendMQTT	KEYWORD2
-sendSerial	KEYWORD2
-sleep	KEYWORD2
-sleepFDRS	KEYWORD2
+crc16_update    KEYWORD2
+getLoRa	        KEYWORD2
+getSerial	    KEYWORD2
+handleCommands  KEYWORD2
+load	        KEYWORD2
+loadFDRS	    KEYWORD2
+OnDataSent      KEYWORD2
+OnDataRecv      KEYWORD2
+pingFDRS        KEYWORD2
+printLoraPacket KEYWORD2
+reconnect       KEYWORD2
+releaseLogBuffer    KEYWORD2
+releaseMQTT     KEYWORD2
+sendESPNOW	    KEYWORD2
+sendFDRS	    KEYWORD2
+sendLog         KEYWORD2
+sendMQTT	    KEYWORD2
+sendSerial	    KEYWORD2
+sleep	        KEYWORD2
+sleepFDRS	    KEYWORD2
 transmitLoRa	KEYWORD2
 
 #######################################################################
