@@ -93,5 +93,6 @@
 
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"
+#define TOPIC_DATA_BACKLOG "fdrs/data"  // used for resending data logged when MQTT was disconnected
 #define TOPIC_STATUS "fdrs/status"
 #define TOPIC_COMMAND "fdrs/command" 

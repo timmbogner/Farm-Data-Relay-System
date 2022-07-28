@@ -463,7 +463,7 @@ void resendLog(){
   while(1){
     String line = logfile.readStringUntil('\n');
     if (line.length() > 0){  // if line contains something
-      if (!client.publish(TOPIC_DATA, line.c_str())) {
+      if (!client.publish(TOPIC_DATA_BACKLOG, line.c_str())) {
         break;
       }else{
         time(&last_mqtt_success);
@@ -486,7 +486,7 @@ void resendLog(){
       char data[line.length()];
       sscanf(line.c_str(),"%s %hd",data,&readCrc);
       if(stringCrc(data)!=readCrc){continue;} // if CRCs don't match, skip the line
-      if (!client.publish(TOPIC_DATA, line.c_str())) {
+      if (!client.publish(TOPIC_DATA_BACKLOG, line.c_str())) {
         break;
       }else{
         time(&last_mqtt_success);
