@@ -83,7 +83,8 @@ typedef struct __attribute__((packed)) SystemPacket {
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
-uint16_t LoRaAddress = 0x4200;
+uint16_t LoRaAddress = ((gatewayAddress[4] << 8) | READING_ID);
+uint16_t sensorAddress = ((gatewayAddress[4] << 8) | READING_ID);
 unsigned long transmitLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;     // Number of total LoRa packets with valid CRC
 
@@ -121,7 +122,7 @@ void beginFDRS() {
   esp_reset_reason_t resetReason;
   resetReason = esp_reset_reason();
 #endif
-  DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
+  DBG("FDRS Sensor ID " + String(READING_ID, HEX) + " initializing...");
   DBG(" Gateway: " + String (GTWY_MAC, HEX));
 #ifdef POWER_CTRL
   DBG("Powering up the sensor array!");
@@ -340,7 +341,7 @@ void sendFDRS() {
 }
 
 void loadFDRS(float d, uint8_t t) {
-  DBG("Id: " + String(READING_ID) + " - Type: " + String(t) + " - Data loaded: " + String(d));
+  DBG("Id: " + String(READING_ID, HEX) + " - Type: " + String(t) + " - Data loaded: " + String(d));
   if (data_count > espnow_size) sendFDRS();
   DataReading dr;
   dr.id = READING_ID;

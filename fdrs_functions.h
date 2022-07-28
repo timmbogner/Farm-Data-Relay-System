@@ -176,7 +176,6 @@ uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 #ifdef USE_LORA
 uint16_t LoRa1 =         ((mac_prefix[4] << 8) | LORA1_PEER);  // Use 2 bytes for LoRa addressing instead of previous 3 bytes
 uint16_t LoRa2 =         ((mac_prefix[4] << 8) | LORA2_PEER);
-//uint16_t LoRaAddress = 0x4200;
 uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 bytes of gateway address
 uint16_t loraBroadcast = 0xFFFF;
 unsigned long receivedLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
