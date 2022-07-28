@@ -163,6 +163,16 @@ void printLoraDetails() {
 	//exit(0);
 #endif //LORA-SF
 
+#if defined(LORA_TXPWR)
+	DBG("LoRa TXPWR used from LORA_TXPWR           : " + String(FDRS_TXPWR));
+#elif defined (GLOBAL_LORA_TXPWR)
+	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR    : " + String(FDRS_TXPWR));
+#else 
+//	ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	//exit(0);
+#endif //LORA-TXPWR
+
 #ifdef UNIT_MAC
 	DBG("LoRa peers");
 	DBG("Peer 1 address: " + String(LORA1_PEER, HEX));

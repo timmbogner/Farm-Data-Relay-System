@@ -130,6 +130,15 @@ enum {
 // ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //LORA_SF
 
+// select LoRa TXPWR configuration
+#if defined(LORA_TXPWR)
+#define FDRS_TXPWR LORA_TXPWR
+#elif defined (GLOBAL_LORA_TXPWR)
+#define FDRS_TXPWR GLOBAL_LORA_TXPWR
+#else 
+// ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //LORA_TXPWR
+
 #endif //USE_LORA
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
@@ -430,15 +439,15 @@ void getLoRa() {
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
     packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
-    //DBG("Packet Address: 0x" + String(packet[0],16) + String(packet[1],16) + " Self Address: 0x" + String(selfAddress[4],16) + String(selfAddress[5],16));
+    //DBG("Packet Address: 0x" + String(packet[0], HEX) + String(packet[1], HEX) + " Self Address: 0x" + String(selfAddress[4], HEX) + String(selfAddress[5], HEX));
     if (destMAC == (selfAddress[4] << 8 | selfAddress[5])) {   //Check if addressed to this device (2 bytes, bytes 1 and 2)
       //printLoraPacket(packet,sizeof(packet));
       memcpy(&theData, &packet[4], packetSize - 6);   //Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
       if(receivedLoRaMsg != 0){  // Avoid divide by 0
-        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC,16) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg/receivedLoRaMsg*100) + "%");
+        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg/receivedLoRaMsg*100) + "%");
       }
       else {
-        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC,16) + ", Total LoRa received: " + String(receivedLoRaMsg));
+        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg));
       }
       receivedLoRaMsg++;
       // Evaluate CRC
@@ -448,18 +457,18 @@ void getLoRa() {
       }
       if(calcCRC == packetCRC) {
         SystemPacket ACK = { .cmd = cmd_ack, .param = CRC_OK };
-        DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+        DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC, HEX) + "(hex)");
         transmitLoRa(&sourceMAC, &ACK, 1);  // Send ACK back to source
         ackOkLoRaMsg++;
       }
       else if(packetCRC == crc16_update(calcCRC,0xA1)) { // Sender does not want ACK and CRC is valid
-        DBG("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
+        DBG("Sensor address 0x" + String(sourceMAC, HEX) + "(hex) does not want ACK");
         ackOkLoRaMsg++;
       }
       else {
         SystemPacket NAK = { .cmd = cmd_ack, .param = CRC_BAD };
         // Send NAK packet to sensor
-        DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+        DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX) + " Sending NAK packet to sensor 0x" + String(sourceMAC, HEX) + "(hex)");
         transmitLoRa(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
         newData = event_clear;  // do not process data as data may be corrupt
         return;  // Exit function and do not update newData to send invalid data further on
@@ -476,7 +485,7 @@ void getLoRa() {
       newData = event_lorag;
     }
     else {
-      DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC,16) + " destined for node address 0x" + String(destMAC,16));
+      DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
     }
   }
   else {
@@ -504,7 +513,7 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   }
   pkt[(len * sizeof(DataReading) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(DataReading) + 5)] = (calcCRC & 0x00FF);
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16) + " to LoRa MAC 0x" + String(*destMac,16));
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
@@ -529,7 +538,7 @@ void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
   }
   pkt[(len * sizeof(SystemPacket) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(SystemPacket) + 5)] = (calcCRC & 0x00FF);
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16) + " to LoRa MAC 0x" + String(*destMac,16));
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
@@ -890,9 +899,8 @@ void begin_lora() {
     DBG(" Initialization failed!");
     while (1);
   }
-  LoRa.setSpreadingFactor(FDRS_SF);
-  DBG("LoRa Band: " + String(FDRS_BAND));
-  DBG("LoRa SF  : " + String(FDRS_SF));
+  LoRa.setTxPower(LORA_TXPWR);
+  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
 #endif // USE_LORA
 }
 

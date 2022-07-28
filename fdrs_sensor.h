@@ -40,6 +40,15 @@
 // ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //LORA_SF
 
+// select LoRa TXPWR configuration
+#if defined(LORA_TXPWR)
+#define FDRS_TXPWR LORA_TXPWR
+#elif defined (GLOBAL_LORA_TXPWR)
+#define FDRS_TXPWR GLOBAL_LORA_TXPWR
+#else 
+// ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //LORA_TXPWR
+
 #endif //USE_LORA
 
 #ifdef FDRS_DEBUG
@@ -143,10 +152,8 @@ void beginFDRS() {
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa Initialized.");
-
-  DBG("LoRa Band: " + String(FDRS_BAND));
-  DBG("LoRa SF  : " + String(FDRS_SF));
+  LoRa.setTxPower(LORA_TXPWR);
+  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
 #endif // USE_LORA
 #ifdef DEBUG_NODE_CONFIG
   if (resetReason != ESP_RST_DEEPSLEEP) {
@@ -175,13 +182,13 @@ crcResult getLoRa() {
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
     packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
-    DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC,16));
+    DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX));
     if (destMAC == LoRaAddress) {
       //printLoraPacket(packet,sizeof(packet));
       memcpy(receiveData, &packet[4], packetSize - 6);   //Split off data portion of packet (N bytes)
       if(ln == 1 && receiveData[0].cmd == cmd_ack) { // We have received an ACK packet
         if(packetCRC == 0xFFFF) {
-          DBG("ACK Received - address 0x" + String(sourceMAC,16) + "(hex) does not want ACKs");
+          DBG("ACK Received - address 0x" + String(sourceMAC, HEX) + "(hex) does not want ACKs");
           return CRC_OK;
         }
         else {
@@ -194,7 +201,7 @@ crcResult getLoRa() {
             return CRC_OK;
           }
           else {
-            DBG("ACK Received CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16));
+            DBG("ACK Received CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX));
             return CRC_BAD;
           }
         }
@@ -255,9 +262,9 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
   int retries = LORA_RETRIES + 1;
   while(retries != 0) {
     if(transmitLoRaMsg != 0)
-      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16) + " to gateway 0x" + String(*destMAC,16) + ". Retries remaining: " + String(retries - 1) + ", CRC OK " + String((float)msgOkLoRa/transmitLoRaMsg*100) + "%");
+      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", CRC OK " + String((float)msgOkLoRa/transmitLoRaMsg*100) + "%");
     else 
-      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16) + " to gateway 0x" + String(*destMAC,16) + ". Retries remaining: " + String(retries - 1));
+      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
     //printLoraPacket(pkt,sizeof(pkt));
     LoRa.beginPacket();
     LoRa.write((uint8_t*)&pkt, sizeof(pkt));
@@ -284,7 +291,7 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
     }
   }
 #else   // Send and do not wait for ACK reply
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16) + " to gateway 0x" + String(*destMAC,16));
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
