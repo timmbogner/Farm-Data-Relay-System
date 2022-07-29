@@ -21,7 +21,8 @@ enum {
 };
 
 
-enum crcResult{
+
+enum crcResult {
   CRC_NULL,
   CRC_OK,
   CRC_BAD,
@@ -57,16 +58,16 @@ enum {
 #define FDRS_WIFI_SSID WIFI_SSID
 #elif defined (GLOBAL_SSID)
 #define FDRS_WIFI_SSID GLOBAL_SSID
-#else 
+#else
 // ASSERT("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //WIFI_SSID
 
-// select WiFi password 
+// select WiFi password
 #if defined(WIFI_PASS)
 #define FDRS_WIFI_PASS WIFI_PASS
 #elif defined (GLOBAL_PASS)
 #define FDRS_WIFI_PASS GLOBAL_PASS
-#else 
+#else
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //WIFI_PASS
 
@@ -75,7 +76,7 @@ enum {
 #define FDRS_MQTT_ADDR MQTT_ADDR
 #elif defined (GLOBAL_MQTT_ADDR)
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
-#else 
+#else
 // ASSERT("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //MQTT_ADDR
 
@@ -84,7 +85,7 @@ enum {
 #define FDRS_MQTT_PORT MQTT_PORT
 #elif defined (GLOBAL_MQTT_PORT)
 #define FDRS_MQTT_PORT GLOBAL_MQTT_PORT
-#else 
+#else
 #define FDRS_MQTT_PORT 1883
 #endif //MQTT_PORT
 
@@ -93,7 +94,7 @@ enum {
 #define FDRS_MQTT_USER MQTT_USER
 #elif defined (GLOBAL_MQTT_USER)
 #define FDRS_MQTT_USER GLOBAL_MQTT_USER
-#else 
+#else
 // ASSERT("NO MQTT user defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //MQTT_USER
 
@@ -102,7 +103,7 @@ enum {
 #define FDRS_MQTT_PASS MQTT_PASS
 #elif defined (GLOBAL_MQTT_PASS)
 #define FDRS_MQTT_PASS GLOBAL_MQTT_PASS
-#else 
+#else
 // ASSERT("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //MQTT_PASS
 
@@ -119,7 +120,7 @@ enum {
 #define FDRS_BAND LORA_BAND
 #elif defined (GLOBAL_LORA_BAND)
 #define FDRS_BAND GLOBAL_LORA_BAND
-#else 
+#else
 // ASSERT("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //LORA_BAND
 
@@ -128,7 +129,7 @@ enum {
 #define FDRS_SF LORA_SF
 #elif defined (GLOBAL_LORA_SF)
 #define FDRS_SF GLOBAL_LORA_SF
-#else 
+#else
 // ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //LORA_SF
 
@@ -139,6 +140,11 @@ enum {
 #ifdef DEBUG_NODE_CONFIG
 #include "fdrs_checkConfig.h"
 #endif
+typedef struct FDRSPeer {
+  uint8_t mac[6];
+  uint32_t last_seen;
+
+} FDRSPeer;
 
 typedef struct __attribute__((packed)) DataReading {
   float d;
@@ -152,6 +158,7 @@ typedef struct __attribute__((packed)) SystemPacket {
   uint32_t param;
 } SystemPacket;
 
+FDRSPeer peer_list[16];
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t lora_size   = 256 / sizeof(DataReading);
 const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -163,6 +170,7 @@ esp_now_peer_info_t peerInfo;
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
+uint8_t total_peers = 0;
 
 #ifdef ESPNOW1_PEER
 uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
@@ -342,7 +350,7 @@ void sendLog()
     memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
     logBufferPos += strlen(linebuf);
   }
-  #endif //USE_xx_LOG
+#endif //USE_xx_LOG
 
 }
 
@@ -414,10 +422,10 @@ void mqtt_publish(const char* payload) {
 #endif //USE_WIFI
 }
 
-void printLoraPacket(uint8_t* p,int size) {
-  printf("Printing packet of size %d.",size);
-  for(int i = 0; i < size; i++ ) {
-    if(i % 2 == 0) printf("\n%02d: ", i);
+void printLoraPacket(uint8_t* p, int size) {
+  printf("Printing packet of size %d.", size);
+  for (int i = 0; i < size; i++ ) {
+    if (i % 2 == 0) printf("\n%02d: ", i);
     printf("%02X ", p[i]);
   }
   printf("\n");
@@ -426,16 +434,16 @@ void printLoraPacket(uint8_t* p,int size) {
 void getLoRa() {
 #ifdef USE_LORA
   int packetSize = LoRa.parsePacket();
-  if((packetSize - 6) % sizeof(DataReading) == 0 && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of DataReading
+  if ((packetSize - 6) % sizeof(DataReading) == 0 && packetSize > 0) { // packet size should be 6 bytes plus multiple of size of DataReading
     uint8_t packet[packetSize];
     uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
     uint16_t calcCRC = 0x0000; // CRC calculated from received LoRa packet
     uint16_t sourceMAC = 0x0000;
     uint16_t destMAC = 0x0000;
-  
+
     LoRa.readBytes((uint8_t *)&packet, packetSize);
     ln = (packetSize - 6) / sizeof(DataReading);
-    
+
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
     packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
@@ -443,37 +451,37 @@ void getLoRa() {
     if (destMAC == (selfAddress[4] << 8 | selfAddress[5])) {   //Check if addressed to this device (2 bytes, bytes 1 and 2)
       //printLoraPacket(packet,sizeof(packet));
       memcpy(&theData, &packet[4], packetSize - 6);   //Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
-      if(receivedLoRaMsg != 0){  // Avoid divide by 0
-        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC,16) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg/receivedLoRaMsg*100) + "%");
+      if (receivedLoRaMsg != 0) { // Avoid divide by 0
+        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, 16) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg / receivedLoRaMsg * 100) + "%");
       }
       else {
-        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC,16) + ", Total LoRa received: " + String(receivedLoRaMsg));
+        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBi, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, 16) + ", Total LoRa received: " + String(receivedLoRaMsg));
       }
       receivedLoRaMsg++;
       // Evaluate CRC
-      for(int i = 0; i < (packetSize - 2); i++) { // Last 2 bytes of packet are the CRC so do not include them in calculation
+      for (int i = 0; i < (packetSize - 2); i++) { // Last 2 bytes of packet are the CRC so do not include them in calculation
         //printf("CRC: %02X : %d\n",calcCRC, i);
         calcCRC = crc16_update(calcCRC, packet[i]);
       }
-      if(calcCRC == packetCRC) {
+      if (calcCRC == packetCRC) {
         SystemPacket ACK = { .cmd = cmd_ack, .param = CRC_OK };
-        DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+        DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC, 16) + "(hex)");
         transmitLoRa(&sourceMAC, &ACK, 1);  // Send ACK back to source
         ackOkLoRaMsg++;
       }
-      else if(packetCRC == crc16_update(calcCRC,0xA1)) { // Sender does not want ACK and CRC is valid
-        DBG("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
+      else if (packetCRC == crc16_update(calcCRC, 0xA1)) { // Sender does not want ACK and CRC is valid
+        DBG("Sensor address 0x" + String(sourceMAC, 16) + "(hex) does not want ACK");
         ackOkLoRaMsg++;
       }
       else {
         SystemPacket NAK = { .cmd = cmd_ack, .param = CRC_BAD };
         // Send NAK packet to sensor
-        DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC,16) + ", Calculated CRC is 0x" + String(calcCRC,16) + " Sending NAK packet to sensor 0x" + String(sourceMAC,16) + "(hex)");
+        DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, 16) + ", Calculated CRC is 0x" + String(calcCRC, 16) + " Sending NAK packet to sensor 0x" + String(sourceMAC, 16) + "(hex)");
         transmitLoRa(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
         newData = event_clear;  // do not process data as data may be corrupt
         return;  // Exit function and do not update newData to send invalid data further on
       }
-    
+
       if (memcmp(&sourceMAC, &LoRa1, 2) == 0) {      //Check if it is from a registered sender
         newData = event_lora1;
         return;
@@ -485,11 +493,11 @@ void getLoRa() {
       newData = event_lorag;
     }
     else {
-      DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC,16) + " destined for node address 0x" + String(destMAC,16));
+      DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, 16) + " destined for node address 0x" + String(destMAC, 16));
     }
   }
   else {
-    if(packetSize != 0) {
+    if (packetSize != 0) {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
     }
   }
@@ -501,24 +509,24 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   uint16_t calcCRC = 0x0000;
 
   uint8_t pkt[6 + (len * sizeof(DataReading))];
-  
+
   pkt[0] = (*destMac >> 8);       // high byte of destination MAC
   pkt[1] = (*destMac & 0x00FF);   // low byte of destination MAC
   pkt[2] = selfAddress[4];    // high byte of source MAC (ourselves)
   pkt[3] = selfAddress[5];    // low byte of source MAC
   memcpy(&pkt[4], packet, len * sizeof(DataReading));   // copy data portion of packet
-  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
+  for (int i = 0; i < (sizeof(pkt) - 2); i++) { // Last 2 bytes are CRC so do not include them in the calculation itself
     //printf("CRC: %02X : %d\n",calcCRC, i);
     calcCRC = crc16_update(calcCRC, pkt[i]);
   }
   pkt[(len * sizeof(DataReading) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(DataReading) + 5)] = (calcCRC & 0x00FF);
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC,16) + " to LoRa MAC 0x" + String(*destMac,16));
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, 16) + " to LoRa MAC 0x" + String(*destMac, 16));
   //printLoraPacket(pkt,sizeof(pkt));
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
-  }
+}
 }
 #endif  // USE_LORA
 
@@ -914,13 +922,36 @@ void begin_FS() {
   }
 #endif // USE_FS_LOG
 }
+int getFDRSPeer(uint8_t *mac) {  // Returns the index of the array element that contains the provided MAC address 
+  for (int i; i < 16; i++) {
+    if (memcmp(mac, &peer_list[i].mac, 6)) return i;
+  }
+  return -1;
+}
+int findOpenPeer() {    // Finds an unused entry in peer_list
+  uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  for (int i; i < 16; i++) {
+    if (memcmp(&zero_addr, &peer_list[i].mac, 6)) return i;
+  }
+  return -1;
+}
+int checkPeerExpired() {  // Checks whether any entries in the peer_list have expired
+  for (int i; i < 16; i++) {
+    if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT) {
 
+    }
+    return -1;
+  }
+}
 void handleCommands() {
   switch (theCmd.cmd) {
     case cmd_ping:
       DBG("Ping back to sender");
       SystemPacket sys_packet;
       sys_packet.cmd = cmd_ping;
+#ifdef ESP8266
+      esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+#endif
 #if defined(ESP32)
       esp_now_peer_info_t peerInfo;
       peerInfo.ifidx = WIFI_IF_STA;
@@ -933,43 +964,70 @@ void handleCommands() {
       }
 #endif
       esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
-        esp_now_del_peer(incMAC);
+      esp_now_del_peer(incMAC);
       break;
     case cmd_add:
-      DBG("Add sender to peer list (not completed)");
-      break;
+      int peer_num = getFDRSPeer(&incMAC[0]);
+      if (peer_num == -1) {
+        DBG("New device requesting peer registration");
+        int open_peer = findOpenPeer();
+        memcpy(&peer_list[open_peer].mac, &incMAC, 6);
+        peer_list[open_peer].last_seen = millis();
+#if defined(ESP32)
+        esp_now_peer_info_t peerInfo;
+        peerInfo.ifidx = WIFI_IF_STA;
+        peerInfo.channel = 0;
+        peerInfo.encrypt = false;
+        memcpy(peerInfo.peer_addr, incMAC, 6);
+        if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+          DBG("Failed to add peer");
+          return;
+        }
+#endif
+#if defined(ESP8266)
+        esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+#endif
+        else {
+          DBG("Refreshing existing peer registration");
+          uint8_t peer_num = getFDRSPeer(&incMAC[0]);
+          peer_list[peer_num].last_seen = millis();
+        }
+
+
+
+        break;
+      }
+      theCmd.cmd = cmd_clear;
+      theCmd.param = 0;
   }
-  theCmd.cmd = cmd_clear;
-  theCmd.param = 0;
+
 }
+  // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
+  /** @ingroup util_crc16
+      Processor-independent CRC-16 calculation.
+      Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+      Initial value: 0xFFFF
+      This CRC is normally used in disk-drive controllers.
+      @param uint16_t crc (0x0000..0xFFFF)
+      @param uint8_t a (0x00..0xFF)
+      @return calculated CRC (0x0000..0xFFFF)
+  */
 
-// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
-
-/** @ingroup util_crc16
-    Processor-independent CRC-16 calculation.
-    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
-    Initial value: 0xFFFF
-    This CRC is normally used in disk-drive controllers.
-    @param uint16_t crc (0x0000..0xFFFF)
-    @param uint8_t a (0x00..0xFF)
-    @return calculated CRC (0x0000..0xFFFF)
-*/
-
-static uint16_t crc16_update(uint16_t crc, uint8_t a)
-{
-  int i;
-
-  crc ^= a;
-  for (i = 0; i < 8; ++i)
+  static uint16_t crc16_update(uint16_t crc, uint8_t a)
   {
-    if (crc & 1)
-      crc = (crc >> 1) ^ 0xA001;
-    else
-      crc = (crc >> 1);
-  }
+    int i;
 
-  return crc;
-}
+    crc ^= a;
+    for (i = 0; i < 8; ++i)
+    {
+      if (crc & 1)
+        crc = (crc >> 1) ^ 0xA001;
+      else
+        crc = (crc >> 1);
+    }
+
+    return crc;
+  }
 
 #endif //__FDRS_FUNCTIONS_H__
