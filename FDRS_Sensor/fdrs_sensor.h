@@ -94,8 +94,8 @@ const uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 const uint16_t LoRaAddress = ((gatewayAddress[4] << 8) | READING_ID);
 const uint16_t sensorAddress = ((gatewayAddress[4] << 8) | READING_ID);
-unsigned long transmitLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
-unsigned long msgOkLoRa = 0;     // Number of total LoRa packets with valid CRC
+unsigned long transmitLoRaMsgwAck = 0;  // Number of total LoRa packets transmitted and we expect ACK in return
+unsigned long msgOkLoRa = 0;     // Number of total LoRa packets ACKed with valid CRC
 
 
 uint32_t wait_time = 0;
@@ -313,15 +313,15 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
 #ifdef LORA_ACK  // Wait for ACK
   int retries = LORA_RETRIES + 1;
   while(retries != 0) {
-    if(transmitLoRaMsg != 0)
-      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", CRC OK " + String((float)msgOkLoRa/transmitLoRaMsg*100) + "%");
+    if(transmitLoRaMsgwAck != 0)
+      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", Ack Ok " + String((float)msgOkLoRa/transmitLoRaMsgwAck*100) + "%");
     else 
       DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
     //printLoraPacket(pkt,sizeof(pkt));
     LoRa.beginPacket();
     LoRa.write((uint8_t*)&pkt, sizeof(pkt));
     LoRa.endPacket();
-    transmitLoRaMsg++;
+    transmitLoRaMsgwAck++;
     unsigned long loraAckTimeout = millis() + LORA_ACK_TIMEOUT; 
     retries--;
     delay(10);
@@ -348,7 +348,7 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
-  transmitLoRaMsg++;
+  transmitLoRaMsgwAck++;
 #endif    // LORA_ACK
 #endif    // USE_LORA
 }
@@ -376,7 +376,6 @@ void transmitLoRa(uint16_t* destMAC, SystemPacket* packet, uint8_t len) {
   LoRa.beginPacket();
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
-  transmitLoRaMsg++;
 #endif    // USE_LORA
 }
 
