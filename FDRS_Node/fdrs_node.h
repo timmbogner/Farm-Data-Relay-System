@@ -415,7 +415,7 @@ uint32_t pingFDRS(int timeout) {
 bool seekFDRS(int timeout) {
   SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
 #ifdef USE_ESPNOW
-  esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+  esp_now_send(broadcast_mac, (uint8_t *) &sys_packet, sizeof(SystemPacket));
   DBG("Seeking nearby gateways");
   uint32_t ping_start = millis();
   is_ping = false;
@@ -425,8 +425,9 @@ bool seekFDRS(int timeout) {
       DBG("Responded:" + String(incMAC[5]));
       return true;
     }
-    return false;
   }
+  return false;
+
 #endif
 }
 

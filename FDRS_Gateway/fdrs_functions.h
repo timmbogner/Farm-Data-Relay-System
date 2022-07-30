@@ -985,9 +985,9 @@ void handleCommands() {
       break;
 
     case cmd_add:
+    DBG("New device requesting peer registration");
       int peer_num = getFDRSPeer(&incMAC[0]);
       if (peer_num == -1) {
-        DBG("New device requesting peer registration");
         int open_peer = findOpenPeer();
         memcpy(&peer_list[open_peer].mac, &incMAC, 6);
         peer_list[open_peer].last_seen = millis();
