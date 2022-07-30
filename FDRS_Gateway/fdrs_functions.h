@@ -887,8 +887,8 @@ void begin_lora() {
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-  LoRa.setTxPower(LORA_TXPWR);
-  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
+  LoRa.setTxPower(FDRS_TXPWR);
+  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(FDRS_TXPWR) + " dBm");
 #endif // USE_LORA
 }
 

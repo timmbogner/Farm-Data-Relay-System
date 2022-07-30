@@ -153,8 +153,8 @@ void beginFDRS() {
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-  LoRa.setTxPower(LORA_TXPWR);
-  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
+  LoRa.setTxPower(FDRS_TXPWR);
+  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(FDRS_TXPWR) + " dBm");
 #endif // USE_LORA
 #ifdef DEBUG_NODE_CONFIG
   if (resetReason != ESP_RST_DEEPSLEEP) {
@@ -343,7 +343,6 @@ void sleepFDRS(int sleep_time) {
   DBG(" Delaying.");
   delay(sleep_time * 1000);
 }
-
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
