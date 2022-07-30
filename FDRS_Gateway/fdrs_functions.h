@@ -941,15 +941,21 @@ void begin_FS() {
 }
 int getFDRSPeer(uint8_t *mac) {  // Returns the index of the array element that contains the provided MAC address
   for (int i; i < 16; i++) {
-    if (memcmp(mac, &peer_list[i].mac, 6)) return i;
+    if (memcmp(mac, &peer_list[i].mac, 6) == 0)
+      return i;
   }
+
+  //DBG("Couldn't find peer");
   return -1;
 }
 int findOpenPeer() {    // Finds an unused entry in peer_list
   uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   for (int i; i < 16; i++) {
-    if (memcmp(&zero_addr, &peer_list[i].mac, 6)) return i;
+    if (memcmp(&zero_addr, &peer_list[i].mac, 6) == 0) {
+      return i;
+    }
   }
+  DBG("No open peers");
   return -1;
 }
 int checkPeerExpired() {  // Checks whether any entries in the peer_list have expired
@@ -985,9 +991,10 @@ void handleCommands() {
       break;
 
     case cmd_add:
-    DBG("New device requesting peer registration");
+      DBG("Device requesting peer registration");
       int peer_num = getFDRSPeer(&incMAC[0]);
       if (peer_num == -1) {
+        DBG("Device not yet registered, adding to internal peer list");
         int open_peer = findOpenPeer();
         memcpy(&peer_list[open_peer].mac, &incMAC, 6);
         peer_list[open_peer].last_seen = millis();
@@ -1012,6 +1019,9 @@ void handleCommands() {
         DBG("Refreshing existing peer registration");
         uint8_t peer_num = getFDRSPeer(&incMAC[0]);
         peer_list[peer_num].last_seen = millis();
+        SystemPacket sys_packet = { .cmd = cmd_add, .param = PEER_TIMEOUT };
+        esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+
       }
       break;
 

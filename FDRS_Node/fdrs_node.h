@@ -109,7 +109,9 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
-  if (!is_ping) memcpy(&incMAC, mac, sizeof(incMAC)); // don't save the incMAC if it isn't waiting for one
+
+  memcpy(&incMAC, mac, sizeof(incMAC));
+
   if (len < sizeof(DataReading)) {
     SystemPacket command;
     memcpy(&command, incomingData, sizeof(command));
@@ -441,7 +443,6 @@ bool addFDRS(int timeout) {
     uint32_t add_start = millis();
     is_added = false;
     while ((millis() - add_start) <= timeout) {
-      yield(); //do I need to yield or does it automatically?
       if (is_added) {
         DBG("Subscription accepted. Timeout: " + String(gtwy_timeout));
         last_refresh = millis();
