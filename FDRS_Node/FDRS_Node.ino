@@ -16,15 +16,16 @@ float data2;
 
 void setup() {
   beginFDRS();
+  pingFDRS(1000);
+  addFDRS(1000);
 }
 void loop() {
-  pingFDRS(1000);
-  data1 = readHum();
-  loadFDRS(data1, HUMIDITY_T);
-  data2 = readTemp();
-  loadFDRS(data2, TEMP_T);
-  sendFDRS();
-  sleepFDRS(10);  //Sleep time in seconds
+//  data1 = readHum();
+//  loadFDRS(data1, HUMIDITY_T);
+//  data2 = readTemp();
+//  loadFDRS(data2, TEMP_T);
+//  sendFDRS();
+//  sleepFDRS(10);  //Sleep time in seconds
 }
 
 float readTemp() {

@@ -83,17 +83,21 @@ typedef struct __attribute__((packed)) SystemPacket {
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 uint16_t LoRaAddress = 0x4200;
 unsigned long transmitLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;     // Number of total LoRa packets with valid CRC
+uint32_t gtwy_timeout = 0;
 
 uint8_t incMAC[6];
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
 uint8_t data_count = 0;
 bool is_ping = false;
+bool is_added = false;
+uint32_t last_refresh;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -114,6 +118,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         is_ping = true;
         break;
       case cmd_add:
+        is_added = true;
+        gtwy_timeout = command.param;
 
         break;
     }
@@ -378,21 +384,13 @@ void sleepFDRS(int sleep_time) {
   delay(sleep_time * 1000);
 }
 
-uint8_t* seekFDRS(int timeout) {
-  SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
-#ifdef USE_ESPNOW
-  esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
-  DBG(" ESP-NOW ping sent.");
-  uint32_t ping_start = millis();
-  is_ping = false;
-  while ((millis() - ping_start) <= timeout) {
-    yield(); //do I need to yield or does it automatically?
-    if (is_ping) {
-      DBG("Ping Returned:" + String(millis() - ping_start) + " from " + String(incMAC[5]));
-      return &incMAC[0];
+
+void loopFDRS() {
+  if (is_added) {
+    if ((millis() - last_refresh) >= gtwy_timeout) {
+      last_refresh  = millis();
     }
   }
-#endif
 }
 uint32_t pingFDRS(int timeout) {
   SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
@@ -414,13 +412,45 @@ uint32_t pingFDRS(int timeout) {
   DBG(" LoRa ping not sent because it isn't implemented.");
 #endif
 }
-bool subscribeFDRS(int timeout) {
+bool seekFDRS(int timeout) {
+  SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
+#ifdef USE_ESPNOW
+  esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+  DBG("Seeking nearby gateways");
+  uint32_t ping_start = millis();
+  is_ping = false;
+  while ((millis() - ping_start) <= timeout) {
+    yield(); //do I need to yield or does it automatically?
+    if (is_ping) {
+      DBG("Responded:" + String(incMAC[5]));
+      return true;
+    }
+    return false;
+  }
+#endif
+}
+
+bool addFDRS(int timeout) {
   uint8_t nearest_gtwy[6];
-  memcpy(&nearest_gtwy, seekFDRS(1000), 6);  //should I be calling functions like this?
-  SystemPacket sys_packet = { .cmd = cmd_add, .param = 0 };
-  esp_now_send(nearest_gtwy, (uint8_t *) &sys_packet, sizeof(SystemPacket));
-
-
+  if (seekFDRS(1000)) {
+    memcpy(&nearest_gtwy[0], &incMAC[0] , 6);
+    SystemPacket sys_packet = { .cmd = cmd_add, .param = 0 };
+    esp_now_send(nearest_gtwy, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+    DBG("ESP-NOW peer subscription submitted to " + String(nearest_gtwy[5]));
+    uint32_t add_start = millis();
+    is_added = false;
+    while ((millis() - add_start) <= timeout) {
+      yield(); //do I need to yield or does it automatically?
+      if (is_added) {
+        DBG("Subscription accepted. Timeout: " + String(gtwy_timeout));
+        last_refresh = millis();
+        return true;
+      }
+    }
+  } else {
+    DBG("No gateways accepted the request");
+    return false;
+  }
 }
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
