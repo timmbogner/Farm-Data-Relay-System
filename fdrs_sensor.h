@@ -84,9 +84,14 @@ enum {
   cmd_ack,
 };
 
+typedef struct __attribute__((packed)) SystemPacket {
+  uint8_t cmd;
+  uint32_t param;
+} SystemPacket;
+
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 const uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
-const uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
+uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 const uint16_t LoRaAddress = ((gatewayAddress[4] << 8) | READING_ID);
 const uint16_t sensorAddress = ((gatewayAddress[4] << 8) | READING_ID);
 unsigned long transmitLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
@@ -97,6 +102,7 @@ uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
 uint8_t data_count = 0;
 
+static uint16_t crc16_update(uint16_t, uint8_t); // function prototype for Arduino compilation purposes
 
 void beginFDRS() {
 #ifdef FDRS_DEBUG
@@ -105,7 +111,7 @@ void beginFDRS() {
   esp_reset_reason_t resetReason;
   resetReason = esp_reset_reason();
 #endif
-  DBG("FDRS Sensor ID " + String(READING_ID,16) + " initializing...");
+  DBG("FDRS Sensor ID " + String(READING_ID, HEX) + " initializing...");
   DBG(" Gateway: " + String (GTWY_MAC, HEX));
 #ifdef POWER_CTRL
   DBG("Powering up the sensor array!");
@@ -310,15 +316,14 @@ void sendFDRS() {
   DBG(" ESP-NOW sent.");
 #endif
 #ifdef USE_LORA
-  transmitLoRa(gtwyAddress, fdrsData, data_count);
-  DBG(" LoRa sent.");
+  transmitLoRa(&gtwyAddress, fdrsData, data_count);
 #endif
   data_count = 0;
   returnCRC = CRC_NULL;
 }
 
 void loadFDRS(float d, uint8_t t) {
-  DBG("Id: " + String(READING_ID,16) + " - Type: " + String(t) + " - Data loaded: " + String(d));
+  DBG("Id: " + String(READING_ID, HEX) + " - Type: " + String(t) + " - Data loaded: " + String(d));
   if (data_count > espnow_size) sendFDRS();
   DataReading dr;
   dr.id = READING_ID;
