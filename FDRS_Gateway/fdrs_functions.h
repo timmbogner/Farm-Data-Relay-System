@@ -269,6 +269,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
+  memcpy(&incMAC, mac, sizeof(incMAC));
   if (len < sizeof(DataReading)) {
     DBG("ESP-NOW System Packet");
     memcpy(&theCmd, incomingData, sizeof(theCmd));
@@ -276,7 +277,6 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     return;
   }
   memcpy(&theData, incomingData, sizeof(theData));
-  memcpy(&incMAC, mac, sizeof(incMAC));
   DBG("Incoming ESP-NOW.");
   ln = len / sizeof(DataReading);
   if (memcmp(&incMAC, &ESPNOW1, 6) == 0) {
@@ -563,7 +563,7 @@ void sendESPNOW(uint8_t address) {
 #endif  // USE_ESPNOW
 }
 
-void sendESPNOWpeers(uint8_t address) {
+void sendESPNOWpeers() {
 #ifdef USE_ESPNOW
   DBG("Sending to ESP-NOW peers.");
   DataReading thePacket[ln];
@@ -836,6 +836,7 @@ void releaseMQTT() {
 
 void begin_espnow() {
 #ifdef USE_ESPNOW
+memset(&peer_list[0], 0, sizeof(peer_list));
   DBG("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -940,18 +941,21 @@ void begin_FS() {
 #endif // USE_FS_LOG
 }
 int getFDRSPeer(uint8_t *mac) {  // Returns the index of the array element that contains the provided MAC address
-  for (int i; i < 16; i++) {
+  DBG("Getting peer #");
+  for (int i = 0; i < 16; i++) {
     if (memcmp(mac, &peer_list[i].mac, 6) == 0)
-      return i;
+      DBG("Peer is entry #" + String(i) + "Peer is entry #" + String(i));
+    return i;
   }
 
   //DBG("Couldn't find peer");
   return -1;
 }
-int findOpenPeer() {    // Finds an unused entry in peer_list
+int findOpenPeer() {    // Returns an unused entry in peer_list, -1 if full.
   uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  for (int i; i < 16; i++) {
+  for (int i = 0; i < 16; i++) {
     if (memcmp(&zero_addr, &peer_list[i].mac, 6) == 0) {
+      DBG("Using peer entry" + String(i));
       return i;
     }
   }
@@ -959,7 +963,7 @@ int findOpenPeer() {    // Finds an unused entry in peer_list
   return -1;
 }
 int checkPeerExpired() {  // Checks whether any entries in the peer_list have expired
-  for (int i; i < 16; i++) {
+  for (int i = 0; i < 16; i++) {
     if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT) {
       esp_now_del_peer(incMAC);
     }
@@ -972,32 +976,37 @@ void handleCommands() {
       DBG("Ping back to sender");
       SystemPacket sys_packet;
       sys_packet.cmd = cmd_ping;
+      if (!esp_now_is_peer_exist(incMAC)) {
 #ifdef ESP8266
-      esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+        esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #endif
 #if defined(ESP32)
-      esp_now_peer_info_t peerInfo;
-      peerInfo.ifidx = WIFI_IF_STA;
-      peerInfo.channel = 0;
-      peerInfo.encrypt = false;
-      memcpy(peerInfo.peer_addr, incMAC, 6);
-      if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        DBG("Failed to add peer");
-        return;
-      }
+        esp_now_peer_info_t peerInfo;
+        peerInfo.ifidx = WIFI_IF_STA;
+        peerInfo.channel = 0;
+        peerInfo.encrypt = false;
+        memcpy(peerInfo.peer_addr, incMAC, 6);
+        if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+          DBG("Failed to add peer");
+          return;
+        }
 #endif
-      esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
-      esp_now_del_peer(incMAC);
+        esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+        esp_now_del_peer(incMAC);
+      } else {
+        esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+      }
       break;
 
     case cmd_add:
       DBG("Device requesting peer registration");
       int peer_num = getFDRSPeer(&incMAC[0]);
-      if (peer_num == -1) {
+      DBG(peer_num);
+      if (peer_num == -1) {  //if the device isn't registered
         DBG("Device not yet registered, adding to internal peer list");
-        int open_peer = findOpenPeer();
-        memcpy(&peer_list[open_peer].mac, &incMAC, 6);
-        peer_list[open_peer].last_seen = millis();
+        int open_peer = findOpenPeer();   // find open spot in peer_list
+        memcpy(&peer_list[open_peer].mac, &incMAC, 6); //save MAC to open spot
+        peer_list[open_peer].last_seen = millis();     
 #if defined(ESP32)
         esp_now_peer_info_t peerInfo;
         peerInfo.ifidx = WIFI_IF_STA;
@@ -1017,15 +1026,16 @@ void handleCommands() {
 
       } else {
         DBG("Refreshing existing peer registration");
-        uint8_t peer_num = getFDRSPeer(&incMAC[0]);
         peer_list[peer_num].last_seen = millis();
         SystemPacket sys_packet = { .cmd = cmd_add, .param = PEER_TIMEOUT };
         esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+
 
       }
       break;
 
   }
+
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
 

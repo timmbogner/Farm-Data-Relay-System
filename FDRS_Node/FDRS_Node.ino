@@ -16,7 +16,7 @@ float data2;
 
 void setup() {
   beginFDRS();
-  pingFDRS(1000);
+  //pingFDRS(1000);
   addFDRS(1000);
 }
 void loop() {

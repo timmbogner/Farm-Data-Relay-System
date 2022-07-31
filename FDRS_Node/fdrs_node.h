@@ -120,6 +120,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         is_ping = true;
         break;
       case cmd_add:
+        
         is_added = true;
         gtwy_timeout = command.param;
 
