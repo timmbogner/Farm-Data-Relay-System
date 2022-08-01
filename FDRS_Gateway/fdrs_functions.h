@@ -20,13 +20,11 @@ enum {
   event_lora2
 };
 
-
 enum crcResult{
   CRC_NULL,
   CRC_OK,
   CRC_BAD,
 } returnCRC = CRC_NULL;
-
 
 enum {
   cmd_clear,
@@ -39,13 +37,13 @@ enum {
 #define DBG(a) (Serial.println(a))
 #else
 #define DBG(a)
-#endif // FDRS_DEBUG
+#endif
 
 #if defined (ESP32)
 #define UART_IF Serial1
 #else
 #define UART_IF Serial
-#endif // ESP32
+#endif
 
 // enable to get detailed info from where single configuration macros have been taken
 #define DEBUG_NODE_CONFIG
@@ -197,6 +195,8 @@ unsigned long ackOkLoRaMsg = 0;     // Number of total LoRa packets with valid C
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
+time_t last_mqtt_success = 0;
+time_t last_log_write = 0;
 #endif
 
 SystemPacket theCmd;
@@ -204,6 +204,7 @@ DataReading theData[256];
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;
+bool is_ping = false;
 
 #ifdef USE_ESPNOW
 DataReading ESPNOW1buffer[256];
@@ -257,6 +258,43 @@ const char* mqtt_pass = NULL;
 #endif //FDRS_MQTT_AUTH
 
 #endif //USE_WIFI
+
+
+// Function prototypes
+void transmitLoRa(uint16_t*, DataReading*, uint8_t);
+void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);
+static uint16_t crc16_update(uint16_t, uint8_t);
+
+
+// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
+
+/** @ingroup util_crc16
+    Processor-independent CRC-16 calculation.
+    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+    Initial value: 0xFFFF
+    This CRC is normally used in disk-drive controllers.
+    @param uint16_t crc (0x0000..0xFFFF)
+    @param uint8_t a (0x00..0xFF)
+    @return calculated CRC (0x0000..0xFFFF)
+*/
+
+static uint16_t crc16_update(uint16_t crc, uint8_t a)
+{
+  int i;
+
+  crc ^= a;
+  for (i = 0; i < 8; ++i)
+  {
+    if (crc & 1)
+      crc = (crc >> 1) ^ 0xA001;
+    else
+      crc = (crc >> 1);
+  }
+
+  return crc;
+}
+
+
 
 #ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -320,13 +358,17 @@ void releaseLogBuffer()
 #ifdef USE_SD_LOG
   DBG("Releasing Log buffer to SD");
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
-  logfile.print(logBuffer);
+  if((logfile.size()/1024.0) < SD_MAX_FILESIZE){
+    logfile.print(logBuffer);
+  }
   logfile.close();
 #endif
 #ifdef USE_FS_LOG
   DBG("Releasing Log buffer to internal flash.");
   File logfile = LittleFS.open(FS_FILENAME, "a");
-  logfile.print(logBuffer);
+  if((logfile.size()/1024.0) < FS_MAX_FILESIZE){
+    logfile.print(logBuffer);
+  }
   logfile.close();
 #endif
   memset(&(logBuffer[0]), 0, sizeof(logBuffer) / sizeof(char));
@@ -334,24 +376,39 @@ void releaseLogBuffer()
 }
 #endif // USE_XX_LOG
 
+uint16_t stringCrc(const char input[]){
+  uint16_t calcCRC = 0x0000;
+
+  for(unsigned int i = 0; i < strlen(input); i++) {
+    calcCRC = crc16_update(calcCRC,input[i]);
+  }
+  return calcCRC;
+}
+
 void sendLog()
 {
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
   DBG("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
-    char linebuf[34]; // size depends on resulting length of the formatting string
-    sprintf(linebuf, "%lld,%d,%d,%g\r\n", time(nullptr), theData[i].id, theData[i].t, theData[i].d);
-
-    if (logBufferPos + strlen(linebuf) >= (sizeof(logBuffer) / sizeof(char))) // if buffer would overflow, release first
+    StaticJsonDocument<96> doc;
+    JsonObject doc_0 = doc.createNestedObject();
+    doc_0["id"] = theData[i].id;
+    doc_0["type"] = theData[i].t;
+    doc_0["data"] = theData[i].d;
+    doc_0["time"] = time(nullptr);
+    String outgoingString;
+    serializeJson(doc, outgoingString);
+    outgoingString = outgoingString + " " + stringCrc(outgoingString.c_str()) + "\r\n";
+    if (logBufferPos+outgoingString.length() >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
     {
       releaseLogBuffer();
     }
-    memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
-    logBufferPos += strlen(linebuf);
+    memcpy(&logBuffer[logBufferPos], outgoingString.c_str(), outgoingString.length()); //append line to buffer
+    logBufferPos+=outgoingString.length();
   }
+  time(&last_log_write);
   #endif //USE_xx_LOG
-
 }
 
 void reconnect(short int attempts, bool silent) {
@@ -413,28 +470,73 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
   }
 }
 
+void resendLog(){
+  #ifdef USE_SD_LOG
+  DBG("Resending logged values from SD card.");
+  File logfile = SD.open(SD_FILENAME, FILE_READ);
+  while(1){
+    String line = logfile.readStringUntil('\n');
+    if (line.length() > 0){  // if line contains something
+      if (!client.publish(TOPIC_DATA_BACKLOG, line.c_str())) {
+        break;
+      }else{
+        time(&last_mqtt_success);
+      }
+    }else{
+      logfile.close();
+      SD.remove(SD_FILENAME); // if all values are sent
+      break;
+    }
+  }
+  DBG(" Done");
+  #endif
+  #ifdef USE_FS_LOG
+  DBG("Resending logged values from internal flash.");
+  File logfile = LittleFS.open(FS_FILENAME, "r");
+  while(1){
+    String line = logfile.readStringUntil('\n');
+    if (line.length() > 0){  // if line contains something
+      uint16_t readCrc;
+      char data[line.length()];
+      sscanf(line.c_str(),"%s %hd",data,&readCrc);
+      if(stringCrc(data)!=readCrc){continue;} // if CRCs don't match, skip the line
+      if (!client.publish(TOPIC_DATA_BACKLOG, line.c_str())) {
+        break;
+      }else{
+        time(&last_mqtt_success);
+      }
+    }else{
+      logfile.close();
+      LittleFS.remove(FS_FILENAME); // if all values are sent
+      break;
+    }
+  }
+  DBG(" Done");
+  #endif
+
+}
+
 void mqtt_publish(const char* payload) {
 #ifdef USE_WIFI
   if (!client.publish(TOPIC_DATA, payload)) {
     DBG(" Error on sending MQTT");
     sendLog();
+  }else{
+    #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+      if (last_log_write >= last_mqtt_success){
+        releaseLogBuffer();
+        resendLog();
+      }
+      time(&last_mqtt_success);
+    #endif
   }
 #endif //USE_WIFI
 }
 
-void printLoraPacket(uint8_t* p,int size) {
-  printf("Printing packet of size %d.",size);
-  for(int i = 0; i < size; i++ ) {
-    if(i % 2 == 0) printf("\n%02d: ", i);
-    printf("%02X ", p[i]);
-  }
-  printf("\n");
-}
-
-void getLoRa() {
+crcResult getLoRa() {
 #ifdef USE_LORA
   int packetSize = LoRa.parsePacket();
-  if((packetSize - 6) % sizeof(DataReading) == 0 && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of DataReading
+  if((((packetSize - 6) % sizeof(DataReading) == 0) || ((packetSize - 6) % sizeof(SystemPacket) == 0)) && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of DataReading
     uint8_t packet[packetSize];
     uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
     uint16_t calcCRC = 0x0000; // CRC calculated from received LoRa packet
@@ -442,7 +544,6 @@ void getLoRa() {
     uint16_t destMAC = 0x0000;
   
     LoRa.readBytes((uint8_t *)&packet, packetSize);
-    ln = (packetSize - 6) / sizeof(DataReading);
     
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
@@ -450,7 +551,6 @@ void getLoRa() {
     //DBG("Packet Address: 0x" + String(packet[0], HEX) + String(packet[1], HEX) + " Self Address: 0x" + String(selfAddress[4], HEX) + String(selfAddress[5], HEX));
     if (destMAC == (selfAddress[4] << 8 | selfAddress[5])) {   //Check if addressed to this device (2 bytes, bytes 1 and 2)
       //printLoraPacket(packet,sizeof(packet));
-      memcpy(&theData, &packet[4], packetSize - 6);   //Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
       if(receivedLoRaMsg != 0){  // Avoid divide by 0
         DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg/receivedLoRaMsg*100) + "%");
       }
@@ -463,34 +563,92 @@ void getLoRa() {
         //printf("CRC: %02X : %d\n",calcCRC, i);
         calcCRC = crc16_update(calcCRC, packet[i]);
       }
-      if(calcCRC == packetCRC) {
-        SystemPacket ACK = { .cmd = cmd_ack, .param = CRC_OK };
-        DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC, HEX) + "(hex)");
-        transmitLoRa(&sourceMAC, &ACK, 1);  // Send ACK back to source
-        ackOkLoRaMsg++;
+      if((packetSize - 6) % sizeof(DataReading) == 0) { // DataReading type packet
+        if(calcCRC == packetCRC) {
+          SystemPacket ACK = { .cmd = cmd_ack, .param = CRC_OK };
+          DBG("CRC Match, sending ACK packet to sensor 0x" + String(sourceMAC, HEX) + "(hex)");
+          transmitLoRa(&sourceMAC, &ACK, 1);  // Send ACK back to source
+        }
+        else if(packetCRC == crc16_update(calcCRC,0xA1)) { // Sender does not want ACK and CRC is valid
+          DBG("Sensor address 0x" + String(sourceMAC,16) + "(hex) does not want ACK");
+        }
+        else {
+          SystemPacket NAK = { .cmd = cmd_ack, .param = CRC_BAD };
+          // Send NAK packet to sensor
+          DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX) + " Sending NAK packet to sensor 0x" + String(sourceMAC, HEX) + "(hex)");
+          transmitLoRa(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
+          newData = event_clear;  // do not process data as data may be corrupt
+          return CRC_BAD;  // Exit function and do not update newData to send invalid data further on
+        }
+          memcpy(&theData, &packet[4], packetSize - 6);   //Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
+          ln = (packetSize - 6) / sizeof(DataReading);
+          ackOkLoRaMsg++;
+        if (memcmp(&sourceMAC, &LoRa1, 2) == 0) {      //Check if it is from a registered sender
+          newData = event_lora1;
+          return CRC_OK;
+        }
+        if (memcmp(&sourceMAC, &LoRa2, 2) == 0) {
+          newData = event_lora2;
+          return CRC_OK;
+        }
+        newData = event_lorag;
+        return CRC_OK;
       }
-      else if(packetCRC == crc16_update(calcCRC,0xA1)) { // Sender does not want ACK and CRC is valid
-        DBG("Sensor address 0x" + String(sourceMAC, HEX) + "(hex) does not want ACK");
-        ackOkLoRaMsg++;
-      }
-      else {
-        SystemPacket NAK = { .cmd = cmd_ack, .param = CRC_BAD };
-        // Send NAK packet to sensor
-        DBG("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX) + " Sending NAK packet to sensor 0x" + String(sourceMAC, HEX) + "(hex)");
-        transmitLoRa(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
-        newData = event_clear;  // do not process data as data may be corrupt
-        return;  // Exit function and do not update newData to send invalid data further on
-      }
+      else if((packetSize - 6) % sizeof(SystemPacket) == 0) {
+        uint ln = (packetSize - 6) / sizeof(SystemPacket);
+        SystemPacket receiveData[ln];
     
-      if (memcmp(&sourceMAC, &LoRa1, 2) == 0) {      //Check if it is from a registered sender
-        newData = event_lora1;
-        return;
+        if(calcCRC == packetCRC) {
+          memcpy(receiveData, &packet[4], packetSize - 6);   //Split off data portion of packet (N bytes)
+          if(ln == 1 && receiveData[0].cmd == cmd_ack) {
+            DBG("ACK Received - CRC Match");
+          }
+          else if(ln == 1 && receiveData[0].cmd == cmd_ping) { // We have received a ping request or reply??
+            if(receiveData[0].param == 1) {  // This is a reply to our ping request
+              is_ping = true;
+              DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
+            }
+            else if(receiveData[0].param == 0) {
+              DBG("We have received a ping request from 0x" + String(sourceMAC, HEX) + ", Replying.");
+              SystemPacket pingReply = { .cmd = cmd_ping, .param = 1 };
+              transmitLoRa(&sourceMAC, &pingReply, 1);
+            }
+          }
+          else { // data we have received is not yet programmed.  How we handle is future enhancement.
+            DBG("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
+            DBG("ln: " + String(ln) + "data type: " + String(receiveData[0].cmd));
+          }
+          ackOkLoRaMsg++;
+          return CRC_OK;
+        }
+        else if(packetCRC == crc16_update(calcCRC,0xA1)) { // Sender does not want ACK and CRC is valid
+          memcpy(receiveData, &packet[4], packetSize - 6);   //Split off data portion of packet (N bytes)
+          if(ln == 1 && receiveData[0].cmd == cmd_ack) {
+            DBG("ACK Received - CRC Match");
+          }
+          else if(ln == 1 && receiveData[0].cmd == cmd_ping) { // We have received a ping request or reply??
+            if(receiveData[0].param == 1) {  // This is a reply to our ping request
+              is_ping = true;
+              DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
+            }
+            else if(receiveData[0].param == 0) {
+              DBG("We have received a ping request from 0x" + String(sourceMAC, HEX) + ", Replying.");
+              SystemPacket pingReply = { .cmd = cmd_ping, .param = 1 };
+              transmitLoRa(&sourceMAC, &pingReply, 1);
+            }
+          }
+          else { // data we have received is not yet programmed.  How we handle is future enhancement.
+            DBG("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
+            DBG("ln: " + String(ln) + "data type: " + String(receiveData[0].cmd));
+          }
+          ackOkLoRaMsg++;
+          return CRC_OK;
+        }
+        else {
+          DBG("ACK Received CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX));
+          return CRC_BAD;
+        }
       }
-      if (memcmp(&sourceMAC, &LoRa2, 2) == 0) {
-        newData = event_lora2;
-        return;
-      }
-      newData = event_lorag;
     }
     else {
       DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
@@ -501,6 +659,7 @@ void getLoRa() {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
     }
   }
+  return CRC_NULL;
 #endif //USE_LORA
 }
 
@@ -527,8 +686,9 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
   }
-}
-#endif  // USE_LORA
+
+#endif //USE_LORA
+
 
 void sendESPNOW(uint8_t address) {
 #ifdef USE_ESPNOW
@@ -560,7 +720,9 @@ void sendESPNOW(uint8_t address) {
 
   esp_now_send(temp_peer, (uint8_t *) &thePacket, j * sizeof(DataReading));
   esp_now_del_peer(temp_peer);
+
 #endif  // USE_ESPNOW
+
 }
 
 void sendSerial() {
@@ -588,6 +750,7 @@ void sendMQTT() {
     doc[i]["id"]   = theData[i].id;
     doc[i]["type"] = theData[i].t;
     doc[i]["data"] = theData[i].d;
+    doc[i]["time"] = time(nullptr);
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
@@ -619,7 +782,9 @@ void bufferESPNOW(uint8_t interface) {
       lenESPNOW2 +=  ln;
       break;
   }
+
 #endif // USE_ESPNOW
+
 }
 
 void bufferSerial() {
@@ -725,6 +890,7 @@ void releaseESPNOW(uint8_t interface) {
         break;
       }
   }
+
 #endif // USE_ESPNOW
 }
 
@@ -947,9 +1113,11 @@ void handleCommands() {
       DBG("Add sender to peer list (not completed)");
       break;
   }
+  is_ping = false;
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
 }
+
 
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
@@ -964,8 +1132,7 @@ void handleCommands() {
     @return calculated CRC (0x0000..0xFFFF)
 */
 
-static uint16_t crc16_update(uint16_t crc, uint8_t a)
-{
+static uint16_t crc16_update(uint16_t crc, uint8_t a) {
   int i;
 
   crc ^= a;
@@ -980,4 +1147,14 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   return crc;
 }
 
+void printLoraPacket(uint8_t* p,int size) {
+  printf("Printing packet of size %d.",size);
+  for(int i = 0; i < size; i++ ) {
+    if(i % 2 == 0) printf("\n%02d: ", i);
+    printf("%02X ", p[i]);
+  }
+  printf("\n");
+}
+
 #endif //__FDRS_FUNCTIONS_H__
+
