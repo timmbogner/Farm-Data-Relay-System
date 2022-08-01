@@ -10,7 +10,7 @@
 #define FDRS_DEBUG 			// Comment, if you do not want to see debug messages
 #include <fdrs_globals.h> 	// Comment if you want to set specific values for this sensor here
 
-#define READING_ID    1   	//Unique ID for this sensor
+#define READING_ID    0x01   //Unique ID for this sensor - 8 bits hexidecimal
 #define GTWY_MAC      0x04 	//Address of the nearest gateway
 
 #define DEEP_SLEEP
@@ -40,8 +40,9 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-//#define LORA_BAND 915E6
-//#define LORA_SF 7
+//#define LORA_BAND 915E6     // LoRa Frequency Band
+//#define LORA_SF 7           // LoRa Spreading Factor
+//#define LORA_TXPWR 17       // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm.  Lower power = less battery use
 
 // MQTT Configuration -- This should be globally configured in fdrs_globals.h. If you need to specify 
 // a different MQTT server for this sensor, configure below.

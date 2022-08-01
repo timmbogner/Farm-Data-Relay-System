@@ -4,7 +4,7 @@
 
 #include <fdrs_globals.h>
 
-#define READING_ID    1   //Unique ID for this sensor
+#define READING_ID    0x01   //Unique ID for this sensor - 8 bits hexidecimal
 #define GTWY_MAC      0x01 //Address of the nearest gateway
 
 #define USE_ESPNOW
@@ -23,11 +23,13 @@
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
+
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define LORA_BAND 915E6
-#define LORA_SF 7
+#define LORA_BAND 915E6     // LoRa Frequency Band
+#define LORA_SF 7           // LoRa Spreading Factor
+#define LORA_TXPWR 17       // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm.  Lower power = less battery use
 //#define LORA_ACK      // Uncomment to enable request for LoRa ACKs at cost of increased battery usage
 #define LORA_ACK_TIMEOUT 400   // ms timeout waiting for LoRa ACKs (if enabled).  Wouldn't go less than 200ms
 #define LORA_RETRIES 2          // [0 - 3] When ACK enabled, number of sensor node tx retries when ACK not received or invalid CRC 

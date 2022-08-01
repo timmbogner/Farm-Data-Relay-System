@@ -62,8 +62,9 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define LORA_BAND 915E6
-#define LORA_SF 7
+#define LORA_BAND 915E6     // LoRa Frequency Band
+#define LORA_SF 7           // LoRa Spreading Factor
+#define LORA_TXPWR 17       // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm.  Lower power = less battery use
 
 // Buffer Delays - in milliseconds - Uncomment to enable any buffer
 
