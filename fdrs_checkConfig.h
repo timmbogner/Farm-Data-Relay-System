@@ -2,11 +2,18 @@
 #ifndef __FDRS_CHECKCONFIG_h__
 #define __FDRS_CHECKCONFIG_h__
 
-char* separatorLine2 = "----------------------------------------------------";
+const char* separatorLine2 = "----------------------------------------------------";
+
+// helper function for obfuscating passwords
+String obfuscatePassword(String password) {
+	char obfuscatedPass[password.length()];
+	std::fill(obfuscatedPass, obfuscatedPass + password.length(), '*');
+	return String(obfuscatedPass);
+}
 
 // helper function for a nice little header above each section
-void printSmallSectionHeader(char* headerText) {
-	char * separatorLine   = "----------------------------------------------------";
+void printSmallSectionHeader(const char* headerText) {
+	const char * separatorLine   = "----------------------------------------------------";
 
 	DBG(separatorLine);
 	DBG(headerText);
@@ -14,8 +21,8 @@ void printSmallSectionHeader(char* headerText) {
 }
 
 // helper function for a nice little header above each section
-void printSectionHeader(char* headerText) {
-	char * separatorLine   = "----------------------------------------------------";
+void printSectionHeader(const char* headerText) {
+	const char * separatorLine   = "----------------------------------------------------";
 
 	DBG(separatorLine);
 	DBG(headerText);
@@ -23,8 +30,8 @@ void printSectionHeader(char* headerText) {
 }
 
 // helper function for a nice little header above each section
-void printConfigHeader(char* headerText) {
-	char * headerAndFooter = "====================================================";
+void printConfigHeader(const char* headerText) {
+	const char * headerAndFooter = "====================================================";
 
 	DBG(headerAndFooter);
 	DBG(headerText);
@@ -83,9 +90,9 @@ void printWifiDetails() {
 #endif //WIFI_SSID
 
 #if defined(WIFI_PASS)
-	DBG("WiFi password used from WIFI_PASS        : " + String(FDRS_WIFI_PASS));
+	DBG("WiFi password used from WIFI_PASS        : " + obfuscatePassword(FDRS_WIFI_PASS));
 #elif defined (GLOBAL_SSID)
-	DBG("WiFi password used from GLOBAL_PASS      : " + String(FDRS_WIFI_PASS));
+	DBG("WiFi password used from GLOBAL_PASS      : " + obfuscatePassword(FDRS_WIFI_PASS));
 #else 
 	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	//exit(0);
@@ -123,9 +130,9 @@ void printWifiDetails() {
 #endif //MQTT_USER
 
 #if defined(MQTT_PASS)
-	DBG("MQTT password used from MQTT_PASS        : " + String(FDRS_MQTT_PASS));
+	DBG("MQTT password used from MQTT_PASS        : " + obfuscatePassword(FDRS_MQTT_PASS));
 #elif defined (GLOBAL_MQTT_PASS)
-	DBG("MQTT password used from GLOBAL_MQTT_PASS : " + String(FDRS_MQTT_PASS));
+	DBG("MQTT password used from GLOBAL_MQTT_PASS : " + obfuscatePassword(FDRS_MQTT_PASS));
 #else 
 	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	//exit(0);
