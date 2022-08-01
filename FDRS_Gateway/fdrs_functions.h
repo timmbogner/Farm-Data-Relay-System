@@ -258,6 +258,11 @@ const char* mqtt_pass = NULL;
 
 #endif //USE_WIFI
 
+// Function prototypes
+void transmitLoRa(uint16_t*, DataReading*, uint8_t);
+void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);
+static uint16_t crc16_update(uint16_t, uint8_t);
+
 #ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
