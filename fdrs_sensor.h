@@ -123,6 +123,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   }
 }
 
+static uint16_t crc16_update(uint16_t, uint8_t); // function prototype for Arduino compilation purposes
 
 void beginFDRS() {
 #ifdef FDRS_DEBUG
@@ -383,6 +384,7 @@ void sendFDRS() {
 #endif
 #ifdef USE_LORA
   transmitLoRa(&gtwyAddress, fdrsData, data_count);
+
   DBG(" LoRa sent.");
 #endif
   data_count = 0;

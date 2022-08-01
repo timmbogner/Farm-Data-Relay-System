@@ -260,6 +260,12 @@ const char* mqtt_pass = NULL;
 #endif //USE_WIFI
 
 
+// Function prototypes
+void transmitLoRa(uint16_t*, DataReading*, uint8_t);
+void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);
+static uint16_t crc16_update(uint16_t, uint8_t);
+
+
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
 /** @ingroup util_crc16
@@ -287,6 +293,7 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 
   return crc;
 }
+
 
 
 #ifdef USE_ESPNOW
