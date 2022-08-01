@@ -836,7 +836,7 @@ void releaseMQTT() {
 
 void begin_espnow() {
 #ifdef USE_ESPNOW
-memset(&peer_list[0], 0, sizeof(peer_list));
+  memset(&peer_list[0], 0, sizeof(peer_list));
   DBG("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -942,10 +942,12 @@ void begin_FS() {
 }
 int getFDRSPeer(uint8_t *mac) {  // Returns the index of the array element that contains the provided MAC address
   DBG("Getting peer #");
+
   for (int i = 0; i < 16; i++) {
-    if (memcmp(mac, &peer_list[i].mac, 6) == 0)
-      DBG("Peer is entry #" + String(i) + "Peer is entry #" + String(i));
-    return i;
+    if (memcmp(mac, &peer_list[i].mac, 6) == 0) {
+      DBG("Peer is entry #" + String(i));
+      return i;
+    }
   }
 
   //DBG("Couldn't find peer");
@@ -955,7 +957,7 @@ int findOpenPeer() {    // Returns an unused entry in peer_list, -1 if full.
   uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   for (int i = 0; i < 16; i++) {
     if (memcmp(&zero_addr, &peer_list[i].mac, 6) == 0) {
-      DBG("Using peer entry" + String(i));
+      DBG("Using peer entry " + String(i));
       return i;
     }
   }
@@ -1001,12 +1003,11 @@ void handleCommands() {
     case cmd_add:
       DBG("Device requesting peer registration");
       int peer_num = getFDRSPeer(&incMAC[0]);
-      DBG(peer_num);
       if (peer_num == -1) {  //if the device isn't registered
         DBG("Device not yet registered, adding to internal peer list");
         int open_peer = findOpenPeer();   // find open spot in peer_list
         memcpy(&peer_list[open_peer].mac, &incMAC, 6); //save MAC to open spot
-        peer_list[open_peer].last_seen = millis();     
+        peer_list[open_peer].last_seen = millis();
 #if defined(ESP32)
         esp_now_peer_info_t peerInfo;
         peerInfo.ifidx = WIFI_IF_STA;
@@ -1020,6 +1021,7 @@ void handleCommands() {
 #endif
 #if defined(ESP8266)
         esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+
 #endif
         SystemPacket sys_packet = { .cmd = cmd_add, .param = PEER_TIMEOUT };
         esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
