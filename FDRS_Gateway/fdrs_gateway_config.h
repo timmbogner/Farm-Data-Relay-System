@@ -43,8 +43,10 @@
 //#define USE_FS_LOG        //Enable filesystem (flash) logging
 #define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
 #define SD_SS 0             //SD card CS pin (Use different pins for LoRa and SD)
-#define SD_FILENAME "fdrs_log.csv"
-#define FS_FILENAME "fdrs_log.csv"
+#define SD_FILENAME "fdrs_log.txt"
+#define SD_MAX_FILESIZE 1024        // maximum size of logfile in KiB
+#define FS_FILENAME "fdrs_log.txt"
+#define FS_MAX_FILESIZE 1024        // maximum size of logfile in KiB
 
 // SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32
 
@@ -92,5 +94,6 @@
 
 // MQTT Topics
 #define TOPIC_DATA "fdrs/data"
+#define TOPIC_DATA_BACKLOG "fdrs/data"  // used for resending data logged when MQTT was disconnected
 #define TOPIC_STATUS "fdrs/status"
 #define TOPIC_COMMAND "fdrs/command" 

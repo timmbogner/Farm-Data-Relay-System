@@ -195,6 +195,8 @@ unsigned long ackOkLoRaMsg = 0;     // Number of total LoRa packets with valid C
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
+time_t last_mqtt_success = 0;
+time_t last_log_write = 0;
 #endif
 
 SystemPacket theCmd;
@@ -257,10 +259,42 @@ const char* mqtt_pass = NULL;
 
 #endif //USE_WIFI
 
+
 // Function prototypes
 void transmitLoRa(uint16_t*, DataReading*, uint8_t);
 void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);
 static uint16_t crc16_update(uint16_t, uint8_t);
+
+
+// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
+
+/** @ingroup util_crc16
+    Processor-independent CRC-16 calculation.
+    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+    Initial value: 0xFFFF
+    This CRC is normally used in disk-drive controllers.
+    @param uint16_t crc (0x0000..0xFFFF)
+    @param uint8_t a (0x00..0xFF)
+    @return calculated CRC (0x0000..0xFFFF)
+*/
+
+static uint16_t crc16_update(uint16_t crc, uint8_t a)
+{
+  int i;
+
+  crc ^= a;
+  for (i = 0; i < 8; ++i)
+  {
+    if (crc & 1)
+      crc = (crc >> 1) ^ 0xA001;
+    else
+      crc = (crc >> 1);
+  }
+
+  return crc;
+}
+
+
 
 #ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -324,13 +358,17 @@ void releaseLogBuffer()
 #ifdef USE_SD_LOG
   DBG("Releasing Log buffer to SD");
   File logfile = SD.open(SD_FILENAME, FILE_WRITE);
-  logfile.print(logBuffer);
+  if((logfile.size()/1024.0) < SD_MAX_FILESIZE){
+    logfile.print(logBuffer);
+  }
   logfile.close();
 #endif
 #ifdef USE_FS_LOG
   DBG("Releasing Log buffer to internal flash.");
   File logfile = LittleFS.open(FS_FILENAME, "a");
-  logfile.print(logBuffer);
+  if((logfile.size()/1024.0) < FS_MAX_FILESIZE){
+    logfile.print(logBuffer);
+  }
   logfile.close();
 #endif
   memset(&(logBuffer[0]), 0, sizeof(logBuffer) / sizeof(char));
@@ -338,24 +376,39 @@ void releaseLogBuffer()
 }
 #endif // USE_XX_LOG
 
+uint16_t stringCrc(const char input[]){
+  uint16_t calcCRC = 0x0000;
+
+  for(unsigned int i = 0; i < strlen(input); i++) {
+    calcCRC = crc16_update(calcCRC,input[i]);
+  }
+  return calcCRC;
+}
+
 void sendLog()
 {
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
   DBG("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
-    char linebuf[34]; // size depends on resulting length of the formatting string
-    sprintf(linebuf, "%lld,%d,%d,%g\r\n", time(nullptr), theData[i].id, theData[i].t, theData[i].d);
-
-    if (logBufferPos + strlen(linebuf) >= (sizeof(logBuffer) / sizeof(char))) // if buffer would overflow, release first
+    StaticJsonDocument<96> doc;
+    JsonObject doc_0 = doc.createNestedObject();
+    doc_0["id"] = theData[i].id;
+    doc_0["type"] = theData[i].t;
+    doc_0["data"] = theData[i].d;
+    doc_0["time"] = time(nullptr);
+    String outgoingString;
+    serializeJson(doc, outgoingString);
+    outgoingString = outgoingString + " " + stringCrc(outgoingString.c_str()) + "\r\n";
+    if (logBufferPos+outgoingString.length() >= (sizeof(logBuffer)/sizeof(char))) // if buffer would overflow, release first
     {
       releaseLogBuffer();
     }
-    memcpy(&logBuffer[logBufferPos], linebuf, strlen(linebuf)); //append line to buffer
-    logBufferPos += strlen(linebuf);
+    memcpy(&logBuffer[logBufferPos], outgoingString.c_str(), outgoingString.length()); //append line to buffer
+    logBufferPos+=outgoingString.length();
   }
+  time(&last_log_write);
   #endif //USE_xx_LOG
-
 }
 
 void reconnect(short int attempts, bool silent) {
@@ -417,11 +470,65 @@ void mqtt_callback(char* topic, byte * message, unsigned int length) {
   }
 }
 
+void resendLog(){
+  #ifdef USE_SD_LOG
+  DBG("Resending logged values from SD card.");
+  File logfile = SD.open(SD_FILENAME, FILE_READ);
+  while(1){
+    String line = logfile.readStringUntil('\n');
+    if (line.length() > 0){  // if line contains something
+      if (!client.publish(TOPIC_DATA_BACKLOG, line.c_str())) {
+        break;
+      }else{
+        time(&last_mqtt_success);
+      }
+    }else{
+      logfile.close();
+      SD.remove(SD_FILENAME); // if all values are sent
+      break;
+    }
+  }
+  DBG(" Done");
+  #endif
+  #ifdef USE_FS_LOG
+  DBG("Resending logged values from internal flash.");
+  File logfile = LittleFS.open(FS_FILENAME, "r");
+  while(1){
+    String line = logfile.readStringUntil('\n');
+    if (line.length() > 0){  // if line contains something
+      uint16_t readCrc;
+      char data[line.length()];
+      sscanf(line.c_str(),"%s %hd",data,&readCrc);
+      if(stringCrc(data)!=readCrc){continue;} // if CRCs don't match, skip the line
+      if (!client.publish(TOPIC_DATA_BACKLOG, line.c_str())) {
+        break;
+      }else{
+        time(&last_mqtt_success);
+      }
+    }else{
+      logfile.close();
+      LittleFS.remove(FS_FILENAME); // if all values are sent
+      break;
+    }
+  }
+  DBG(" Done");
+  #endif
+
+}
+
 void mqtt_publish(const char* payload) {
 #ifdef USE_WIFI
   if (!client.publish(TOPIC_DATA, payload)) {
     DBG(" Error on sending MQTT");
     sendLog();
+  }else{
+    #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
+      if (last_log_write >= last_mqtt_success){
+        releaseLogBuffer();
+        resendLog();
+      }
+      time(&last_mqtt_success);
+    #endif
   }
 #endif //USE_WIFI
 }
@@ -579,33 +686,9 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
   }
-#endif
 
-#ifdef USE_LORA
-void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
-  uint16_t calcCRC = 0x0000;
+#endif //USE_LORA
 
-  uint8_t pkt[6 + (len * sizeof(SystemPacket))];
-  
-  pkt[0] = (*destMac >> 8);       // high byte of destination MAC
-  pkt[1] = (*destMac & 0x00FF);   // low byte of destination MAC
-  pkt[2] = selfAddress[4];    // high byte of source MAC (ourselves)
-  pkt[3] = selfAddress[5];    // low byte of source MAC
-  memcpy(&pkt[4], packet, len * sizeof(SystemPacket));   // copy data portion of packet
-  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
-    //printf("CRC: %02X : %d\n",calcCRC, i);
-    calcCRC = crc16_update(calcCRC, pkt[i]);
-}
-  calcCRC = crc16_update(calcCRC, 0xA1); // No ACK for SystemPacket messages so generate new CRC with 0xA1
-  pkt[(len * sizeof(SystemPacket) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
-  pkt[(len * sizeof(SystemPacket) + 5)] = (calcCRC & 0x00FF);
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
-  //printLoraPacket(pkt,sizeof(pkt));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
-}
-#endif
 
 void sendESPNOW(uint8_t address) {
 #ifdef USE_ESPNOW
@@ -637,7 +720,9 @@ void sendESPNOW(uint8_t address) {
 
   esp_now_send(temp_peer, (uint8_t *) &thePacket, j * sizeof(DataReading));
   esp_now_del_peer(temp_peer);
+
 #endif  // USE_ESPNOW
+
 }
 
 void sendSerial() {
@@ -665,6 +750,7 @@ void sendMQTT() {
     doc[i]["id"]   = theData[i].id;
     doc[i]["type"] = theData[i].t;
     doc[i]["data"] = theData[i].d;
+    doc[i]["time"] = time(nullptr);
   }
   String outgoingString;
   serializeJson(doc, outgoingString);
@@ -696,7 +782,9 @@ void bufferESPNOW(uint8_t interface) {
       lenESPNOW2 +=  ln;
       break;
   }
+
 #endif // USE_ESPNOW
+
 }
 
 void bufferSerial() {
@@ -802,6 +890,7 @@ void releaseESPNOW(uint8_t interface) {
         break;
       }
   }
+
 #endif // USE_ESPNOW
 }
 
@@ -1030,6 +1119,7 @@ void handleCommands() {
 }
 
 
+
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
 /** @ingroup util_crc16
@@ -1067,3 +1157,4 @@ void printLoraPacket(uint8_t* p,int size) {
 }
 
 #endif //__FDRS_FUNCTIONS_H__
+
