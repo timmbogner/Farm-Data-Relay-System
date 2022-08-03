@@ -30,9 +30,9 @@
 #define LORA2_PEER    0x0F  // LoRa2 Address
 
 // Peer Actions
-#define ESPNOW1_ACT    
+#define ESPNOW1_ACT   
 #define ESPNOW2_ACT                    
-#define LORA1_ACT 
+#define LORA1_ACT   sendSerial();
 #define LORA2_ACT 
 
 //Pins for UART data interface (ESP32 only)
