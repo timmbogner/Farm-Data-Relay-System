@@ -686,7 +686,29 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
   }
+void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
+  uint16_t calcCRC = 0x0000;
 
+  uint8_t pkt[6 + (len * sizeof(SystemPacket))];
+
+  pkt[0] = (*destMac >> 8);       // high byte of destination MAC
+  pkt[1] = (*destMac & 0x00FF);   // low byte of destination MAC
+  pkt[2] = selfAddress[4];    // high byte of source MAC (ourselves)
+  pkt[3] = selfAddress[5];    // low byte of source MAC
+  memcpy(&pkt[4], packet, len * sizeof(SystemPacket));   // copy data portion of packet
+  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
+    //printf("CRC: %02X : %d\n",calcCRC, i);
+    calcCRC = crc16_update(calcCRC, pkt[i]);
+}
+  calcCRC = crc16_update(calcCRC, 0xA1); // No ACK for SystemPacket messages so generate new CRC with 0xA1
+  pkt[(len * sizeof(SystemPacket) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
+  pkt[(len * sizeof(SystemPacket) + 5)] = (calcCRC & 0x00FF);
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
+  //printLoraPacket(pkt,sizeof(pkt));
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+  LoRa.endPacket();
+}
 #endif //USE_LORA
 
 
