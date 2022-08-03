@@ -180,8 +180,8 @@ void beginFDRS() {
     while (1);
   }
   LoRa.setSpreadingFactor(FDRS_SF);
-  LoRa.setTxPower(LORA_TXPWR);
-  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
+  LoRa.setTxPower(FDRS_TXPWR);
+  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(FDRS_TXPWR) + " dBm");
 #endif // USE_LORA
 #ifdef DEBUG_NODE_CONFIG
   if (resetReason != ESP_RST_DEEPSLEEP) {
@@ -385,7 +385,9 @@ void sendFDRS() {
 #ifdef USE_LORA
   transmitLoRa(&gtwyAddress, fdrsData, data_count);
 
+
   DBG(" LoRa sent.");
+
 #endif
   data_count = 0;
   returnCRC = CRC_NULL;
@@ -417,6 +419,7 @@ void sleepFDRS(int sleep_time) {
   DBG(" Delaying.");
   delay(sleep_time * 1000);
 }
+
 
 void pingFDRS(int timeout) {
   SystemPacket sys_packet;
