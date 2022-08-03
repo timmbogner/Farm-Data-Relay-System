@@ -13,13 +13,14 @@
 
 #define ESPNOWG_ACT    
 #define SERIAL_ACT     sendMQTT();    
-#define MQTT_ACT          
+#define MQTT_ACT       sendSerial();   
 #define LORAG_ACT      
 
-// protocols -- Define which protocols the gateways should handle.
-// Warning: ESP-NOW and WiFi are mutual exclusive!
-//#define USE_LORA
+// Protocols -- Define which protocols the gateway will use.
+// Warning: ESP-NOW and WiFi should not be used simultaneously.
+
 //#define USE_ESPNOW  
+//#define USE_LORA
 #define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses

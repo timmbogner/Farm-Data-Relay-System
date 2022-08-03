@@ -24,15 +24,15 @@
 //#define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses
-#define ESPNOW1_PEER  0x01  // ESPNOW1 Address 
+#define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
 #define ESPNOW2_PEER  0x0F  // ESPNOW2 Address
-#define LORA1_PEER    0x0E  // LoRa1 Address
+#define LORA1_PEER    0x01  // LoRa1 Address
 #define LORA2_PEER    0x0F  // LoRa2 Address
 
 // Peer Actions
-#define ESPNOW1_ACT    
+#define ESPNOW1_ACT   
 #define ESPNOW2_ACT                    
-#define LORA1_ACT 
+#define LORA1_ACT   sendSerial(); // This would display packets arriving *from* the front-end.  
 #define LORA2_ACT 
 
 //Pins for UART data interface (ESP32 only)
