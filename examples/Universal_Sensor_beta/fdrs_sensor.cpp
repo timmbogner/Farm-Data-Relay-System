@@ -3,7 +3,7 @@
 
 const uint8_t prefix[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE}; // Should only be changed if implementing multiple FDRS systems.
 
-const uint8_t LoRaAddress[] = {prefix[4], _reading_id};
+const uint8_t LoRaAddress[] = {0x42, 0x00};
 
 uint32_t wait_time = 0;
 
@@ -25,7 +25,7 @@ void FDRSBase::begin() {
 #ifdef FDRS_DEBUG
     Serial.begin(115200);
 #endif
-    DBG("FDRS Sensor ID " + String(_reading_id, HEX) + " initializing...");
+    DBG("FDRS Sensor ID " + String(_reading_id) + " initializing...");
     DBG(" Gateway: " + String (_gtwy_mac, HEX));
 #ifdef POWER_CTRL
     DBG("Powering up the sensor array!");

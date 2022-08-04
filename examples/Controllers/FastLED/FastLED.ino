@@ -17,7 +17,7 @@
 #endif
 
 
-#define READING_ID    0x76   //Unique ID for this sensor - 8 bits hexidecimal
+#define READING_ID    118   //Unique ID for this sensor
 #define GTWY_MAC      0x00       //Gateway MAC
 
 #define DATA_PIN    4
