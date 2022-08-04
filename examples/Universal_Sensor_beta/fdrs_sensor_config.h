@@ -10,7 +10,7 @@
 #define FDRS_DEBUG 			// Comment, if you do not want to see debug messages
 #include <fdrs_globals.h> 	// Comment if you want to set specific values for this sensor here
 
-#define READING_ID    0x01   //Unique ID for this sensor - 8 bits hexidecimal
+#define READING_ID    1   //Unique ID for this sensor
 #define GTWY_MAC      0x04 	//Address of the nearest gateway
 
 #define DEEP_SLEEP
