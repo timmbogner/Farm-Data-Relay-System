@@ -15,10 +15,10 @@ Install the libraries that you need:
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) (required for MQTT Gateways)
 
 
-### [Sensors](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/extras/SENSORS.md)
+### [Sensors](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/extras/sensor_docs)
 Sensors gather data and send it to a gateway via ESP-NOW or LoRa. 
   
-### [Gateways](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/extras/GATEWAYS.md)
+### [Gateways](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/extras/gateway_docs)
 Gateways listen for packets over ESP-NOW, LoRa, UART, and/or MQTT, then re-transmit the packets using one or more of the same interfaces.
   
  ### Front-end
