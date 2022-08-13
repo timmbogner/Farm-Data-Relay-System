@@ -12,16 +12,24 @@
 float data1;
 float data2;
 
+
+
+void ctrl_1_cb(DataReading* theData){DBG("C1");}
+void ctrl_2_cb(DataReading* theData){DBG("C2");}
+void ctrl_3_cb(DataReading* theData){DBG("C3");}
+void ctrl_4_cb(DataReading* theData){DBG("C4");}
+
 void setup() {
   beginFDRS();
+  addFDRS(1000);
 }
 void loop() {
-  data1 = readHum();
-  loadFDRS(data1, HUMIDITY_T);
-  data2 = readTemp();
-  loadFDRS(data2, TEMP_T);
-  sendFDRS();
-  sleepFDRS(10);  //Sleep time in seconds
+//  data1 = readHum();
+//  loadFDRS(data1, HUMIDITY_T);
+//  data2 = readTemp();
+//  loadFDRS(data2, TEMP_T);
+//  sendFDRS();
+//  sleepFDRS(10);  //Sleep time in seconds
 }
 
 float readTemp() {
