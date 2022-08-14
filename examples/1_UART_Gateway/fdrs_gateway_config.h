@@ -11,7 +11,7 @@
 // Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(),
 //  bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
 
-#define ESPNOWG_ACT    sendSerial();
+#define ESPNOWG_ACT    sendSerial(); sendESPNOWpeers();
 #define SERIAL_ACT     sendESPNOW(0x02); bufferLoRa(1);   
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
@@ -20,7 +20,7 @@
 // Warning: ESP-NOW and WiFi should not be used simultaneously.
 
 #define USE_ESPNOW  
-#define USE_LORA
+//#define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses
