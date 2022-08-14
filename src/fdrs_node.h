@@ -81,7 +81,7 @@ typedef struct __attribute__((packed)) SystemPacket {
 } SystemPacket;
 
 const uint16_t espnow_size = 250 / sizeof(DataReading);
-const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
@@ -126,10 +126,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         is_ping = true;
         break;
       case cmd_add:
-        
         is_added = true;
         gtwy_timeout = command.param;
-
         break;
     }
   } else{
@@ -158,9 +156,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 void beginFDRS() {
 #ifdef FDRS_DEBUG
   Serial.begin(115200);
-  // find out the reset reason
-  esp_reset_reason_t resetReason;
-  resetReason = esp_reset_reason();
+  // // find out the reset reason
+  // esp_reset_reason_t resetReason;
+  // resetReason = esp_reset_reason();
 #endif
   DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
   DBG(" Gateway: " + String (GTWY_MAC, HEX));
@@ -226,9 +224,9 @@ void beginFDRS() {
   DBG("LoRa SF  : " + String(FDRS_SF));
 #endif // USE_LORA
 #ifdef DEBUG_NODE_CONFIG
-  if (resetReason != ESP_RST_DEEPSLEEP) {
+  // if (resetReason != ESP_RST_DEEPSLEEP) {
     //checkConfig();
-  }
+  // }
 #endif //DEBUG_NODE_CONFIG
 
 }
@@ -420,26 +418,10 @@ void loopFDRS() {
     }
   }
 }
-uint32_t pingFDRS(int timeout) {
-  SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
-#ifdef USE_ESPNOW
-  esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
-  DBG(" ESP-NOW ping sent.");
-  uint32_t ping_start = millis();
-  is_ping = false;
-  while ((millis() - ping_start) <= timeout) {
-    yield(); //do I need to yield or does it automatically?
-    if (is_ping) {
-      DBG("Ping Returned:" + String(millis() - ping_start) + " from " + String(incMAC[5]));
-      return millis() - ping_start;
-    }
-  }
-#endif
-#ifdef USE_LORA
-  //transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
-  DBG(" LoRa ping not sent because it isn't implemented.");
-#endif
-}
+
+
+
+
 bool seekFDRS(int timeout) {
   SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
 #ifdef USE_ESPNOW
@@ -461,11 +443,13 @@ bool seekFDRS(int timeout) {
 
 bool addFDRS(int timeout) {
     SystemPacket sys_packet = { .cmd = cmd_add, .param = 0 };
+    #ifdef USE_ESPNOW
     esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
     DBG("ESP-NOW peer subscription submitted to " + String(gatewayAddress[5]));
     uint32_t add_start = millis();
     is_added = false;
-    while ((millis() - add_start) <= timeout) {
+    while ((millis() - add_start) <= timeout) { 
+       yield();
       if (is_added) {
         DBG("Subscription accepted. Timeout: " + String(gtwy_timeout));
         last_refresh = millis();
@@ -474,8 +458,29 @@ bool addFDRS(int timeout) {
     }
     DBG("No gateways accepted the request");
     return false;
+    #endif
   }
 
+uint32_t pingFDRS(int timeout) {
+  SystemPacket sys_packet = { .cmd = cmd_ping, .param = 0 };
+#ifdef USE_ESPNOW
+  esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
+  DBG(" ESP-NOW ping sent.");
+  uint32_t ping_start = millis();
+  is_ping = false;
+  while ((millis() - ping_start) <= timeout) {
+    yield(); //do I need to yield or does it automatically?
+    if (is_ping) {
+      DBG("Ping Returned:" + String(millis() - ping_start) + " from " + String(incMAC[5]));
+      return millis() - ping_start;
+    }
+  }
+#endif
+#ifdef USE_LORA
+  //transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
+  DBG(" LoRa ping not sent because it isn't implemented.");
+#endif
+}
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
