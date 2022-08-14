@@ -148,7 +148,7 @@ enum {
 #endif
 typedef struct FDRSPeer {
   uint8_t mac[6];
-  uint32_t last_seen;
+  uint32_t last_seen = 0;
 
 } FDRSPeer;
 typedef struct __attribute__((packed)) DataReading {
@@ -626,13 +626,21 @@ int getFDRSPeer(uint8_t *mac) {  // Returns the index of the array element that 
   //DBG("Couldn't find peer");
   return -1;
 }
-int findOpenPeer() {    // Returns an unused entry in peer_list, -1 if full.
-  uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+int findOpenPeer() {    // Returns an expired entry in peer_list, -1 if full.
+  //uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   for (int i = 0; i < 16; i++) {
-    if (memcmp(&zero_addr, &peer_list[i].mac, 6) == 0) {
+   if (peer_list[i].last_seen == 0){
       DBG("Using peer entry " + String(i));
       return i;
-    }
+   }
+  }
+    for (int i = 0; i < 16; i++) {
+    if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT){
+      DBG("Recycling peer entry " + String(i));
+            esp_now_del_peer(peer_list[i].mac);
+
+      return i;
+   }
   }
   DBG("No open peers");
   return -1;
@@ -704,6 +712,7 @@ void handleCommands() {
       } else {
         DBG("Refreshing existing peer registration");
         peer_list[peer_num].last_seen = millis();
+
         SystemPacket sys_packet = { .cmd = cmd_add, .param = PEER_TIMEOUT };
         esp_now_send(incMAC, (uint8_t *) &sys_packet, sizeof(SystemPacket));
 
