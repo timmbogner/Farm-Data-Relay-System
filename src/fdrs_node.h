@@ -14,6 +14,7 @@
 #include <esp_wifi.h>
 #endif
 #ifdef USE_LORA
+#include <ArduinoUniqueID.h>
 #include <LoRa.h>
 #endif
 
@@ -82,15 +83,14 @@ typedef struct __attribute__((packed)) SystemPacket {
 
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
-uint16_t LoRaAddress = 0x4200;
+#ifdef USE_LORA
+uint16_t LoRaAddress = ((UniqueID8[6] << 8) | UniqueID8[7]);
 unsigned long transmitLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;     // Number of total LoRa packets with valid CRC
+#endif 
 uint32_t gtwy_timeout = 0;
-
 uint8_t incMAC[6];
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
@@ -229,6 +229,33 @@ void beginFDRS() {
   // }
 #endif //DEBUG_NODE_CONFIG
 
+}
+
+// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
+
+/** @ingroup util_crc16
+    Processor-independent CRC-16 calculation.
+    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+    Initial value: 0xFFFF
+    This CRC is normally used in disk-drive controllers.
+    @param uint16_t crc (0x0000..0xFFFF)
+    @param uint8_t a (0x00..0xFF)
+    @return calculated CRC (0x0000..0xFFFF)
+*/
+
+static uint16_t crc16_update(uint16_t crc, uint8_t a) {
+  int i;
+
+  crc ^= a;
+  for (i = 0; i < 8; ++i)
+  {
+    if (crc & 1)
+      crc = (crc >> 1) ^ 0xA001;
+    else
+      crc = (crc >> 1);
+  }
+
+  return crc;
 }
 
 //  USED to get ACKs from LoRa gateway at this point.  May be used in the future to get other data
@@ -480,31 +507,4 @@ uint32_t pingFDRS(int timeout) {
   //transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
   DBG(" LoRa ping not sent because it isn't implemented.");
 #endif
-}
-
-// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
-
-/** @ingroup util_crc16
-    Processor-independent CRC-16 calculation.
-    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
-    Initial value: 0xFFFF
-    This CRC is normally used in disk-drive controllers.
-    @param uint16_t crc (0x0000..0xFFFF)
-    @param uint8_t a (0x00..0xFF)
-    @return calculated CRC (0x0000..0xFFFF)
-*/
-
-static uint16_t crc16_update(uint16_t crc, uint8_t a) {
-  int i;
-
-  crc ^= a;
-  for (i = 0; i < 8; ++i)
-  {
-    if (crc & 1)
-      crc = (crc >> 1) ^ 0xA001;
-    else
-      crc = (crc >> 1);
-  }
-
-  return crc;
 }
