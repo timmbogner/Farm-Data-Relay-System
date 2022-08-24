@@ -1,8 +1,18 @@
-
+//  FARM DATA RELAY SYSTEM
+//
+//  Detaild configuration check for all sensor node types
+//
+//  Add #define DEBUG_NODE_CONFIG to your node's config to activate.
+//  When the node powers up, it's full config will be printed to the serial console once.
+//  Be sure to add further checks as new configuration possibilities are added to FDRS.
+//
+//  Contributed by Sascha Juch (sascha.juch@gmail.com)
+//
 #ifndef __FDRS_CHECKCONFIG_h__
 #define __FDRS_CHECKCONFIG_h__
 
-const char* separatorLine2 = "----------------------------------------------------";
+const char* separatorLine   = "----------------------------------------------------";
+const char* headerAndFooter = "====================================================";
 
 // helper function for obfuscating passwords
 String obfuscatePassword(String password) {
@@ -11,28 +21,21 @@ String obfuscatePassword(String password) {
 	return String(obfuscatedPass);
 }
 
-// helper function for a nice little header above each section
+// helper function for small header above each sub section
 void printSmallSectionHeader(const char* headerText) {
-	const char * separatorLine   = "----------------------------------------------------";
-
 	DBG(separatorLine);
 	DBG(headerText);
-	//DBG(separatorLine);
 }
 
 // helper function for a nice little header above each section
 void printSectionHeader(const char* headerText) {
-	const char * separatorLine   = "----------------------------------------------------";
-
 	DBG(separatorLine);
 	DBG(headerText);
 	DBG(separatorLine);
 }
 
-// helper function for a nice little header above each section
+// helper function for a nice little header above each main section
 void printConfigHeader(const char* headerText) {
-	const char * headerAndFooter = "====================================================";
-
 	DBG(headerAndFooter);
 	DBG(headerText);
 	DBG(headerAndFooter);
@@ -40,7 +43,7 @@ void printConfigHeader(const char* headerText) {
 
 // check which protocols are activated and which are deactivated
 void printActivatedProtocols() {
-	// current candidates are: WIFI, ESPNOW, LORA, MQTT, ???
+	// current candidates are: ESPNOW, LORA and MQTT (WIFI)
 	printSectionHeader("ACTIVATED PROTOCOLS");
 
 #ifdef USE_LORA
@@ -62,7 +65,6 @@ void printActivatedProtocols() {
 #endif
 
 }
-
 
 void printEspnowDetails() {
 #ifdef USE_ESPNOW
@@ -139,12 +141,10 @@ void printWifiDetails() {
 #endif //MQTT_PASS
 
 #endif //FDRS_MQTT_AUTH
-	DBG("----------------------------------------------------");
-	DBG(separatorLine2);
+	DBG(separatorLine);
+	DBG(separatorLine);
 
 #endif //USE_WIFI
-
-
 }
 
 void printLoraDetails() {
@@ -226,9 +226,7 @@ void checkConfig() {
 	printWifiDetails();
 #endif
 
-
-
-	DBG("----------------------------------------------------");
+	DBG(separatorLine);
 	DBG("");
 }
 

@@ -62,6 +62,7 @@ transmitLoRa	KEYWORD2
 #######################################################################
 # Literals (LITERAL1)
 #######################################################################
+DEBUG_NODE_CONFIG	LITERAL1
 DEEP_SLEEP	LITERAL1
 FDRS_BAND	LITERAL1
 FDRS_DEBUG	LITERAL1
