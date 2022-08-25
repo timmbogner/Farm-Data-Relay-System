@@ -100,10 +100,9 @@ uint8_t data_count = 0;
 bool is_ping = false;
 bool is_added = false;
 uint32_t last_refresh;
-void ctrl_1_cb(DataReading* reading);
-void ctrl_2_cb(DataReading* reading); 
-void ctrl_3_cb(DataReading* reading); 
-void ctrl_4_cb(DataReading* reading); 
+void (*callback_ptr)(DataReading);
+uint16_t subscription_list[256] = {};
+bool active_subs[256] = {};
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -133,22 +132,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   } else{
     memcpy(&incData, incomingData, len);
   int pkt_readings = len / sizeof(DataReading);
-  for (int i; i <= pkt_readings; i++) {        //Cycle through array of incoming DataReadings for any addressed to this device
-    switch (incData[i].id) {
-      case CONTROL_1:
-        ctrl_1_cb(&incData[i]);
-        break;
-      case CONTROL_2:
-        ctrl_2_cb(&incData[i]);
-        break;
-      case CONTROL_3:
-        ctrl_3_cb(&incData[i]);
-        break;
-      case CONTROL_4:
-        ctrl_4_cb(&incData[i]);
-        break;
+  for (int i = 0; i <= pkt_readings; i++) {        //Cycle through array of incoming DataReadings for any addressed to this device
+    for (int j = 0; j < 255; j++){                 //Cycle through subscriptions for active entries
+      if (active_subs[j]){
+        if (incData[i].id == subscription_list[j]){
+          (*callback_ptr)(incData[i]);
+          }
+        }
+      }
     }
-   }
   }
 }
 
@@ -468,17 +460,20 @@ bool seekFDRS(int timeout) {
 #endif
 }
 
-bool addFDRS(int timeout) {
+bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading)) {
+    
+    callback_ptr = new_cb_ptr;
+    
     SystemPacket sys_packet = { .cmd = cmd_add, .param = 0 };
     #ifdef USE_ESPNOW
     esp_now_send(gatewayAddress, (uint8_t *) &sys_packet, sizeof(SystemPacket));
-    DBG("ESP-NOW peer subscription submitted to " + String(gatewayAddress[5]));
+    DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
     uint32_t add_start = millis();
     is_added = false;
     while ((millis() - add_start) <= timeout) { 
        yield();
       if (is_added) {
-        DBG("Subscription accepted. Timeout: " + String(gtwy_timeout));
+        DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
         last_refresh = millis();
         return true;
       }
@@ -507,4 +502,37 @@ uint32_t pingFDRS(int timeout) {
   //transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
   DBG(" LoRa ping not sent because it isn't implemented.");
 #endif
+}
+bool subscribeFDRS(uint16_t sub_id){
+  for(int i = 0; i < 255; i++){
+    if ((subscription_list[i] == sub_id) && (active_subs[i])){
+      DBG("You're already subscribed to that!");
+      return true;
+    }
+  }
+  for(int i = 0; i < 255; i++){
+    if (!active_subs[i]){
+      DBG("Adding subscription at position " + String(i));
+        subscription_list[i] = sub_id;
+        active_subs[i] = true;
+        return true;
+        
+    }
+    
+  }
+  DBG("No subscription could be established!");
+  return false;
+
+}
+bool unsubscribeFDRS(uint16_t sub_id){
+  for(int i = 0; i < 255; i++){
+    if ((subscription_list[i] == sub_id) && (active_subs[i])){
+      DBG("Removing subscription.");
+      active_subs[i] = false;
+      return true;
+    }
+  }
+  DBG("No subscription to remove");
+  return false;
+
 }

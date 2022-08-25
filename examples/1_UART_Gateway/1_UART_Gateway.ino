@@ -97,8 +97,8 @@ void setup() {
    client.publish(TOPIC_STATUS, "FDRS initialized");
 #endif
 }
-
 void loop() {
+  handleCommands();
   #ifdef ESPNOWG_DELAY
   if ((millis() - timeESPNOWG) >= ESPNOWG_DELAY) {
     timeESPNOWG = millis();

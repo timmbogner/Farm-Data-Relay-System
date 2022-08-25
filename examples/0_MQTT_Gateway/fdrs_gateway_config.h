@@ -76,6 +76,8 @@
 //#define LORA1_DELAY    1000
 //#define LORA2_DELAY    1000
 
+#define PEER_TIMEOUT 300000
+
 // FastLED -- Not yet fully implemented
 //#define USE_LED
 #define LED_PIN    32
