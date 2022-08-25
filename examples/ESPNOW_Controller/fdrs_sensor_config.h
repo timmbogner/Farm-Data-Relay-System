@@ -7,12 +7,6 @@
 #define READING_ID    1   //Unique ID for this sensor
 #define GTWY_MAC      0x01 //Address of the nearest gateway
 
-#define CONTROL_1    133        //Address for controller 1
-#define CONTROL_2    134        //Address for controller 2
-#define CONTROL_3    135        //Address for controller 3
-#define CONTROL_4    136        //Address for controller 4
-
-
 #define USE_ESPNOW
 //#define USE_LORA
 //#define DEEP_SLEEP
