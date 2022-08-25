@@ -5,7 +5,7 @@
 #include <fdrs_globals.h>
 
 #define FDRS_DEBUG     //Enable USB-Serial debugging
-//#define DEBUG_NODE_CONFIG //displays full config of node after power up
+#define DEBUG_NODE_CONFIG //displays full config of node after power up
 
 #define UNIT_MAC     0x00  // The address of this gateway
 
