@@ -51,7 +51,7 @@ void printConfigHeader(const char* headerText) {
 void printLoggingInformation() {
 	printSectionHeader("LOG SETTINGS OF NODE");
 
-#ifdef USE_SD_LOG && USE_FS_LOG
+#if defined(USE_SD_LOG) && defined(USE_FS_LOG)
 	DBG("Logging to SD card AND file system is active! You should better use only one of them at a time");
 #endif
 
@@ -113,7 +113,7 @@ void printActivatedProtocols() {
 	DBG("WiFi   : DISABLED");
 #endif
 
-#ifdef USE_WIFI && USE_ESPNOW
+#if defined(USE_WIFI) && defined(USE_ESPNOW)
 	DBG("WARNING: You must not use USE_ESPNOW and USE_WIFI together! USE_WIFI is only needed for MQTT!");
 #endif
 }
