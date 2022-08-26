@@ -1,8 +1,20 @@
-
+//  FARM DATA RELAY SYSTEM
+//
+//  DETAILED NODES' CONFIGURATION CHECK
+//
+//  Make sure #define DEBUG_NODE_CONFIG is not uncommented in your node's config
+// (fdrs_sensor_config.h or fdrs_gateway_config.h). Otherwise check will be ignored.
+//  When the node powers up, it's full config will be printed to the serial console once.
+//  Be sure to add further checks as new configuration possibilities are added to FDRS.
+//
+//  Contributed by Sascha Juch (sascha.juch@gmail.com)
+//
 #ifndef __FDRS_CHECKCONFIG_h__
 #define __FDRS_CHECKCONFIG_h__
 
-const char* separatorLine2 = "----------------------------------------------------";
+const char* separatorLine   = "--------------------------------------------------------------";
+const char* headerAndFooter = "==============================================================";
+
 
 // helper function for obfuscating passwords
 String obfuscatePassword(String password) {
@@ -11,56 +23,99 @@ String obfuscatePassword(String password) {
 	return String(obfuscatedPass);
 }
 
-// helper function for a nice little header above each section
-void printSmallSectionHeader(const char* headerText) {
-	const char * separatorLine   = "----------------------------------------------------";
 
+// helper function for small header above each sub section
+void printSmallSectionHeader(const char* headerText) {
 	DBG(separatorLine);
 	DBG(headerText);
-	//DBG(separatorLine);
 }
+
 
 // helper function for a nice little header above each section
 void printSectionHeader(const char* headerText) {
-	const char * separatorLine   = "----------------------------------------------------";
-
 	DBG(separatorLine);
 	DBG(headerText);
 	DBG(separatorLine);
 }
 
-// helper function for a nice little header above each section
+
+// helper function for a nice little header above each main section
 void printConfigHeader(const char* headerText) {
-	const char * headerAndFooter = "====================================================";
-
 	DBG(headerAndFooter);
 	DBG(headerText);
 	DBG(headerAndFooter);
 }
+
+
+// check which logging method(s) have been activated for a node
+void printLoggingInformation() {
+	printSectionHeader("LOG SETTINGS OF NODE");
+
+#ifdef USE_SD_LOG && USE_FS_LOG
+	DBG("Logging to SD card AND file system is active! You should better use only one of them at a time");
+#endif
+
+#ifdef USE_SD_LOG
+	DBG("Logging to SD-Card    : enabled");
+#ifdef LOGBUF_DELAY
+	DBG("log buffer delay in ms: " + " + String(LOGBUF_DELAY));
+#else
+	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
+#endif
+#ifdef SD_FILENAME
+	DBG("log filename          : " + SD_FILENAME);
+#else
+	DBG("log filename          : NOT SPECIFIED - check config!");
+#endif
+#else
+	DBG("Logging to SD-Card    : disabled");
+#endif //USE_SD_LOG
+
+#ifdef USE_FS_LOG
+	DBG("Logging to file system: enabled");
+#ifdef LOGBUF_DELAY
+	DBG("log buffer delay in ms: " + String(LOGBUF_DELAY));
+#else
+	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
+#endif
+#ifdef FS_FILENAME
+	DBG("log filename          : " + FS_FILENAME);
+#else
+	DBG("log filename          : NOT SPECIFIED - check config!");
+#endif
+	DBG("WARNING: Permanently logging to flash memory may destroy the flash memory of your device!");
+#else
+	DBG("Logging to file system: disabled");
+#endif //USE_FS_LOG
+}
+
 
 // check which protocols are activated and which are deactivated
 void printActivatedProtocols() {
-	// current candidates are: WIFI, ESPNOW, LORA, MQTT, ???
+	// current candidates are: ESPNOW, LORA and MQTT (WIFI)
 	printSectionHeader("ACTIVATED PROTOCOLS");
 
 #ifdef USE_LORA
-	DBG("LoRa  : ENABLED");
+	DBG("LoRa   : ENABLED");
 #else
-	DBG("LoRa  : DISABLED");
+	DBG("LoRa   : DISABLED");
 #endif
 
 #ifdef USE_ESPNOW
-	DBG("ESPNow: ENABLED");
+	DBG("ESPNow : ENABLED");
 #else
-	DBG("ESPNow: DISABLED");
+	DBG("ESPNow : DISABLED");
 #endif
 
 #ifdef USE_WIFI
-	DBG("WiFi  : ENABLED");
+	DBG("WiFi   : ENABLED");
 #else
-	DBG("WiFi  : DISABLED");
+	DBG("WiFi   : DISABLED");
 #endif
 
+#ifdef USE_WIFI && USE_ESPNOW
+	DBG("WARNING: You must not use USE_ESPNOW and USE_WIFI together! USE_WIFI is only needed for MQTT!");
+#endif
 }
 
 
@@ -76,6 +131,7 @@ void printEspnowDetails() {
 #endif //USE_ESPNOW
 }
 
+
 void printWifiDetails() {
 #ifdef USE_WIFI
 	printSmallSectionHeader("WiFi Details:");
@@ -85,7 +141,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_SSID)
 	DBG("WiFi SSID used from GLOBAL_SSID          : " + String(FDRS_WIFI_SSID));
 #else 
-	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //WIFI_SSID
 
@@ -94,7 +150,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_SSID)
 	DBG("WiFi password used from GLOBAL_PASS      : " + obfuscatePassword(FDRS_WIFI_PASS));
 #else 
-	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //WIFI_PASS
 
@@ -105,7 +161,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_MQTT_ADDR)
 	DBG("MQTT address used from GLOBAL_MQTT_ADDR  : " + String(FDRS_MQTT_ADDR));
 #else 
-	DBG("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //MQTT_ADDR
 
@@ -125,7 +181,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_MQTT_USER)
 	DBG("MQTT username used from GLOBAL_MQTT_USER : " + String(FDRS_MQTT_USER));
 #else 
-	DBG("NO MQTT username defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO MQTT username defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //MQTT_USER
 
@@ -134,51 +190,106 @@ void printWifiDetails() {
 #elif defined (GLOBAL_MQTT_PASS)
 	DBG("MQTT password used from GLOBAL_MQTT_PASS : " + obfuscatePassword(FDRS_MQTT_PASS));
 #else 
-	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //MQTT_PASS
 
 #endif //FDRS_MQTT_AUTH
-	DBG("----------------------------------------------------");
-	DBG(separatorLine2);
+
+#if defined(TOPIC_DATA)
+	DBG("MQTT topic (TOPIC_DATA)                  : " + String(TOPIC_DATA));
+#else 
+	DBG("NO MQTT topic defined! Please define TOPIC_DATA in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //TOPIC_DATA
+
+#if defined(TOPIC_STATUS)
+	DBG("MQTT topic (TOPIC_STATUS)                : " + String(TOPIC_STATUS));
+#else 
+	DBG("NO MQTT topic defined! Please define TOPIC_STATUS in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //TOPIC_STATUS
+
+#if defined(TOPIC_COMMAND)
+	DBG("MQTT topic (TOPIC_COMMAND)               : " + String(TOPIC_COMMAND));
+#else 
+	DBG("NO MQTT topic defined! Please define TOPIC_COMMAND in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //TOPIC_COMMAND
+
+	DBG(separatorLine);
+	DBG(separatorLine);
 
 #endif //USE_WIFI
-
-
 }
+
 
 void printLoraDetails() {
 #ifdef USE_LORA
 	printSmallSectionHeader("LoRa Details:");
 	
 #if defined(LORA_BAND)
-	DBG("LoRa Band used from LORA_BAND       : " + String(FDRS_BAND));
+	DBG("LoRa Band used from LORA_BAND                 : " + String(FDRS_BAND));
 #elif defined (GLOBAL_LORA_BAND)
-	DBG("LoRa Band used from GLOBAL_LORA_BAND: " + String(FDRS_BAND));
+	DBG("LoRa Band used from GLOBAL_LORA_BAND          : " + String(FDRS_BAND));
 #else 
-	DBG("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA_BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	//exit(0);
 #endif //LORA-BAND
 
 #if defined(LORA_SF)
-	DBG("LoRa SF used from LORA_SF           : " + String(FDRS_SF));
+	DBG("LoRa SF used from LORA_SF                     : " + String(FDRS_SF));
 #elif defined (GLOBAL_LORA_SF)
-	DBG("LoRa SF used from GLOBAL_LORA_SF    : " + String(FDRS_SF));
+	DBG("LoRa SF used from GLOBAL_LORA_SF              : " + String(FDRS_SF));
 #else 
 //	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA_SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	//exit(0);
-#endif //LORA-SF
+#endif //LORA_SF
 
 #if defined(LORA_TXPWR)
-	DBG("LoRa TXPWR used from LORA_TXPWR           : " + String(FDRS_TXPWR));
+	DBG("LoRa TXPWR used from LORA_TXPWR               : " + String(FDRS_TXPWR));
 #elif defined (GLOBAL_LORA_TXPWR)
-	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR    : " + String(FDRS_TXPWR));
+	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR        : " + String(FDRS_TXPWR));
 #else 
 //	ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA_TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	//exit(0);
-#endif //LORA-TXPWR
+#endif //LORA_TXPWR
+
+#if defined(LORA_ACK)
+	DBG("LoRa acknowledgement used from LORA_ACK       : enabled");
+#elif defined (GLOBAL_LORA_ACK)
+	DBG("LoRa acknowledgement used from GLOBAL_LORA_ACK: enabled");
+#else
+	DBG("LoRa acknowledgement                          : disabled");
+#endif	
+
+#if defined(LORA_ACK) || defined(GLOBAL_LORA_ACK)
+
+#if defined(LORA_ACK_TIMEOUT)
+	DBG("Timeout for Lora acknowledment (LORA_ACK)     : " + String(LORA_ACK_TIMEOUT));
+#else
+	DBG("NO LORA_ACK_TIMEOUT defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif // LORA_ACK_TIMEOUT
+
+#if defined(LORA_RETRIES)
+	DBG("Number of ack retries (LORA_RETRIES)          : " + String(LORA_RETRIES));
+	
+	if (LORA_RETRIES >= 0 && LORA_RETRIES <= 3) 
+	{
+		DBG("Number of ack retries (LORA_RETRIES)          : within allowed range.");
+	}
+	else {
+		DBG("Number of ack retries (LORA_RETRIES)          : not within allowed range [0 - 3]! Please change to correct value.");
+	} // LORA_RETRIES RANGE CHECK
+
+#else
+	DBG("NO LORA_RETRIES defined! Defaulting to 0. Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif // LORA_RETRIES
+
+
+#endif //LORA_ACK || GLOBAL_LORA_ACK
 
 #ifdef UNIT_MAC
 	DBG("LoRa peers");
@@ -206,8 +317,6 @@ void checkConfig() {
 	DBG("please add it's config check to:");
 	DGB("fdrs_checkConfig.h");
 #endif
-
-	//printConfigHeader("FULL CONFIG OVERVIEW");
 	
 	printActivatedProtocols();
 	
@@ -217,7 +326,6 @@ void checkConfig() {
 	printLoraDetails();
 #endif
 
-// why is USE_ESPNOW not defined for gateways? This should be implemented as not every gateway has to be an ESP-NOW gateway!
 #ifdef USE_ESPNOW
 	printEspnowDetails();
 #endif
@@ -226,9 +334,10 @@ void checkConfig() {
 	printWifiDetails();
 #endif
 
-
-
-	DBG("----------------------------------------------------");
+	printLoggingInformation();
+	
+	printConfigHeader("NODE CONFIGURATION OVERVIEW END");
+	//DBG(separatorLine);
 	DBG("");
 }
 
