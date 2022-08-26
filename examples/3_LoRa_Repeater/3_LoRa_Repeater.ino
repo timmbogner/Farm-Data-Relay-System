@@ -86,6 +86,7 @@ void setup() {
 }
 
 void loop() {
+  handleCommands();
   #ifdef ESPNOWG_DELAY
   if ((millis() - timeESPNOWG) >= ESPNOWG_DELAY) {
     timeESPNOWG = millis();

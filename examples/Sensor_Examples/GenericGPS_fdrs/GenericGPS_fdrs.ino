@@ -7,7 +7,7 @@
 //
 
 #include "fdrs_sensor_config.h"
-#include <fdrs_sensor.h>
+#include <fdrs_node.h>
 
 #define SERIAL1_RX 34 // TX pin of GPS sensor
 #define SERIAL1_TX 12 // RX pin of GPS sensor

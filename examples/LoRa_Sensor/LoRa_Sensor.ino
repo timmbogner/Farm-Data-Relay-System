@@ -7,7 +7,7 @@
 //
 
 #include "fdrs_sensor_config.h"
-#include <fdrs_sensor.h>
+#include <fdrs_node.h>
 
 float data1;
 float data2;
