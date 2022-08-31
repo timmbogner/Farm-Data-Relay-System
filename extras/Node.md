@@ -49,6 +49,12 @@ void setup() {
   subscribeFDRS(READING_ID);
 }
 void loop() {
+  //    data1 = readHum();
+  //    loadFDRS(data1, HUMIDITY_T);
+  //    data2 = readTemp();
+  //    loadFDRS(data2, TEMP_T);
+  //    sendFDRS();
+  //    sleepFDRS(10);  //Sleep time in seconds
 }
 ```
 
@@ -99,7 +105,8 @@ For the moment, my thought is to reserve the first two bits of the type. I might
 #define LATITUDE_T      21 // GPS Latitude
 #define LONGITUDE_T     22 // GPS Longitude
 #define ALTITUDE_T      23 // GPS Altitude
-
+#define HDOP_T          24 // GPS HDOP
+#define FLUIDLVL_T      25 // Fluid Level
 ```
 ## Under the hood
 ```
