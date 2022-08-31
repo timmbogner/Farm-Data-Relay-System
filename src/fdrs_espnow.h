@@ -1,4 +1,3 @@
-
 #ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -10,6 +9,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
+  memcpy(&incMAC, mac, sizeof(incMAC));
   if (len < sizeof(DataReading)) {
     DBG("ESP-NOW System Packet");
     memcpy(&theCmd, incomingData, sizeof(theCmd));
@@ -17,7 +17,6 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     return;
   }
   memcpy(&theData, incomingData, sizeof(theData));
-  memcpy(&incMAC, mac, sizeof(incMAC));
   DBG("Incoming ESP-NOW.");
   ln = len / sizeof(DataReading);
   if (memcmp(&incMAC, &ESPNOW1, 6) == 0) {
@@ -89,6 +88,23 @@ void begin_espnow() {
 #endif //ESP8266
   DBG(" ESP-NOW Initialized.");
 #endif //USE_ESPNOW
+}
+
+void sendESPNOWpeers() {
+#ifdef USE_ESPNOW
+  DBG("Sending to ESP-NOW peers.");
+  DataReading thePacket[ln];
+  int j = 0;
+  for (int i = 0; i < ln; i++) {
+    if ( j > espnow_size) {
+      j = 0;
+      esp_now_send(0, (uint8_t *) &thePacket, sizeof(thePacket));
+    }
+    thePacket[j] = theData[i];
+    j++;
+  }
+  esp_now_send(0, (uint8_t *) &thePacket, j * sizeof(DataReading));
+#endif  // USE_ESPNOW
 }
 
 

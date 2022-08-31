@@ -13,7 +13,7 @@
 //  bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
 
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     sendESPNOW(0x02); bufferLoRa(1);   
+#define SERIAL_ACT     sendESPNOW(0x02); bufferLoRa(1); sendESPNOWpeers(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
 
@@ -21,7 +21,7 @@
 // Warning: ESP-NOW and WiFi should not be used simultaneously.
 
 #define USE_ESPNOW  
-#define USE_LORA
+//#define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
 
 // Peer addresses
@@ -74,8 +74,10 @@
 //#define SERIAL_DELAY   0
 //#define MQTT_DELAY     0
 //#define LORAG_DELAY    1000
-#define LORA1_DELAY    500
+//#define LORA1_DELAY    500
 //#define LORA2_DELAY    1000
+
+#define PEER_TIMEOUT 300000
 
 // FastLED -- Not yet fully implemented
 //#define USE_LED

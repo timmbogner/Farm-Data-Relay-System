@@ -4,7 +4,7 @@
 // Modified by Timm Bogner for Farm Data Relay System -- Untested because I don't have a DHT sensor onhand. 
 
 #include "fdrs_sensor_config.h"
-#include <fdrs_sensor.h>
+#include <fdrs_node.h>
 #include "DHT.h"
 
 #define DHTPIN 2     // Digital pin connected to the DHT sensor

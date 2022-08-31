@@ -48,12 +48,14 @@ void setup() {
   DBG("Address:" + String (UNIT_MAC, HEX));
 
 #ifdef DEBUG_NODE_CONFIG
+#ifdef ESP32
   // find out the reset reason
   esp_reset_reason_t resetReason;
   resetReason = esp_reset_reason();
   if (resetReason != ESP_RST_DEEPSLEEP) {
     checkConfig();
   }
+#endif //ESP32
 #endif //DEBUG_NODE_CONFIG
 
 #ifdef USE_LED
@@ -95,8 +97,8 @@ void setup() {
    client.publish(TOPIC_STATUS, "FDRS initialized");
 #endif
 }
-
 void loop() {
+  handleCommands();
   #ifdef ESPNOWG_DELAY
   if ((millis() - timeESPNOWG) >= ESPNOWG_DELAY) {
     timeESPNOWG = millis();
