@@ -21,7 +21,8 @@ Sets the device to listen for a specific DataReading id. When a DataReading with
 Removes ```sub_id``` from subscription list.
 
 ## Basic usage:
-### Sensor:
+### Sensor
+Sends data (a temperature of 21.0) to the gateway it is addressed to.
 ```
 void setup() {
   beginFDRS();
@@ -34,6 +35,7 @@ void loop() {
 ```
 
 ### Controller
+Registers with, then receives data from the device it is addressed to.
 
 ```
 void fdrs_recv_cb(DataReading theData) {
