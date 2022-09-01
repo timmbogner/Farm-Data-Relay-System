@@ -106,7 +106,7 @@ For the moment, my thought is to reserve the first two bits of the type. I might
 #define LONGITUDE_T     22 // GPS Longitude
 #define ALTITUDE_T      23 // GPS Altitude
 #define HDOP_T          24 // GPS HDOP
-#define FLUIDLVL_T      25 // Fluid Level
+#define LEVEL_T         25 // Fluid Level
 ```
 ## Under the hood
 ```

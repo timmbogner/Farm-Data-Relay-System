@@ -30,6 +30,6 @@
 #define LONGITUDE_T     22 // GPS Longitude
 #define ALTITUDE_T      23 // GPS Altitude
 #define HDOP_T          24 // GPS HDOP
-#define FLUIDLVL_T      25 // Fluid Level
+#define LEVEL_T         25 // Fluid Level
 
 #endif //FDRS_DATA_TYPES
