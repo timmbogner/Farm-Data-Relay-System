@@ -49,12 +49,7 @@ void setup() {
   subscribeFDRS(READING_ID);
 }
 void loop() {
-  //    data1 = readHum();
-  //    loadFDRS(data1, HUMIDITY_T);
-  //    data2 = readTemp();
-  //    loadFDRS(data2, TEMP_T);
-  //    sendFDRS();
-  //    sleepFDRS(10);  //Sleep time in seconds
+
 }
 ```
 
