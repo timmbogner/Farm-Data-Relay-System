@@ -2,7 +2,7 @@
 //
 //  Irrigation Controller
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (bogner1@gmail.com) in Urbana, Illinois, USA.
 //
 //
 #include "fdrs_sensor_config.h"
@@ -29,22 +29,18 @@ void fdrs_recv_cb(DataReading theData) {
   switch (theData.id) {
     case CONTROL_1:
       status_1 = (int)theData.d;
-      Serial.println("D:" + String(theData.d));
       newData = true;
       break;
     case CONTROL_2:
       status_2 = (int)theData.d;
-      Serial.println("D:" + String(theData.d));
       newData = true;
       break;
     case CONTROL_3:
       status_3 = (int)theData.d;
-      Serial.println("D:" + String(theData.d));
       newData = true;
       break;
     case CONTROL_4:
       status_4 = (int)theData.d;
-      Serial.println("D:" + String(theData.d));
       newData = true;
       break;
   }
