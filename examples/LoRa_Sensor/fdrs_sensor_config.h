@@ -29,6 +29,7 @@
 //#define LORA_BAND 915E6         // LoRa Frequency Band
 //#define LORA_SF 7               // LoRa Spreading Factor
 //#define LORA_TXPWR 17           // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm
-//#define LORA_ACK                // Request LoRa acknowledgment. Increases battery usage.
-//#define LORA_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
-//#define LORA_RETRIES 2          // LoRa ACK retries [0 - 3]
+
+#define LORA_ACK                // Request LoRa acknowledgment. Increases battery usage.
+#define LORA_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
+#define LORA_RETRIES 2          // LoRa ACK retries [0 - 3]

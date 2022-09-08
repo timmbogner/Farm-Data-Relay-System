@@ -95,6 +95,7 @@ uint8_t incMAC[6];
 uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
+crcResult esp_now_ack_flag;
 
 uint8_t data_count = 0;
 bool is_ping = false;
@@ -107,10 +108,21 @@ bool active_subs[256] = {};
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
+  if(sendStatus == 0){
+    esp_now_ack_flag = CRC_OK;
+  } else {
+    esp_now_ack_flag = CRC_BAD;
+  }
 }
 void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len) {
 #elif defined(ESP32)
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+  if(status == ESP_NOW_SEND_SUCCESS){
+    esp_now_ack_flag = CRC_OK;
+  } else {
+    esp_now_ack_flag = CRC_BAD;
+  }
+   
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
@@ -180,6 +192,7 @@ void beginFDRS() {
     return;
   }
   esp_now_register_recv_cb(OnDataRecv);
+  esp_now_register_send_cb(OnDataSent);
 
   esp_now_peer_info_t peerInfo;
   peerInfo.ifidx = WIFI_IF_STA;
@@ -326,7 +339,7 @@ void printLoraPacket(uint8_t* p, int size) {
   printf("\n");
 }
 
-void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
+bool transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
 #ifdef USE_LORA
   uint8_t pkt[6 + (len * sizeof(DataReading))];
   uint16_t calcCRC = 0x0000;
@@ -366,7 +379,7 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
     if (returnCRC == CRC_OK) {
       //DBG("LoRa ACK Received! CRC OK");
       msgOkLoRa++;
-      return;  // we're done
+      return true;  // we're done
     }
     else if (returnCRC == CRC_BAD) {
       //DBG("LoRa ACK Received! CRC BAD");
@@ -375,8 +388,9 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
     else {
       DBG("LoRa Timeout waiting for ACK!");
       // resend original packet again if retries are available
-    }
+    }  
   }
+  return false;
 #else   // Send and do not wait for ACK reply
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, 16) + " to gateway 0x" + String(*destMAC, 16));
   //printLoraPacket(pkt,sizeof(pkt));
@@ -384,22 +398,35 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
   LoRa.write((uint8_t*)&pkt, sizeof(pkt));
   LoRa.endPacket();
   transmitLoRaMsg++;
+  return true;
 #endif    // LORA_ACK
 #endif    // USE_LORA
 }
 
-void sendFDRS() {
+bool sendFDRS() {
   DBG("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
-  delay(5);
-  DBG(" ESP-NOW sent.");
+  esp_now_ack_flag =  CRC_NULL;
+  while(esp_now_ack_flag == CRC_NULL){}
+  if (esp_now_ack_flag = CRC_OK){
+    return true;
+  } else {
+    return false;
+  }
 #endif
 #ifdef USE_LORA
-  transmitLoRa(&gtwyAddress, fdrsData, data_count);
+  if(transmitLoRa(&gtwyAddress, fdrsData, data_count)){
+    data_count = 0;
+    returnCRC = CRC_NULL;
+    return true;
+  } else {
+    data_count = 0;
+    returnCRC = CRC_NULL;
+    return false;
+  }
 #endif
-  data_count = 0;
-  returnCRC = CRC_NULL;
+return false;
 }
 
 void loadFDRS(float d, uint8_t t) {
