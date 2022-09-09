@@ -121,8 +121,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     esp_now_ack_flag = CRC_OK;
   } else {
     esp_now_ack_flag = CRC_BAD;
-  }
-   
+  }  
 }
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 #endif
@@ -408,12 +407,15 @@ bool sendFDRS() {
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
   esp_now_ack_flag =  CRC_NULL;
-  while(esp_now_ack_flag == CRC_NULL){}
-  if (esp_now_ack_flag = CRC_OK){
-    return true;
-  } else {
-    return false;
+  while(esp_now_ack_flag == CRC_NULL){
+    delay(0);
   }
+  if (esp_now_ack_flag == CRC_OK){
+      return true;
+    } else {
+      return false;
+    }
+
 #endif
 #ifdef USE_LORA
   if(transmitLoRa(&gtwyAddress, fdrsData, data_count)){

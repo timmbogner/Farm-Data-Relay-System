@@ -20,7 +20,12 @@ void loop() {
   loadFDRS(data1, HUMIDITY_T);
   data2 = readTemp();
   loadFDRS(data2, TEMP_T);
-  sendFDRS();
+//  DBG(sendFDRS());
+    if(sendFDRS()){
+      DBG("Big Success!");
+    } else {
+      DBG("Nope, not so much.");
+    }
   sleepFDRS(10);  //Sleep time in seconds
 }
 
@@ -29,5 +34,5 @@ float readTemp() {
 }
 
 float readHum() {
-  return random(0,100);
+  return random(0, 100);
 }
