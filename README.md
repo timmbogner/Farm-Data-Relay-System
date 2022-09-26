@@ -24,7 +24,7 @@ A **Controller Node** registers with a gateway to begin receiving data from it, 
 Gateways listen for packets over ESP-NOW, LoRa, UART, and/or MQTT, then re-transmit the packets using one or more of the same interfaces.
   
 ### Front-end
-You can access your data using Raspberry Pi (or other computer) linked to your final FDRS Gateway via either UART (serial-to-USB) or MQTT. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
+You can access your data using a Raspberry Pi (or other computer) linked to your final FDRS Gateway via either UART (serial-to-USB) or MQTT. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
 
 
 ## Future Plans
