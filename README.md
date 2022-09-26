@@ -38,7 +38,7 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
 ## Thank you
 **...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with contributions and assistance. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
 
-Winter is coming, and as an agricultural worker this means my budget is quite thin. If you are enjoying FDRS, **[please consider supporting me](https://www.buymeacoffee.com/TimmB) so that I can keep at it.**
+Winter is coming, and as an agricultural worker this means my budget is quite thin. ** If you are enjoying FDRS, [please consider supporting me](https://www.buymeacoffee.com/TimmB) so that I can keep at it.**
 
 Many thanks go to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). His insight and ideas took this project from a roughly-hewn stone to the "[diamond](https://youtu.be/6JI5wZABWmA)" you see today. 
 
