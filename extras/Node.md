@@ -69,8 +69,12 @@ If enabled, device will enter deep-sleep when the sleepFDRS() command is used. I
 ### ```#define POWER_CTRL (pin)```
 If defined, power control will bring a GPIO pin high when FDRS is initialized. This is useful for powering sensors while running on battery.
 
-##The Callback
-When incoming data arrives with an ID that the controller is subscribed to, the callback function is executed, interrupting all other tasks. Inside of this function, the user has access to the DataReading that has just arrived. This function should ONLY contain the code needed to save the data to a more permanent location. Any interpretation or display of the data should occur outside of the callback function. Intermediate users may also like to know that if the controller is subscribed to multiple IDs, the callback may be called multiple times before returning to the loop().
+## Callback function
+The callback function is executed when data arrives with an ID that the controller is subscribed to, interrupting all other tasks. Inside of this function, the user has access to the incoming DataReading.
+
+This function should **ONLY** contain the code needed to save the data to a more permanent location. *Any interpretation or display of the data should occur outside of the callback function*.
+
+Intermediate users may also like to know that if the controller is subscribed to multiple IDs, the callback may be called multiple times before returning to the loop().
 
 ## Type Definitions 
 For the moment, my thought is to reserve the first two bits of the type. I might use them in the future to indicate the data size or type (bool, char,  int, float, etc?). This leaves us with 64 possible type definitions. If you have more types to add, please get in touch!
