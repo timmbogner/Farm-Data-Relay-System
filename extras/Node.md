@@ -56,11 +56,11 @@ void loop() {
 ## Configuration
 
 ### ```#define READING_ID  n```
-The identifier of this individual device. Should be a 16 bit integer value (0 - 65535).
+The identifier of this individual device. Should be a 16 bit integer value (0 - 65535). Controllers are not necessarily tied to this parameter, and can be subscribed to up to 256 different IDs. Sensors will likely be treated similarly in the future, allowing the user to send sensor readings under multiple IDs.
 ### ```#define GTWY_MAC  0xnn```
-The UNIT_MAC of the gateway that this device will send its data to.
+The UNIT_MAC of the gateway that this device will communicate with.
 ### ```#define FDRS_DEBUG```
-This definition enables debug messages to be sent over the serial port. If disabled, no serial interface will be initialized. 
+This definition enables debug messages to be sent over the serial port. If disabled, no serial debug interface will be initialized. 
 ### ```#define USE_ESPNOW```
 Enables/disables ESP-NOW.
 ### ```#define USE_LORA```
