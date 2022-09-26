@@ -1,4 +1,4 @@
-# FDRS Node
+# FDRS User Node
 A node is a device that sends and receives data from a nearby gateway. A node can be a sensor, controller, or both. 
 
 

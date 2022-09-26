@@ -1,9 +1,9 @@
 # <p align="center">Farm Data Relay System
 ##### <p align="center">[***In loving memory of Gay Holman, an extraordinary woman.***](https://www.facebook.com/CFECI/posts/2967989419953119) #####
 
-The Farm Data Relay System is an easy way to collect data from remote sensors without relying on WiFi. It is based around the ESP-NOW protocol, which is readily available on ESP32 and ESP8266 microcontroller boards. The system can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage. 
+The Farm Data Relay System is an easy way to collect data from remote sensors without relying on WiFi. It is based around the ESP-NOW protocol, which is readily available on ESP32 and ESP8266 microcontroller boards. The system can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage.
 
-Using an assigned MAC address scheme allows for the whole system to be configured by setting just a handful of values in code. Every wireless gateway is assigned a single-byte identifier, known as the UNIT_MAC. This along with a set, 5-byte prefix, is assigned to the MAC address of the ESP at boot. 
+FDRS devices are divided into two types. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User Nodes allow the user to exchange data with the gateways and can be organized into sensor, controller, or combination nodes.
 
 ## Getting Started
 ### Installation
@@ -15,9 +15,11 @@ Install the libraries that you need:
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) (required for MQTT Gateways)
 - [ArduinoUniqueID](https://github.com/ricaun/ArduinoUniqueID) (required for LoRa sensors/controllers)
 
-### [Sensors](/extras/Sensor.md)
-Sensors gather data and send it to a gateway via ESP-NOW or LoRa. 
-  
+### [User Nodes](/extras/Node.md)
+A **Sensor Node** gathers data and sends it to a gateway via ESP-NOW or LoRa.
+
+A **Controller Node** registers with a gateway to begin receiving data from it, then subscribes to the specific READING_ID(s) that it will listen for data from. When data arrives from an ID the device is subscribed to, a callback function is activated containing the data.
+
 ### [Gateways](extras/Gateway.md)
 Gateways listen for packets over ESP-NOW, LoRa, UART, and/or MQTT, then re-transmit the packets using one or more of the same interfaces.
   
@@ -34,15 +36,27 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
 - Some ability to compress data for more efficient LoRa usage and to avoid using floats. Better documentation/development of the DataReading 'type' attribute will come with this. 
  
 ## Thank you
-**...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com. If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
+**...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
+
+If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
 
 Many thanks go to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). His insight and ideas took this project from a roughly-hewn stone to the "[diamond](https://youtu.be/6JI5wZABWmA)" you see today. 
+
+
 
 It is a great honor to have been [featured on **Hackaday**!](https://hackaday.com/2022/07/02/farm-data-relay-system/)
   
 [**Random Nerd Tutorials**](https://randomnerdtutorials.com/) was also an indispensable source of ESP knowledge. If you are a beginner and trying to learn more about   microcontrollers, I highly reccomend starting there.
   
-  
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 Development of this project would not have been possible without the support of my former employer, **Sola Gratia Farm** of **Urbana, IL, USA**.  Sola Gratia is a community-based farm dedicated to growing high-quality produce and sharing it with those in need. Thank you.
   
 
