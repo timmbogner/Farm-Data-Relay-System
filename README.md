@@ -36,28 +36,17 @@ The Node-RED front-end can be set up with these nodes to format and send the dat
 - Some ability to compress data for more efficient LoRa usage and to avoid using floats. Better documentation/development of the DataReading 'type' attribute will come with this. 
  
 ## Thank you
-**...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with assistance and encouragement. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
+**...very much for checking out my project!** I truly appreciate everyone across the net who has reached out with contributions and assistance. If you have any questions, comments, or issues please feel free to contact me at timmbogner@gmail.com.
 
-If you have the means, **[please consider supporting me](https://www.buymeacoffee.com/TimmB).** I'm a farmer and landscaper by occupation, and donations would help me to spend more time developing farm gadgets in the off-season. 
+Winter is coming, and as an agricultural worker this means my budget is quite thin. If you are enjoying FDRS, **[please consider supporting me](https://www.buymeacoffee.com/TimmB) so that I can keep at it.**
 
 Many thanks go to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). His insight and ideas took this project from a roughly-hewn stone to the "[diamond](https://youtu.be/6JI5wZABWmA)" you see today. 
-
 
 
 It is a great honor to have been [featured on **Hackaday**!](https://hackaday.com/2022/07/02/farm-data-relay-system/)
   
 [**Random Nerd Tutorials**](https://randomnerdtutorials.com/) was also an indispensable source of ESP knowledge. If you are a beginner and trying to learn more about   microcontrollers, I highly reccomend starting there.
   
-## Contributors
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 Development of this project would not have been possible without the support of my former employer, **Sola Gratia Farm** of **Urbana, IL, USA**.  Sola Gratia is a community-based farm dedicated to growing high-quality produce and sharing it with those in need. Thank you.
   
