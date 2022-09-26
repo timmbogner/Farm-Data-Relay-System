@@ -20,6 +20,8 @@
 
 // enable to get detailed info from where single configuration macros have been taken
 #define DEBUG_NODE_CONFIG
+#define LORA_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
+#define LORA_RETRIES 2          // LoRa ACK automatic retries [0 - 3]
 
 #ifdef USE_LORA
 
