@@ -1,5 +1,6 @@
 # FDRS User Node
 A node is a device that sends and receives data from a nearby gateway. A node can be a sensor, controller, or both.
+
 **NOTE: Controller functionality for nodes is currently restricted to the *ESP-NOW protocol*. LoRa gateways can still transport data bi-directionally, but you will need to use ESP-NOW to register a controller node with a gateway.**
 
 # Commands
