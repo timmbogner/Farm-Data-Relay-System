@@ -9,8 +9,8 @@ Initializes FDRS, powers up the sensor array, and begins ESP-NOW and/or LoRa.
 ## Sensor Commands
 ### ```loadFDRS(float d, uint8_t t);```
 Loads some data into the current packet. 'd' is a float and 't' is a byte used to represent the sensor type. Type definitions can be found below. Please feel free to contact me if you'd like to add a new sensor type.
-### ```sendFDRS();```
-Sends the current packet using ESP-NOW and/or LoRa.
+### ```bool sendFDRS();```
+Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been recieved successfully by the gateway.
 ### ``` sleepFDRS(int sleep_time)```
 If available and enabled, the device enters deep-sleep. If ```#DEEP_SLEEP``` is disabled, the device will use a delay instead. ```sleep_time``` is entered in seconds.
 ## Controller Commands
