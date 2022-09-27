@@ -65,6 +65,10 @@ This definition enables debug messages to be sent over the serial port. If disab
 Enables/disables ESP-NOW.
 ### ```#define USE_LORA```
 Enables/disables LoRa.
+### ```#define LORA_ACK```
+Enables LoRa packet acknowledgement. The device will use CRC to ensure that the data arrived at its destination correctly. If disabled, ```sendFDRS()``` will always return true when sending LoRa packets.
+
+Thanks to [@aviateur17](https://github.com/aviateur17) for this feature!
 ### ```#define DEEP_SLEEP```
 If enabled, device will enter deep-sleep when the sleepFDRS() command is used. If using ESP8266, be sure that you connect the WAKE pin (GPIO 16) to RST or your device will not wake up. 
 ### ```#define POWER_CTRL (pin)```
