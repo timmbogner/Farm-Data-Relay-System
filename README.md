@@ -6,29 +6,29 @@ The Farm Data Relay System is an easy way to collect data from remote sensors wi
 FDRS devices are divided into two types. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User Nodes allow the user to exchange data with the gateways and can be organized into sensor, controller, or combination nodes.
 
 ## Getting Started
-### Installation
-To install FDRS, download the project folder and move it to your Arduino libraries folder. You will then be able to access all of the FDRS sketch files from the examples menu.
-
+- To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You can then move it to your Arduino 'libraries' folder to complete the installation. You will then be able to access all of the FDRS libraries and example sketches from the Arduino IDE.
+- After installing, edit the 'src/fdrs_globals.h' file with your WiFi credentials and other global parameters.
+ 
 Install the libraries that you need:
 - [ArduinoJson](https://arduinojson.org/) (mandatory)
 - [LoRa library](https://github.com/sandeepmistry/arduino-LoRa) by sandeepmistry (required if using LoRa)
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) (required for MQTT Gateways)
 - [ArduinoUniqueID](https://github.com/ricaun/ArduinoUniqueID) (required for LoRa sensors/controllers)
 
-### User nodes
+## User nodes
 **[Node Documentation](/extras/Node.md)**
 
 Nodes can be described as *sensors, controllers, or both*:
 - A **Sensor node** aggregates data into a packet, then sends it to a gateway via ESP-NOW or LoRa.
-- A **Controller node** registers with a gateway to begin receiving data from it, then subscribes to the specific READING_ID(s) that it will listen for data from. When data arrives from an ID the device is subscribed to, a callback function is activated containing the data.
+- A **Controller node** registers with a gateway to begin receiving data from it, then subscribes to the specific READING_ID(s) that it will listen for data from. When data arrives from an ID the device is subscribed to, a callback function is activated containing the data. Currently this is available only on ESP-NOW devices. 
   
-### Gateways
+## Gateways
 **[Gateway Documentation](extras/Gateway.md)**
   
 Gateways listen for packets over ESP-NOW, LoRa, UART, and/or MQTT, then re-transmit the packets using one or more of the same interfaces.
   
-### Front-end
-You can access your data using a Raspberry Pi (or other computer) linked to your final FDRS Gateway via either UART (serial-to-USB) or MQTT. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
+## Front-end
+You can access your data using a Raspberry Pi (or other computer) linked to an FDRS Gateway device via either UART (serial-to-USB) or MQTT. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
 
 
 ## Future Plans
