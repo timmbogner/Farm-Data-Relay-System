@@ -34,9 +34,9 @@ Enables WiFi. Used only on the MQTT gateway.
 
 SSID, password, and MQTT credentials are also configurable in 'fdrs_globals.h'.
 ### ```#define USE_SD_LOG```
-Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT message fails. Make sure to set the correct SD_SS (chip/slave select) pin in the lines below.
+Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT message fails. Make sure to set the correct SD_SS (chip select) pin in the lines below.
 
-Logging is done in the following CSV Format: ```timestamp,reading_id,datatype,value```
+Logging is done in the following CSV Format: ```timestamp,reading_id,type,value```
 
 Thanks to [@thefeiter](https://github.com/thefeiter) for this feature!
 
