@@ -38,6 +38,9 @@ Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT messa
 
 Logging is done in the following CSV Format: ```timestamp,reading_id,datatype,value```
 
+Thanks to [@thefeiter](https://github.com/thefeiter) for this feature!
+
+
 ### ```#define USE_LED```
 This option initializes FastLED! I haven't developed this very much, perhaps you have ideas?
 
