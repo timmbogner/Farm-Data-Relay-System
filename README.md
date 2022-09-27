@@ -3,10 +3,10 @@
 
 The Farm Data Relay System is an easy way to communicate with remote devices without relying on WiFi or LoRaWAN. It is designed to use the ESP-NOW and LoRa protocols to establish lines of low-power, low-cost gateways and repeaters that provide coverage to remote devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage.
 
-FDRS devices are classified into two types. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
+FDRS devices are classified into two types: gateways and user nodes. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
 ## Getting Started
-- To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You can then move it to your Arduino 'libraries' folder to complete the installation. You will then be able to access all of the FDRS libraries and example sketches from the Arduino IDE.
+- To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You should then move it to your Arduino 'libraries' folder to complete the installation. You will then be able to access all of the FDRS libraries and example sketches from the Arduino IDE.
 - After installing, edit the 'src/fdrs_globals.h' file with your WiFi credentials and other global parameters.
  
 Install the libraries that you need:
