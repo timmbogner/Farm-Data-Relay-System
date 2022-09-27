@@ -15,12 +15,16 @@ Install the libraries that you need:
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) (required for MQTT Gateways)
 - [ArduinoUniqueID](https://github.com/ricaun/ArduinoUniqueID) (required for LoRa sensors/controllers)
 
-### [User Nodes](/extras/Node.md)
-A **Sensor Node** aggregates data into a packet, then sends it to a gateway via ESP-NOW or LoRa.
+### User nodes
+**[Node Documentation](/extras/Node.md)**
 
-A **Controller Node** registers with a gateway to begin receiving data from it, then subscribes to the specific READING_ID(s) that it will listen for data from. When data arrives from an ID the device is subscribed to, a callback function is activated containing the data.
-
-### [Gateways](extras/Gateway.md)
+Nodes can be described as *sensors, controllers, or both*:
+- A **Sensor node** aggregates data into a packet, then sends it to a gateway via ESP-NOW or LoRa.
+- A **Controller node** registers with a gateway to begin receiving data from it, then subscribes to the specific READING_ID(s) that it will listen for data from. When data arrives from an ID the device is subscribed to, a callback function is activated containing the data.
+  
+### Gateways
+**[Gateway Documentation](extras/Gateway.md)**
+  
 Gateways listen for packets over ESP-NOW, LoRa, UART, and/or MQTT, then re-transmit the packets using one or more of the same interfaces.
   
 ### Front-end
