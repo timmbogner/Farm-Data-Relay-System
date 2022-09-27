@@ -46,7 +46,7 @@ This option initializes FastLED! I haven't developed this very much, perhaps you
 
 ## Peers
 ### Routing
-In addition to reacting to packets from general (unknown) ESP-NOW and LoRa devices, the gateway can also listen for traffic from a specific peer's device address (MAC) and react differently than it would to general traffic. This can be used to 'propel' packets upstream or downstream and allows the user to define different paths for data originating from either direction. The user can define up to two peer addresses each for the ESP-NOW and LoRa interfaces (ESPNOW1 & ESPNOW2 and LORA1 & LORA2).
+In addition to reacting to packets from general (unknown) ESP-NOW and LoRa devices, the gateway can also listen for traffic originating from a specific device address (MAC) and react differently than it would to general traffic. This can be used to 'propel' packets upstream or downstream and allows the user to define different paths for data originating from either direction. The user can define up to two peer addresses each for the ESP-NOW and LoRa interfaces (ESPNOW1 & ESPNOW2 and LORA1 & LORA2).
 ### Buffers
 Each peer also has a send buffer associated with it. Buffers are enabled by uncommenting their corresponding DELAY macro (ex: ```#define LORAG_DELAY 1000```). When enabled, the gateway will automatically send the buffer contents at the interval specified. 
 
