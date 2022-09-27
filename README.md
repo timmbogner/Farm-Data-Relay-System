@@ -3,7 +3,7 @@
 
 The Farm Data Relay System is an easy way to collect data from remote sensors without relying on WiFi. It is based around the ESP-NOW protocol, which is readily available on ESP32 and ESP8266 microcontroller boards. The system can be used to collect and transmit sensor data in situations where it would be too difficult or energy-consuming to provide full WiFi coverage.
 
-FDRS devices are divided into two types. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User Nodes allow the user to exchange data with the gateways and can be organized into sensor, controller, or combination nodes.
+FDRS devices are divided into two types. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
 ## Getting Started
 - To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You can then move it to your Arduino 'libraries' folder to complete the installation. You will then be able to access all of the FDRS libraries and example sketches from the Arduino IDE.
