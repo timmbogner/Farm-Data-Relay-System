@@ -13,7 +13,7 @@ Install the libraries that you need:
 - [ArduinoJson](https://arduinojson.org/) (mandatory)
 - [LoRa library](https://github.com/sandeepmistry/arduino-LoRa) by sandeepmistry (required if using LoRa)
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) (required for MQTT Gateways)
-- [ArduinoUniqueID](https://github.com/ricaun/ArduinoUniqueID) (required for LoRa sensors/controllers)
+- [ArduinoUniqueID](https://github.com/ricaun/ArduinoUniqueID) (required for LoRa nodes)
 
 ## User nodes
 **[Node Documentation](/extras/Node.md)**
