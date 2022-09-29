@@ -49,7 +49,7 @@ void printConfigHeader(const char* headerText) {
 
 // check which logging method(s) have been activated for a node
 void printLoggingInformation() {
-	printSectionHeader("LOG SETTINGS OF NODE");
+	printSectionHeader("LOG SETTINGS OF DEVICE");
 
 #if defined(USE_SD_LOG) && defined(USE_FS_LOG)
 	DBG("Logging to SD card AND file system is active! You should better use only one of them at a time");
@@ -124,8 +124,8 @@ void printEspnowDetails() {
 
 #ifdef UNIT_MAC
 	printSmallSectionHeader("ESP-Now Details:");
-	DBG("Peer 1 address: " + String(ESPNOW1_PEER, HEX));
-	DBG("Peer 2 address: " + String(ESPNOW2_PEER, HEX));
+	DBG("Neighbor 1 address: " + String(ESPNOW_NEIGHBOR_1, HEX));
+	DBG("Neighbor 2 address: " + String(ESPNOW_NEIGHBOR_2, HEX));
 #endif //UNIT_MAC
 
 #endif //USE_ESPNOW
@@ -292,9 +292,9 @@ void printLoraDetails() {
 #endif //LORA_ACK || GLOBAL_LORA_ACK
 
 #ifdef UNIT_MAC
-	DBG("LoRa peers");
-	DBG("Peer 1 address: " + String(LORA1_PEER, HEX));
-	DBG("Peer 2 address: " + String(LORA2_PEER, HEX));
+	DBG("LoRa Neighbors");
+	DBG("Neighbor 1 address: " + String(LORA_NEIGHBOR_1, HEX));
+	DBG("Neighbor 2 address: " + String(LORA_NEIGHBOR_2, HEX));
 #endif //UNIT_MAC
 
 #endif //USE_LORA
@@ -304,14 +304,14 @@ void printLoraDetails() {
 void checkConfig() {
 	printConfigHeader("NODE CONFIGURATION OVERVIEW");
 #ifdef UNIT_MAC
-	DBG("Node Type       : Gateway");
+	DBG("Device Type       : Gateway");
 	DBG("Gateway ID      : " + String(UNIT_MAC, HEX));
 #elif defined (READING_ID)
-	DBG("Node Type       : Sensor");
+	DBG("Device Type       : Node");
 	DBG("Reading ID      : " + String(READING_ID));
-	DBG("Sensor's Gateway: " + String(GTWY_MAC, HEX));
+	DBG("Node's Gateway: " + String(GTWY_MAC, HEX));
 #else
-	DBG("Node Type       : UNKNOWN!");
+	DBG("Device Type       : UNKNOWN!");
 	DBG("Please check config!");
 	DBG("If you have just created a new node type,");
 	DBG("please add it's config check to:");

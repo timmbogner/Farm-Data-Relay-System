@@ -5,7 +5,7 @@
 #include <fdrs_globals.h>
 
 #define FDRS_DEBUG     //Enable USB-Serial debugging
-#define DEBUG_NODE_CONFIG //displays full config of node after power up
+#define DEBUG_NODE_CONFIG // Displays full config info on startup
 
 #define UNIT_MAC     0x00  // The address of this gateway
 
@@ -25,11 +25,11 @@
 //#define USE_LORA
 #define USE_WIFI    //Used only for MQTT gateway
 
-// Peer addresses
-#define ESPNOW1_PEER  0x0E  // ESPNOW1 Address 
-#define ESPNOW2_PEER  0x0F  // ESPNOW2 Address
-#define LORA1_PEER    0x0E  // LoRa1 Address
-#define LORA2_PEER    0x0F  // LoRa2 Address
+// Neighbor addresses
+#define ESPNOW_NEIGHBOR_1 0x0E  // ESPNOW1 Address 
+#define ESPNOW_NEIGHBOR_2 0x0F  // ESPNOW2 Address
+#define LORA_NEIGHBOR_1    0x0E  // LoRa1 Address
+#define LORA_NEIGHBOR_2    0x0F  // LoRa2 Address
 
 // Peer Actions
 #define ESPNOW1_ACT    

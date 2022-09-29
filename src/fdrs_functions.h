@@ -45,8 +45,6 @@ enum {
 #define UART_IF Serial
 #endif
 
-// enable to get detailed info from where single configuration macros have been taken
-#define DEBUG_NODE_CONFIG
 
 #ifdef USE_WIFI
 
@@ -177,19 +175,19 @@ uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
 
 #ifdef ESPNOW1_PEER
-uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW1_PEER};
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
 #else
 uint8_t ESPNOW1[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 #endif
 #ifdef ESPNOW2_PEER
-uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW2_PEER};
+uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 #else
 uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 #endif
 
 #ifdef USE_LORA
-uint16_t LoRa1 =         ((mac_prefix[4] << 8) | LORA1_PEER);  // Use 2 bytes for LoRa addressing instead of previous 3 bytes
-uint16_t LoRa2 =         ((mac_prefix[4] << 8) | LORA2_PEER);
+uint16_t LoRa1 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1);  // Use 2 bytes for LoRa addressing instead of previous 3 bytes
+uint16_t LoRa2 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_2);
 uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 bytes of gateway address
 uint16_t loraBroadcast = 0xFFFF;
 unsigned long receivedLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
