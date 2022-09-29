@@ -34,16 +34,19 @@ Enables WiFi. Used only on the MQTT gateway.
 
 SSID, password, and MQTT credentials are also configurable in 'fdrs_globals.h'.
 ### ```#define USE_SD_LOG```
-Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT message fails. Make sure to set the correct SD_SS (chip/slave select) pin in the lines below.
+Enables SD-card logging. Used only on the MQTT gateway if sending the MQTT message fails. Make sure to set the correct SD_SS (chip select) pin in the lines below.
 
-Logging is done in the following CSV Format: ```timestamp,reading_id,datatype,value```
+Logging is done in the following CSV Format: ```timestamp,reading_id,type,value```
+
+Thanks to [@thefeiter](https://github.com/thefeiter) for this feature!
+
 
 ### ```#define USE_LED```
 This option initializes FastLED! I haven't developed this very much, perhaps you have ideas?
 
 ## Peers
 ### Routing
-In addition to reacting to packets from general (unknown) ESP-NOW and LoRa devices, the gateway can also listen for traffic from a specific peer's device address (MAC) and react differently than it would to general traffic. This can be used to 'propel' packets upstream or downstream and allows the user to define different paths for data originating from either direction. The user can define up to two peer addresses each for the ESP-NOW and LoRa interfaces (ESPNOW1 & ESPNOW2 and LORA1 & LORA2).
+In addition to reacting to packets from general (unknown) ESP-NOW and LoRa devices, the gateway can also listen for traffic originating from a specific device address (MAC) and react differently than it would to general traffic. This can be used to 'propel' packets upstream or downstream and allows the user to define different paths for data originating from either direction. The user can define up to two peer addresses each for the ESP-NOW and LoRa interfaces (ESPNOW1 & ESPNOW2 and LORA1 & LORA2).
 ### Buffers
 Each peer also has a send buffer associated with it. Buffers are enabled by uncommenting their corresponding DELAY macro (ex: ```#define LORAG_DELAY 1000```). When enabled, the gateway will automatically send the buffer contents at the interval specified. 
 
