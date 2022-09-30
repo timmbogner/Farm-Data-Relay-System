@@ -27,12 +27,14 @@ Nodes can be described as *sensors, controllers, or both*:
   
 Gateways are modular and configurable ESP32/8266 devices that can perform a variety of functions. They are generally arranged in a line or star topology, with the gateway closest to the front-end being assigned an address of 0x00.
 
-A gateway can be an access point for remote ESP-NOW and LoRa senosrs and controller devices (nodes). 
-
-Gateways can also be configured as simple repeaters; passing data from one neighbor directly to another neighbor or vice versa. This can create a data wormhole that will carry packets upstream or downsteam ad infinitum. 
+A gateway can be an access point for remote ESP-NOW and LoRa senosrs and controller devices (nodes). If it receives a packet from an unknown ESP-NOW or LoRa address, the gateway infers that these are sensor readings and passes them downstream towards the front-end. Packets originating from the front end can be sent to registered peers and then passed upstream. 
+ 
+Gateways can also be configured as simple repeaters; passing data from one neighbor directly to another neighbor or vice versa. This can create a data wormhole that will carry packets upstream or downsteam ad infinitum. You can configure your gateways to share data headed upstream with connected peers, which provide them any data being send from the front-end.
   
 ## Front-end
-You can access your data using a Raspberry Pi (or other computer) linked to an FDRS Gateway device via either UART (serial-to-USB) or MQTT. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
+ The front-end is the point where the user interacts with FDRS. This could be anything from an microcontroller communicating through UART and displaying data on a screen to your favorite server/database platform logging the data via MQTT.
+ 
+My recommended method of accessing your data is using a Raspberry Pi linked to an FDRS Gateway device via either MQTT or UART (serial-to-USB). Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
 
 
 ## Future Plans
