@@ -25,7 +25,11 @@ Nodes can be described as *sensors, controllers, or both*:
 ## Gateways
 **[Gateway Documentation](extras/Gateway.md)**
   
-Gateways listen for packets over ESP-NOW, LoRa, UART, and/or MQTT, then re-transmit the packets using one or more of the same interfaces.
+Gateways are modular and configurable ESP32/8266 devices that can perform a variety of functions. They are generally arranged in a line or star topology, with the gateway closest to the front-end being assigned an address of 0x00.
+
+A gateway can be an access point for remote ESP-NOW and LoRa senosrs and controller devices (nodes). 
+
+Gateways can also be configured as simple repeaters; passing data from one neighbor directly to another neighbor or vice versa. This can create a data wormhole that will carry packets upstream or downsteam ad infinitum. 
   
 ## Front-end
 You can access your data using a Raspberry Pi (or other computer) linked to an FDRS Gateway device via either UART (serial-to-USB) or MQTT. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
