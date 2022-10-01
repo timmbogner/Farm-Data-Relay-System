@@ -154,7 +154,7 @@ void loop() {
   }
   #endif
 
-  while (UART_IF.available()) {
+  while (UART_IF.available() || Serial.available()) {
     getSerial();
   }
   getLoRa();

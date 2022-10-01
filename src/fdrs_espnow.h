@@ -46,13 +46,7 @@ void begin_espnow() {
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
-  // Register peers
-  //#ifdef ESPNOW1_PEER
-  //  esp_now_add_peer(ESPNOW1, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-  //#endif
-  //#ifdef ESPNOW2_PEER
-  //  esp_now_add_peer(ESPNOW2, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-  //#endif
+  
 #elif defined(ESP32)
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK) {

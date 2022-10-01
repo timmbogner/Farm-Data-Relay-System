@@ -174,16 +174,9 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
 
-#ifdef ESPNOW1_PEER
 uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
-#else
-uint8_t ESPNOW1[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-#endif
-#ifdef ESPNOW2_PEER
 uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
-#else
-uint8_t ESPNOW2[] =       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-#endif
+
 
 #ifdef USE_LORA
 uint16_t LoRa1 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1);  // Use 2 bytes for LoRa addressing instead of previous 3 bytes
@@ -303,7 +296,13 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 #include <fdrs_espnow.h>
 
 void getSerial() {
-  String incomingString =  UART_IF.readStringUntil('\n');
+  String incomingString;
+  if (UART_IF.available()){
+   incomingString =  UART_IF.readStringUntil('\n');
+  }
+  else if (Serial.available()){
+   incomingString =  Serial.readStringUntil('\n');
+  }
   DynamicJsonDocument doc(24576);
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.

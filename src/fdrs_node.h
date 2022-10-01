@@ -165,7 +165,8 @@ void beginFDRS() {
   // esp_reset_reason_t resetReason;
   // resetReason = esp_reset_reason();
 #endif
-  DBG("FDRS Sensor ID " + String(READING_ID) + " initializing...");
+  DBG("FDRS User Node initializing...");
+  DBG(" Reading ID " + String(READING_ID));
   DBG(" Gateway: " + String (GTWY_MAC, HEX));
 #ifdef POWER_CTRL
   DBG("Powering up the sensor array!");
@@ -199,7 +200,6 @@ void beginFDRS() {
   peerInfo.ifidx = WIFI_IF_STA;
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
-  // Register first peer
   memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     DBG("Failed to add peer bcast");
