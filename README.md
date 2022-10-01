@@ -6,8 +6,11 @@ The Farm Data Relay System is an easy way to communicate with remote devices wit
 FDRS devices are classified into two types: gateways and user nodes. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
 ## Getting Started
-- To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You should then move it to your Arduino 'libraries' folder to complete the installation. You will then be able to access all of the FDRS libraries and example sketches from the Arduino IDE.
+- To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You should then move it to your Arduino 'libraries' folder to complete the installation.
 - After installing, edit the 'src/fdrs_globals.h' file with your WiFi credentials and other global parameters.
+- To begin, flash an ESP device with the **1_UART_Gateway.ino** example, and another with the **ESPNOW_Sensor.ino** example. The mocked-up sensor readings will be received by the gateway and relayed to the serial port, where it may be monitored via a terminal.
+- If you would like to use MQTT, you can connect a second ESP via the Rx and Tx pins (crossed), and flash it with the "0_MQTT_Gateway.ino" example. If your WiFi and MQTT configurations are correct, data will be published to the topic 'fdrs/data'.
+
  
 Install the libraries that you need:
 - [ArduinoJson](https://arduinojson.org/) (mandatory)
