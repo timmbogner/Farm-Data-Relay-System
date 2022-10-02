@@ -41,6 +41,9 @@ Controller nodes register with the gateway they are addressed to, then receive d
 ```
 void fdrs_recv_cb(DataReading theData) {
   //Quickly handle incoming data
+  DBG("ID: " + String(theData.id));
+  DBG("Type: " + String(theData.t));
+  DBG("Data: " + String(theData.d));
 }
 
 void setup() {
@@ -81,7 +84,7 @@ If defined, power control will bring a GPIO pin high when FDRS is initialized. T
 ## Callback function
 The callback function is executed when data arrives with an ID that the controller is subscribed to, interrupting all other tasks. Inside of this function, the user has access to the incoming DataReading.
 
-This function should **ONLY** contain the code needed to save the data to a more permanent location. *Any interpretation or display of the data should occur outside of the callback function*.
+This function should **ONLY** contain the code needed to save the data to a more permanent location. *Interpretation or display of the data should occur outside of the callback function*. Some light serial debug messages are okay.
 
 Intermediate users may also like to know that if the controller is subscribed to multiple IDs, the callback may be called multiple times before returning to the loop().
 
