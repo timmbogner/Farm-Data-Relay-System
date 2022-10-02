@@ -7,7 +7,7 @@
 
 #include "fdrs_sensor_config.h"
 #include <Adafruit_AHT10.h>
-#include <fdrs_sensor.h>
+#include <fdrs_node.h>
 
 Adafruit_AHT10 aht;
 

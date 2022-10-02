@@ -4,15 +4,15 @@
 
 #include <fdrs_globals.h>
 
-#define READING_ID    3   //Unique ID for this sensor
+#define READING_ID    1   //Unique ID for this sensor
 #define GTWY_MAC      0x01 //Address of the nearest gateway
 
 #define USE_ESPNOW
 //#define USE_LORA
-//#define DEEP_SLEEP
+#define DEEP_SLEEP
 //#define POWER_CTRL    14
-//#define FDRS_DEBUG
-//#define DEBUG_CONFIG // Displays full config info on startup
+#define FDRS_DEBUG
+#define DEBUG_CONFIG // Displays full config info on startup
 
 //SPI Configuration -- Needed only on chipsets with multiple SPI interfaces (ESP32)
 #define SPI_SCK 5

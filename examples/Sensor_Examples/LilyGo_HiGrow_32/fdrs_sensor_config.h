@@ -25,5 +25,9 @@
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-#define LORA_BAND 915E6
-#define LORA_SF 7
+//#define LORA_BAND 915E6     // LoRa Frequency Band
+//#define LORA_SF 7           // LoRa Spreading Factor
+//#define LORA_TXPWR 17       // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm.  Lower power = less battery use
+//#define LORA_ACK      // Uncomment to enable request for LoRa ACKs at cost of increased battery usage
+//#define LORA_ACK_TIMEOUT 400   // ms timeout waiting for LoRa ACKs (if enabled).  Wouldn't go less than 200ms
+//#define LORA_RETRIES 2          // [0 - 3] When ACK enabled, number of sensor node tx retries when ACK not received or invalid CRC 

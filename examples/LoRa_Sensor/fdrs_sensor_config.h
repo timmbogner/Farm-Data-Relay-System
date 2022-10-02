@@ -4,15 +4,15 @@
 
 #include <fdrs_globals.h>
 
-#define READING_ID    3   //Unique ID for this sensor
+#define READING_ID    2   //Unique ID for this sensor
 #define GTWY_MAC      0x01 //Address of the nearest gateway
 
-#define USE_ESPNOW
-//#define USE_LORA
-//#define DEEP_SLEEP
+//#define USE_ESPNOW
+#define USE_LORA
+#define DEEP_SLEEP
 //#define POWER_CTRL    14
-//#define FDRS_DEBUG
-//#define DEBUG_CONFIG // Displays full config info on startup
+#define FDRS_DEBUG
+#define DEBUG_CONFIG // Displays full config info on startup
 
 //SPI Configuration -- Needed only on chipsets with multiple SPI interfaces (ESP32)
 #define SPI_SCK 5
@@ -29,6 +29,6 @@
 //#define LORA_BAND 915E6         // LoRa Frequency Band
 //#define LORA_SF 7               // LoRa Spreading Factor
 //#define LORA_TXPWR 17           // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm
-//#define LORA_ACK                // Request LoRa acknowledgment. Increases battery usage.
-//#define LORA_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
-//#define LORA_RETRIES 2          // LoRa ACK retries [0 - 3]
+
+#define LORA_ACK                // Request LoRa acknowledgment. Increases battery usage.
+
