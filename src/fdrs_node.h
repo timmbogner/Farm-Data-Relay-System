@@ -19,7 +19,7 @@
 #endif
 
 // enable to get detailed info from where single configuration macros have been taken
-#define DEBUG_NODE_CONFIG
+#define DEBUG_CONFIG
 #define LORA_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
 #define LORA_RETRIES 2          // LoRa ACK automatic retries [0 - 3]
 
@@ -53,7 +53,7 @@
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
-#ifdef DEBUG_NODE_CONFIG
+#ifdef DEBUG_CONFIG
 //#include "fdrs_checkConfig.h"
 #endif
 
@@ -229,11 +229,11 @@ void beginFDRS() {
   DBG("LoRa Band: " + String(FDRS_BAND));
   DBG("LoRa SF  : " + String(FDRS_SF));
 #endif // USE_LORA
-#ifdef DEBUG_NODE_CONFIG
+#ifdef DEBUG_CONFIG
   // if (resetReason != ESP_RST_DEEPSLEEP) {
     //checkConfig();
   // }
-#endif //DEBUG_NODE_CONFIG
+#endif //DEBUG_CONFIG
 
 }
 

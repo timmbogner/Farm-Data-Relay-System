@@ -2,7 +2,7 @@
 //
 //  DETAILED NODES' CONFIGURATION CHECK
 //
-//  Make sure #define DEBUG_NODE_CONFIG is not uncommented in your node's config
+//  Make sure #define DEBUG_CONFIG is not uncommented in your node's config
 // (fdrs_sensor_config.h or fdrs_gateway_config.h). Otherwise check will be ignored.
 //  When the node powers up, it's full config will be printed to the serial console once.
 //  Be sure to add further checks as new configuration possibilities are added to FDRS.

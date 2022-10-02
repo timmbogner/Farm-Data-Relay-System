@@ -141,7 +141,7 @@ enum {
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
-#ifdef DEBUG_NODE_CONFIG
+#ifdef DEBUG_CONFIG
 #include "fdrs_checkConfig.h"
 #endif
 typedef struct FDRSPeer {

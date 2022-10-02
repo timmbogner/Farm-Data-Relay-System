@@ -12,7 +12,7 @@
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
 #define FDRS_DEBUG
-#define DEBUG_NODE_CONFIG // Displays full config info on startup
+#define DEBUG_CONFIG // Displays full config info on startup
 
 //SPI Configuration -- Needed only on chipsets with multiple SPI interfaces (ESP32)
 #define SPI_SCK 5

@@ -4,7 +4,7 @@
 
 #include <fdrs_globals.h>
 #define FDRS_DEBUG     //Enable USB-Serial debugging
-#define DEBUG_NODE_CONFIG // Displays full config info on startup
+#define DEBUG_CONFIG // Displays full config info on startup
 
 #define UNIT_MAC     0x03  // The address of this gateway
 
@@ -30,7 +30,7 @@
 #define LORA_NEIGHBOR_1    0x01  // LoRa1 Address
 #define LORA_NEIGHBOR_2    0x0F  // LoRa2 Address
 
-// Peer Actions
+// Neighbor Actions
 #define ESPNOW1_ACT   
 #define ESPNOW2_ACT                    
 #define LORA1_ACT   sendSerial(); // This would display packets arriving *from* the front-end.  

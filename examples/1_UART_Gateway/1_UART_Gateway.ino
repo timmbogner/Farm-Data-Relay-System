@@ -47,7 +47,7 @@ void setup() {
 
   DBG("Address:" + String (UNIT_MAC, HEX));
 
-#ifdef DEBUG_NODE_CONFIG
+#ifdef DEBUG_CONFIG
 #ifdef ESP32
   // find out the reset reason
   esp_reset_reason_t resetReason;
@@ -56,7 +56,7 @@ void setup() {
     checkConfig();
   }
 #endif //ESP32
-#endif //DEBUG_NODE_CONFIG
+#endif //DEBUG_CONFIG
 
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
