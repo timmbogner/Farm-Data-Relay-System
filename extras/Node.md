@@ -1,7 +1,7 @@
 # FDRS User Node
 A node is a device that sends and receives data from a nearby gateway. A node can be a sensor, controller, or both.
 
-**NOTE: Controller node functionality is currently restricted to the *ESP-NOW protocol*. LoRa gateways can still transport data bi-directionally, but you will need to use ESP-NOW to register a controller node with a gateway.**
+*NOTE: Controller node functionality is currently restricted to the *ESP-NOW protocol*. LoRa gateways can still transport data bi-directionally, but you will need to use ESP-NOW to register a controller node with a gateway.*
 
 # Commands
 ### ``` beginFDRS();```
@@ -61,6 +61,10 @@ The identifier of this individual device. Should be a 16 bit integer value (0 - 
 The UNIT_MAC of the gateway that this device will communicate with.
 ### ```#define FDRS_DEBUG```
 This definition enables debug messages to be sent over the serial port. If disabled, no serial debug interface will be initialized. 
+### ```#define DEBUG_CONFIG```
+This displays a readout of the device's configuration on start-up.
+
+Thanks to [@gulpman](https://github.com/gulpman) for this feature!
 ### ```#define USE_ESPNOW```
 Enables/disables ESP-NOW.
 ### ```#define USE_LORA```
