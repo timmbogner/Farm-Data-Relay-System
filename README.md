@@ -1,7 +1,7 @@
 # <p align="center">Farm Data Relay System
 ##### <p align="center">[***In loving memory of Gay Holman, an extraordinary woman.***](https://www.facebook.com/CFECI/posts/2967989419953119) #####
 
-The Farm Data Relay System is an easy way to communicate with remote devices without relying on WiFi or LoRaWAN. The system establishes a series of low-power, low-cost access points and repeaters that provide light-weight ESP-NOW and LoRa coverage to remote IOT devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage.
+The Farm Data Relay System is an easy way to communicate with remote IOT devices without relying on WiFi or LoRaWAN. The system establishes a series of low-power, low-cost access points and repeaters that provide light-weight ESP-NOW and LoRa coverage to remote devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage.
 
 FDRS devices are classified into two types: gateways and user nodes. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
@@ -37,7 +37,7 @@ Gateways can also be configured as simple repeaters; passing data from one neigh
 ## Front-end
  The front-end is the point where the user interacts with FDRS. This could be anything from a microcontroller communicating through UART and displaying data on a screen, to your favorite server/database platform logging the data via MQTT.
  
-My recommended method of accessing your data is using a Raspberry Pi linked to an FDRS Gateway device via either MQTT or UART (serial-to-USB). Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
+My recommended method of accessing your data is using a Raspberry Pi linked to an FDRS Gateway device via either MQTT or UART. Node-RED is my favorite platform for accessing/manipulating data on the front-end, and InfluxDB+Grafana is the dream team for storage and visualization. 
 
 
 ## Future Plans
