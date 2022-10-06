@@ -28,7 +28,7 @@ Nodes can be described as *sensors, controllers, or both*:
 ## Gateways
 **[Gateway Documentation](extras/Gateway.md)**
   
-Gateways are modular and configurable ESP32/8266 devices that can perform a variety of functions. The include collecting, distributing, and relaying data; as well providing a cohesive interface between various wired and wireless protocols. They are generally arranged in a line or star topology, with the gateway closest to the front-end being assigned an address of 0x00.
+Gateways are modular and configurable ESP32/8266 devices that can perform a variety of functions. These include collecting, distributing, and relaying data; as well providing a cohesive interface between various wired and wireless protocols. They are generally arranged in a line or star topology, with the gateway closest to the front-end being assigned an address of 0x00.
 
 In its most basic usage, an FDRS gateway is deployed as an access point for remote ESP-NOW and LoRa user nodes. If it receives a packet from an unknown ESP-NOW or LoRa address, the gateway infers that these are sensor readings and passes them downstream towards the front-end. The gateway will send packets originating from the front end to registered peers and repeat them to the next gateway upstream, if applicable. 
  
