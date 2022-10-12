@@ -1,4 +1,4 @@
-<p align="center"><img src="extras/fdrs_logo.svg" width="350">
+<p align="center"><img src="extras/fdrs_logo.svg" width="325">
 
 # <p align="center">Farm Data Relay System
 
