@@ -1,4 +1,7 @@
+<p align="center"><img src="extras/fdrs_logo.svg" width="350">
+
 # <p align="center">Farm Data Relay System
+
 ##### <p align="center">[***In loving memory of Gay Holman, an extraordinary woman.***](https://www.facebook.com/CFECI/posts/2967989419953119) #####
 
 The Farm Data Relay System is an easy way to communicate with remote IOT devices without relying on WiFi or LoRaWAN. The system establishes a series of low-power, low-cost access points and repeaters that provide light-weight ESP-NOW and LoRa coverage to remote devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage.
