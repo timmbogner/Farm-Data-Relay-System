@@ -42,6 +42,7 @@ My recommended method of accessing your data is using a Raspberry Pi linked to a
 
 ## Future Plans
  A few things that I intend to add are:
+- Internal timekeeping is the big feature-addition on the horizon. I would like to add a way for FDRS gateways to keep track of time via NTP (on WiFi) or an RTC module, and seamlessly distribute the current time amongst its neighbors automatically. All gateways could then be queried by remote nodes for the current time. Get your T-Watch ready!
 - More sensor and controller sketches! If you have designed any open source hardware for ESP32 or 8266, please contact me and I will provide support for your device in this repo.
 - Support for several new devices and protocols: ethernet, nRF24L01, 4G LTE, and the E5 LoRa module from Seeed Studio.
 - Channel Activity Detection (CAD) and some improvements for LoRa, including controller capabilities.
