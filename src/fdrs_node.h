@@ -171,6 +171,7 @@ void beginFDRS() {
   DBG("Powering up the sensor array!");
   pinMode(POWER_CTRL, OUTPUT);
   digitalWrite(POWER_CTRL, 1);
+  delay(50);
 #endif
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
 #ifdef USE_ESPNOW
