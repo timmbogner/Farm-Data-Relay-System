@@ -4,9 +4,9 @@
 
 ##### <p align="center">[***In loving memory of Gay Holman, an extraordinary woman.***](https://www.facebook.com/CFECI/posts/2967989419953119) #####
 
-The Farm Data Relay System is an easy way to communicate with remote IOT devices without relying on WiFi or LoRaWAN. The system establishes a series of low-power, low-cost access points and repeaters that provide light-weight ESP-NOW and LoRa coverage to remote devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage.
+The Farm Data Relay System is an easy way to communicate with remote IOT devices without relying on WiFi or LoRaWAN. The system establishes a series of low-power, low-cost access points and repeaters that provide light-weight ESP-NOW and LoRa coverage to remote devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage. While it was designed with farming in mind, FDRS can be especially useful in a classroom or research setting. 
 
-FDRS devices are classified into two types: gateways and user nodes. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
+Devices are classified into two types: **Gateways** and **User nodes**. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
 ## Getting Started
 - To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You should then move it to your Arduino 'libraries' folder to complete the installation.
