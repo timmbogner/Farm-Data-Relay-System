@@ -15,11 +15,11 @@
 #define CLOCK_INTERRUPT_PIN 32  // yep same pin
 
 
-const int FreqIn1 = 17;
+const int FreqIn1 = 5;
 volatile uint16_t Freq1 = 0;
 static uint16_t FreqOut1;
 
-void SensorInt1() {
+ICACHE_RAM_ATTR void SensorInt1() {
   // If the pin is Rising, increment counter
   Freq1++;
 };
