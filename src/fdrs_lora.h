@@ -201,8 +201,8 @@ crcResult getLoRa() {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
     }
   }
-  return CRC_NULL;
 #endif //USE_LORA
+  return CRC_NULL;
 }
 
 

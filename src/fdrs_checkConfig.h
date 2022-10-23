@@ -58,7 +58,7 @@ void printLoggingInformation() {
 #ifdef USE_SD_LOG
 	DBG("Logging to SD-Card    : enabled");
 #ifdef LOGBUF_DELAY
-	DBG("log buffer delay in ms: " + " + String(LOGBUF_DELAY));
+	DBG("log buffer delay in ms: " + String(LOGBUF_DELAY));
 #else
 	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
 #endif
