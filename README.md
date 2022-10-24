@@ -8,6 +8,8 @@ The Farm Data Relay System is an easy way to communicate with remote IOT devices
 
 Devices are classified into two types: **Gateways** and **User nodes**. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
+If you are having fun with FDRS, **[please consider supporting me](https://www.buymeacoffee.com/TimmB)** so that I can spend more time building it.
+
 ## Getting Started
 - To install FDRS, download the project folder by clicking the “Clone or download” button and then clicking “Download ZIP”. You should then move it to your Arduino 'libraries' folder to complete the installation.
 - After installing, edit the 'src/fdrs_globals.h' file with your WiFi credentials and other global parameters.
@@ -53,7 +55,6 @@ My recommended method of accessing your data is using a Raspberry Pi linked to a
 ## Thank you
 **...very much for checking out my project!** I truly appreciate everyone who has reached out with contributions and assistance, especially those featured in the "Contributors" section. If you have any questions, comments, issues, or suggestions please don't heasitate to contact me at timmbogner@gmail.com or open a discussion here on Github.
 
-Winter is coming, which means my budget will be quite thin. **If you are having fun with FDRS, [please consider supporting me](https://www.buymeacoffee.com/TimmB) so that I can spend more time building it.**
 
 Many thanks go to the ever-instructional [**Andreas Spiess**](https://www.youtube.com/channel/UCu7_D0o48KbfhpEohoP7YSQ). His insight and ideas took this project from a roughly-hewn stone to the "[diamond](https://youtu.be/6JI5wZABWmA)" you see today. 
 
