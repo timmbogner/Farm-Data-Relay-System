@@ -14,7 +14,7 @@
 #include <esp_wifi.h>
 #endif
 #ifdef USE_LORA
-#include <ArduinoUniqueID.h>
+//#include <ArduinoUniqueID.h>
 #include <LoRa.h>
 #endif
 
@@ -87,7 +87,7 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 #ifdef USE_LORA
-uint16_t LoRaAddress = ((UniqueID8[6] << 8) | UniqueID8[7]);
+uint16_t LoRaAddress = ((0xAA << 8) | 0xBB);
 unsigned long transmitLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;     // Number of total LoRa packets with valid CRC
 #endif 
@@ -107,6 +107,7 @@ uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
+#ifdef USE_ESPNOW
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   if(sendStatus == 0){
@@ -155,7 +156,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   }
 }
-
+#endif
 
 void beginFDRS() {
 #ifdef FDRS_DEBUG
