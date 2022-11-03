@@ -642,14 +642,7 @@ int findOpenPeer() {    // Returns an expired entry in peer_list, -1 if full.
   DBG("No open peers");
   return -1;
 }
-int checkPeerExpired() {  // Checks whether any entries in the peer_list have expired. Not currently used.
-  for (int i = 0; i < 16; i++) {
-    if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT) {
-      esp_now_del_peer(incMAC);
-    }
-    return -1;
-  }
-}
+
 
 
 void handleCommands() {
