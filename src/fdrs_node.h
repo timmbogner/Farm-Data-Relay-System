@@ -409,13 +409,16 @@ bool sendFDRS() {
   DBG("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *) &fdrsData, data_count * sizeof(DataReading));
+
   esp_now_ack_flag =  CRC_NULL;
   while(esp_now_ack_flag == CRC_NULL){
     delay(0);
   }
   if (esp_now_ack_flag == CRC_OK){
+      data_count = 0;
       return true;
     } else {
+      data_count = 0;
       return false;
     }
 
