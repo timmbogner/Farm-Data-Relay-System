@@ -6,7 +6,7 @@
 
 Farm Data Relay System is an easy way to communicate with remote IOT devices without relying on WiFi or LoRaWAN. The system establishes a series of low-power, low-cost access points and repeaters that provide light-weight ESP-NOW and LoRa coverage to remote devices. The system can be used to exchange sensor readings or control messages in situations where it would be too difficult or energy-consuming to provide full WiFi/LoRaWAN coverage. While it was designed with farming in mind, FDRS can be especially useful in a classroom or research setting. 
 
-Devices are classified into two types: **Gateways** and **User nodes**. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
+Devices are classified into two types: **Gateways** and **User Nodes**. Gateways comprise the infrastructure of the network, moving data in pre-determined directions to provide coverage to all devices. User nodes allow the user to exchange data with the gateways. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
 If you are having fun with FDRS, **[please consider supporting me](https://www.buymeacoffee.com/TimmB)** so that I can spend more time building it.
 
