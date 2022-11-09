@@ -1,6 +1,6 @@
 //  FARM DATA RELAY SYSTEM
 //
-//  "fdrs_sensor.h"
+//  "fdrs_node.h"
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
@@ -363,10 +363,11 @@ bool transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
 #ifdef LORA_ACK  // Wait for ACK
   int retries = LORA_RETRIES + 1;
   while (retries != 0) {
-    if (transmitLoRaMsg != 0)
+    if (transmitLoRaMsg != 0){
       DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, 16) + " to gateway 0x" + String(*destMAC, 16) + ". Retries remaining: " + String(retries - 1) + ", CRC OK " + String((float)msgOkLoRa / transmitLoRaMsg * 100) + "%");
-    else
+    }else{
       DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, 16) + " to gateway 0x" + String(*destMAC, 16) + ". Retries remaining: " + String(retries - 1));
+    }
     //printLoraPacket(pkt,sizeof(pkt));
     LoRa.beginPacket();
     LoRa.write((uint8_t*)&pkt, sizeof(pkt));
