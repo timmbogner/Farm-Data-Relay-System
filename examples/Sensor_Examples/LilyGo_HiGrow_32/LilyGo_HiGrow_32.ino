@@ -20,17 +20,18 @@
 #include <Adafruit_BME280.h>
 
 BH1750 lightMeter(0x23); //0x23
-Adafruit_BME280 bmp;     //0x77
+Adafruit_BME280 bme;     //0x77
 RTC_DATA_ATTR int the_count = 0;
 
 void setup() {
+  beginFDRS();
 
   //Init Sensors
   Wire.begin(I2C_SDA, I2C_SCL);
-  while (!bmp.begin()) {
-    //Serial.println("bmp");
-    delay(10);
-  }
+  // while (!bme.begin()) {
+  //   Serial.println("bme");
+  //   delay(10);
+  // }
 
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
     Serial.println(F("BH1750 Advanced begin"));
@@ -42,10 +43,10 @@ void setup() {
 
 void loadData() {
   float s_battery = readBattery();
-  float bme_temp = bmp.readTemperature();
-  float bme_pressure = (bmp.readPressure() / 100.0F);
-  //float bme_altitude = bmp.readAltitude(1013.25);
-  float bme_humidity = bmp.readHumidity();
+  // float bme_temp = bme.readTemperature();
+  // float bme_pressure = (bme.readPressure() / 100.0F);
+  //float bme_altitude = bme.readAltitude(1013.25);
+  // float bme_humidity = bme.readHumidity();
   float s_soil = readSoil();
   float s_salt = readSalt();
   while (! lightMeter.measurementReady()) {
@@ -55,22 +56,22 @@ void loadData() {
   the_count++;
 
   Serial.println();
-  Serial.println("Temp: " + String(bme_temp));
-  Serial.println("Humidity: " + String(bme_humidity));
+  // Serial.println("Temp: " + String(bme_temp));
+  // Serial.println("Humidity: " + String(bme_humidity));
   Serial.println("Light: " + String(lux));
-  Serial.println("Pressure: " + String(bme_pressure));
+  // Serial.println("Pressure: " + String(bme_pressure));
   Serial.println("Salt: " + String(s_salt));
   Serial.println("Soil: " + String(s_soil));
   Serial.println("Voltage: " + String(s_battery));
   Serial.println("Count: " + String(the_count));
 
-  loadFDRS(bme_temp, TEMP_T);
+  // loadFDRS(bme_temp, TEMP_T);
 
-  loadFDRS(bme_humidity, HUMIDITY_T);
+  // loadFDRS(bme_humidity, HUMIDITY_T);
 
 
   loadFDRS(lux, LIGHT_T);
-  loadFDRS(bme_pressure, PRESSURE_T);
+  // loadFDRS(bme_pressure, PRESSURE_T);
   loadFDRS(s_salt, SOILR_T);
   loadFDRS(s_soil, SOIL_T);
   loadFDRS(s_battery, VOLTAGE_T);
@@ -96,10 +97,10 @@ uint32_t readSalt() //Soil Electrodes: This code came from the LilyGo documentat
   return humi;
 }
 
-uint16_t readSoil() //Soil Capacitance: This code came from the LilyGo documentation.
+uint16_t readSoil() //Soil Capacitance
 {
   uint16_t soil = analogRead(SOIL_PIN);
-  return map(soil, 0, 4095, 100, 0);
+  return soil;
 }
 
 float readBattery() //Battery Voltage: This code came from the LilyGo documentation.
@@ -110,4 +111,7 @@ float readBattery() //Battery Voltage: This code came from the LilyGo documentat
   return battery_voltage;
 }
 void loop() {
+  loadData();
+  sendFDRS();
+  sleepFDRS(30);
 }
