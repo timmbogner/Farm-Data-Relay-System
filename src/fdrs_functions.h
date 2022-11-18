@@ -7,6 +7,8 @@
 #ifndef __FDRS_FUNCTIONS_H__
 #define __FDRS_FUNCTIONS_H__
 
+#include <fdrs_lora.h>
+#include <fdrs_espnow.h>
 
 enum {
   event_clear,
@@ -289,11 +291,6 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 
   return crc;
 }
-
-
-
-#include <fdrs_lora.h>
-#include <fdrs_espnow.h>
 
 void getSerial() {
   String incomingString;
