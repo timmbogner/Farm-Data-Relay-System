@@ -17,6 +17,6 @@ void setup() {
   pinMode(COIL_PIN, OUTPUT);
 }
 void loop() {
-  if (status) digitalWrite(COIL_PIN, LOW);
-  else digitalWrite(COIL_PIN, HIGH);
+  if (status) digitalWrite(COIL_PIN, HIGH);
+  else digitalWrite(COIL_PIN, LOW);
 }
