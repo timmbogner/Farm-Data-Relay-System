@@ -17,6 +17,9 @@
 #endif
 #include <ArduinoJson.h>
 #ifdef USE_WIFI
+#ifdef USE_CELLULAR
+#include <TinyGsmClient.h>
+#endif //USE_CELLULAR
 #include <PubSubClient.h>
 #include <WiFiUdp.h>
 #endif
@@ -76,6 +79,12 @@ enum {
 
 
 #ifdef USE_WIFI
+
+#ifdef USE_CELLULAR
+const char apn[]      = "YourAPN";
+const char gprsUser[] = "";
+const char gprsPass[] = "";
+#endif //USE_CELLULAR
 
 // select WiFi SSID configuration
 #if defined(WIFI_SSID)
@@ -262,12 +271,17 @@ uint8_t lenLORA2 = 0;
 uint32_t timeLORA2 = 0;
 #endif //USE_LORA
 
+
 #ifdef USE_LED
 CRGB leds[NUM_LEDS];
 #endif //USE_LED
 
 #ifdef USE_WIFI
+#ifdef USE_CELLULAR
+TinyGsmClient client(modem);
+#else
 WiFiClient espClient;
+#endif //USE_CELLULAR
 PubSubClient client(espClient);
 const char* ssid = FDRS_WIFI_SSID;
 const char* password = FDRS_WIFI_PASS;
@@ -763,6 +777,17 @@ void beginFDRS(){
   begin_lora();
 #endif
 #ifdef USE_WIFI
+#ifdef USE_CELLULAR
+  DBG("Connecting to ");
+  DBG(apn);
+  if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
+    DBG("Failed");
+    delay(10000);
+    return;
+  }
+  if (modem.isGprsConnected()) { DBG("GPRS connected"); }
+  #else
+
   delay(10);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -772,6 +797,8 @@ void beginFDRS(){
     delay(500);
   }
   DBG("WiFi Connected");
+  #endif //USE_CELLULAR
+
   client.setServer(mqtt_server, mqtt_port);
   if (!client.connected()) {
     reconnect(5);
