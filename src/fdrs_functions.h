@@ -16,10 +16,13 @@
 #include <esp_wifi.h>
 #endif
 #include <ArduinoJson.h>
-#ifdef USE_WIFI
 #ifdef USE_CELLULAR
 #include <TinyGsmClient.h>
-#endif //USE_CELLULAR
+#ifndef USE_WIFI
+#define USE_WIFI
+#endif 
+#endif 
+#ifdef USE_WIFI
 #include <PubSubClient.h>
 #include <WiFiUdp.h>
 #endif
@@ -425,9 +428,36 @@ void sendLog()
   time(&last_log_write);
   #endif //USE_xx_LOG
 }
+void connectWiFi(){
+WiFi.disconnect();
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    DBG("Connecting to WiFi...");
+    DBG(FDRS_WIFI_SSID);
+
+    delay(500);
+  }
+  DBG("WiFi Connected");
+}
+void connectCellular(){
+    DBG("Connecting to ");
+  DBG(apn);
+  if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
+    DBG("Failed");
+    delay(10000);
+    return;
+  }
+  if (modem.isGprsConnected()) { DBG("GPRS connected"); }
+}
 
 void reconnect(short int attempts, bool silent) {
 #ifdef USE_WIFI
+#ifdef USE_CELLULAR
+  if (!modem.isNetworkConnected()) {connectCellular(); }
+  #else
+  if (WiFi.status() != WL_CONNECTED) {connectWiFi(); }
+#endif //USE_CELLULAR
+
 
   if (!silent) DBG("Connecting MQTT...");
 
@@ -778,27 +808,10 @@ void beginFDRS(){
 #endif
 #ifdef USE_WIFI
 #ifdef USE_CELLULAR
-  DBG("Connecting to ");
-  DBG(apn);
-  if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
-    DBG("Failed");
-    delay(10000);
-    return;
-  }
-  if (modem.isGprsConnected()) { DBG("GPRS connected"); }
-  #else
-
-  delay(10);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    DBG("Connecting to WiFi...");
-    DBG(FDRS_WIFI_SSID);
-
-    delay(500);
-  }
-  DBG("WiFi Connected");
-  #endif //USE_CELLULAR
-
+  connectCellular();
+#else
+  connectWiFi();
+#endif //USE_CELLULAR
   client.setServer(mqtt_server, mqtt_port);
   if (!client.connected()) {
     reconnect(5);
@@ -806,7 +819,7 @@ void beginFDRS(){
   client.setCallback(mqtt_callback);
 #else
   begin_espnow();
-#endif
+#endif //USE_WIFI
 
 #ifdef USE_SD_LOG
   begin_SD();
