@@ -264,6 +264,96 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a) {
 
   return crc;
 }
+crcResult getLoRa();
+
+void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
+#ifdef USE_LORA
+  uint8_t pkt[6 + (len * sizeof(DataReading))];
+  uint16_t calcCRC = 0x0000;
+
+  pkt[0] = (*destMAC >> 8);
+  pkt[1] = (*destMAC & 0x00FF);
+  pkt[2] = (LoRaAddress >> 8);
+  pkt[3] = (LoRaAddress & 0x00FF);
+  memcpy(&pkt[4], packet, len * sizeof(DataReading));
+  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
+    //printf("CRC: %02X : %d\n",calcCRC, i);
+    calcCRC = crc16_update(calcCRC, pkt[i]);
+  }
+#ifndef LORA_ACK
+  calcCRC = crc16_update(calcCRC, 0xA1); // Recalculate CRC for No ACK
+#endif    // LORA_ACK
+  pkt[len * sizeof(DataReading) + 4] = (calcCRC >> 8);
+  pkt[len * sizeof(DataReading) + 5] = (calcCRC & 0x00FF);
+#ifdef LORA_ACK  // Wait for ACK
+  int retries = LORA_RETRIES + 1;
+  while(retries != 0) {
+    if(transmitLoRaMsgwAck != 0)
+      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", Ack Ok " + String((float)msgOkLoRa/transmitLoRaMsgwAck*100) + "%");
+    else 
+      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
+    //printLoraPacket(pkt,sizeof(pkt));
+    LoRa.beginPacket();
+    LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+    LoRa.endPacket();
+    transmitLoRaMsgwAck++;
+    unsigned long loraAckTimeout = millis() + LORA_ACK_TIMEOUT; 
+    retries--;
+    delay(10);
+    while(returnCRC == CRC_NULL && (millis() < loraAckTimeout)) {
+      returnCRC = getLoRa();
+    }
+    if(returnCRC == CRC_OK) {
+      //DBG("LoRa ACK Received! CRC OK");
+      msgOkLoRa++;
+      return;  // we're done
+    }
+    else if(returnCRC == CRC_BAD) {
+      //DBG("LoRa ACK Received! CRC BAD");
+      // Resend original packet again if retries are available
+    }
+    else {
+      DBG("LoRa Timeout waiting for ACK!");
+      // resend original packet again if retries are available
+    }
+  }
+#else   // Send and do not wait for ACK reply
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX));
+  //printLoraPacket(pkt,sizeof(pkt));
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+  LoRa.endPacket();
+  transmitLoRaMsgwAck++;
+#endif    // LORA_ACK
+#endif    // USE_LORA
+}
+
+// For now SystemPackets will not use ACK but will calculate CRC
+void transmitLoRa(uint16_t* destMAC, SystemPacket* packet, uint8_t len) {
+#ifdef USE_LORA
+  uint8_t pkt[6 + (len * sizeof(SystemPacket))];
+  uint16_t calcCRC = 0x0000;
+
+  pkt[0] = (*destMAC >> 8);
+  pkt[1] = (*destMAC & 0x00FF);
+  pkt[2] = (LoRaAddress >> 8);
+  pkt[3] = (LoRaAddress & 0x00FF);
+  memcpy(&pkt[4], packet, len * sizeof(SystemPacket));
+  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
+    //printf("CRC: %02X : %d\n",calcCRC, i);
+    calcCRC = crc16_update(calcCRC, pkt[i]);
+  }
+  calcCRC = crc16_update(calcCRC, 0xA1); // Recalculate CRC for No ACK
+  pkt[len * sizeof(SystemPacket) + 4] = (calcCRC >> 8);
+  pkt[len * sizeof(SystemPacket) + 5] = (calcCRC & 0x00FF);
+  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to destination 0x" + String(*destMAC, HEX));
+  //printLoraPacket(pkt,sizeof(pkt));
+  LoRa.beginPacket();
+  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+  LoRa.endPacket();
+#endif    // USE_LORA
+}
+
 
 // getLoRa for Sensors
 //  USED to get ACKs (SystemPacket type) from LoRa gateway at this point.  May be used in the future to get other data
@@ -360,95 +450,6 @@ crcResult getLoRa() {
 return CRC_NULL;
 #endif
 }
-
-void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
-#ifdef USE_LORA
-  uint8_t pkt[6 + (len * sizeof(DataReading))];
-  uint16_t calcCRC = 0x0000;
-
-  pkt[0] = (*destMAC >> 8);
-  pkt[1] = (*destMAC & 0x00FF);
-  pkt[2] = (LoRaAddress >> 8);
-  pkt[3] = (LoRaAddress & 0x00FF);
-  memcpy(&pkt[4], packet, len * sizeof(DataReading));
-  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
-    //printf("CRC: %02X : %d\n",calcCRC, i);
-    calcCRC = crc16_update(calcCRC, pkt[i]);
-  }
-#ifndef LORA_ACK
-  calcCRC = crc16_update(calcCRC, 0xA1); // Recalculate CRC for No ACK
-#endif    // LORA_ACK
-  pkt[len * sizeof(DataReading) + 4] = (calcCRC >> 8);
-  pkt[len * sizeof(DataReading) + 5] = (calcCRC & 0x00FF);
-#ifdef LORA_ACK  // Wait for ACK
-  int retries = LORA_RETRIES + 1;
-  while(retries != 0) {
-    if(transmitLoRaMsgwAck != 0)
-      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", Ack Ok " + String((float)msgOkLoRa/transmitLoRaMsgwAck*100) + "%");
-    else 
-      DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
-    //printLoraPacket(pkt,sizeof(pkt));
-    LoRa.beginPacket();
-    LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-    LoRa.endPacket();
-    transmitLoRaMsgwAck++;
-    unsigned long loraAckTimeout = millis() + LORA_ACK_TIMEOUT; 
-    retries--;
-    delay(10);
-    while(returnCRC == CRC_NULL && (millis() < loraAckTimeout)) {
-      returnCRC = getLoRa();
-    }
-    if(returnCRC == CRC_OK) {
-      //DBG("LoRa ACK Received! CRC OK");
-      msgOkLoRa++;
-      return;  // we're done
-    }
-    else if(returnCRC == CRC_BAD) {
-      //DBG("LoRa ACK Received! CRC BAD");
-      // Resend original packet again if retries are available
-    }
-    else {
-      DBG("LoRa Timeout waiting for ACK!");
-      // resend original packet again if retries are available
-    }
-  }
-#else   // Send and do not wait for ACK reply
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX));
-  //printLoraPacket(pkt,sizeof(pkt));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
-  transmitLoRaMsgwAck++;
-#endif    // LORA_ACK
-#endif    // USE_LORA
-}
-
-// For now SystemPackets will not use ACK but will calculate CRC
-void transmitLoRa(uint16_t* destMAC, SystemPacket* packet, uint8_t len) {
-#ifdef USE_LORA
-  uint8_t pkt[6 + (len * sizeof(SystemPacket))];
-  uint16_t calcCRC = 0x0000;
-
-  pkt[0] = (*destMAC >> 8);
-  pkt[1] = (*destMAC & 0x00FF);
-  pkt[2] = (LoRaAddress >> 8);
-  pkt[3] = (LoRaAddress & 0x00FF);
-  memcpy(&pkt[4], packet, len * sizeof(SystemPacket));
-  for(int i = 0; i < (sizeof(pkt) - 2); i++) {  // Last 2 bytes are CRC so do not include them in the calculation itself
-    //printf("CRC: %02X : %d\n",calcCRC, i);
-    calcCRC = crc16_update(calcCRC, pkt[i]);
-  }
-  calcCRC = crc16_update(calcCRC, 0xA1); // Recalculate CRC for No ACK
-  pkt[len * sizeof(SystemPacket) + 4] = (calcCRC >> 8);
-  pkt[len * sizeof(SystemPacket) + 5] = (calcCRC & 0x00FF);
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to destination 0x" + String(*destMAC, HEX));
-  //printLoraPacket(pkt,sizeof(pkt));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
-#endif    // USE_LORA
-}
-
 
 void printLoraPacket(uint8_t* p, int size) {
   printf("Printing packet of size %d.", size);
