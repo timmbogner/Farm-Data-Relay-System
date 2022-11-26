@@ -68,6 +68,9 @@ It is a great honor to have been [featured on **Hackaday**!](https://hackaday.co
 Development of this project would not have been possible without the support of my former employer, **Sola Gratia Farm** of **Urbana, IL, USA**.  Sola Gratia is a community-based farm dedicated to growing high-quality produce and sharing it with those in need. Thank you.
   
 
-  
+ #
 ![Basic - UART](extras/basic-UART.png)
+#
+#
 ![Basic - MQTT](extras/basic-MQTT.png)
+#
