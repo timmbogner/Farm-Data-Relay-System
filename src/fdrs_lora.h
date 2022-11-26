@@ -121,7 +121,7 @@ crcResult getLoRa() {
     enableInterrupt = false;
     receivedFlag = false;
     
-  int packetSize = RADIOLIB_MODULE.getPacketLength();
+  int packetSize = radio.getPacketLength();
   if((((packetSize - 6) % sizeof(DataReading) == 0) || ((packetSize - 6) % sizeof(SystemPacket) == 0)) && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of DataReading
     uint8_t packet[packetSize];
     uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
@@ -129,7 +129,7 @@ crcResult getLoRa() {
     uint16_t sourceMAC = 0x0000;
     uint16_t destMAC = 0x0000;
   
-    RADIOLIB_MODULE.readBytes((uint8_t *)&packet, packetSize);
+    radio.readBytes((uint8_t *)&packet, packetSize);
     
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
