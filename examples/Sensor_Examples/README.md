@@ -1,5 +1,5 @@
 # FDRS Sensors
-
+Out of date- Needs improvement.
 | Sensor Name | Maker/Datasheet | Library |
 | --- | --- | --- |
 | AHT20  | [ASAIR](http://www.aosong.com/userfiles/files/media/Data%20Sheet%20AHT20.pdf) | [Adafruit](https://github.com/adafruit/Adafruit_AHTX0) |
