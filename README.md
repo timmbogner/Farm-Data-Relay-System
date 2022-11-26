@@ -69,5 +69,5 @@ Development of this project would not have been possible without the support of 
   
 
   
-![Basic](extras/Basic_Setup.png)
-![Advanced](extras/Advanced_Setup.png)
+![Basic - UART](extras/basic-UART.png)
+![Basic - MQTT](extras/basic-MQTT.png)
