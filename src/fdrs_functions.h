@@ -852,7 +852,7 @@ void loopFDRS(){
   while (UART_IF.available() || Serial.available()) {
     getSerial();
   }
-  getLoRa();
+  if (receivedFlag) getLoRa();
   #ifdef USE_WIFI
   if (!client.connected()) {
     reconnect(1, true);

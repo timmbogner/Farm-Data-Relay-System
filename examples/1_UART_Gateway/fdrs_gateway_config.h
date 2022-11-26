@@ -16,6 +16,11 @@
 #define SERIAL_ACT     sendESPNOW(0x02); bufferLoRa(1); sendESPNOWpeers(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
+// Neighbor Actions
+#define ESPNOW1_ACT   
+#define ESPNOW2_ACT                    
+#define LORA1_ACT      sendSerial();
+#define LORA2_ACT 
 
 // Protocols -- Define which protocols the gateway will use.
 // Warning: ESP-NOW and WiFi should not be used simultaneously.
@@ -24,17 +29,15 @@
 //#define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
 
+#define RADIOLIB_MODULE SX1276
+
 // Neighboring gateway addresses
 #define ESPNOW_NEIGHBOR_1  0x0E  // ESPNOW1 Address 
 #define ESPNOW_NEIGHBOR_2  0x0F  // ESPNOW2 Address
 #define LORA_NEIGHBOR_1    0x02  // LoRa1 Address
 #define LORA_NEIGHBOR_2    0x0F  // LoRa2 Address
 
-// Neighbor Actions
-#define ESPNOW1_ACT   
-#define ESPNOW2_ACT                    
-#define LORA1_ACT   sendSerial();
-#define LORA2_ACT 
+
 
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14
@@ -58,6 +61,7 @@
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
+#define LORA_DIO1 33
 
 //433E6 for Asia
 //866E6 for Europe

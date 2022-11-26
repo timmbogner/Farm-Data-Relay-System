@@ -1,3 +1,6 @@
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
+volatile bool receivedFlag = false;
+volatile bool enableInterrupt = true;
 
 #ifdef USE_LORA
 void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
@@ -57,27 +60,68 @@ void printLoraPacket(uint8_t* p,int size) {
 }
 
 void begin_lora() {
-#ifdef USE_LORA
-  DBG("Initializing LoRa!");
-#ifdef ESP32
-  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-#endif
-  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
-  if (!LoRa.begin(FDRS_BAND)) {
-    DBG(" Initialization failed!");
-    while (1);
+  DBG("RadioLib [RADIOLIB_MODULE] Initializing ... ");
+  int state = radio.begin();
+  if (state == RADIOLIB_ERR_NONE) {
+    DBG(" success!");
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
+  radio.setDio0Action(setFlag);
+
+  // start listening for LoRa packets
+  Serial.print(F("[RADIOLIB_MODULE] Starting to listen ... "));
+  state = radio.startReceive();
+  if (state == RADIOLIB_ERR_NONE) {
+    DBG(" success!");
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
   }
 
-  LoRa.setSpreadingFactor(FDRS_SF);
-  LoRa.setTxPower(FDRS_TXPWR);
-  DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
+// #ifdef USE_LORA
+//   DBG("Initializing LoRa!");
+// #ifdef ESP32
+//   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+// #endif
+//   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
+//   if (!LoRa.begin(FDRS_BAND)) {
+//     DBG(" Initialization failed!");
+//     while (1);
+//   }
 
-#endif // USE_LORA
+//   LoRa.setSpreadingFactor(FDRS_SF);
+//   LoRa.setTxPower(FDRS_TXPWR);
+//   DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
+
+// #endif // USE_LORA
+}
+
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
+void setFlag(void) {
+  // check if the interrupt is enabled
+  if(!enableInterrupt) {
+    return;
+  }
+  // we got a packet, set the flag
+  receivedFlag = true;
+}
+
+void parsePacket(){
+
+    RADIOLIB_MODULE.getPacketLength();
+    int state = radio.readData(str);
 }
 
 crcResult getLoRa() {
 #ifdef USE_LORA
-  int packetSize = LoRa.parsePacket();
+    enableInterrupt = false;
+    receivedFlag = false;
+    
+  int packetSize = RADIOLIB_MODULE.getPacketLength();
   if((((packetSize - 6) % sizeof(DataReading) == 0) || ((packetSize - 6) % sizeof(SystemPacket) == 0)) && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of DataReading
     uint8_t packet[packetSize];
     uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
@@ -85,7 +129,7 @@ crcResult getLoRa() {
     uint16_t sourceMAC = 0x0000;
     uint16_t destMAC = 0x0000;
   
-    LoRa.readBytes((uint8_t *)&packet, packetSize);
+    RADIOLIB_MODULE.readBytes((uint8_t *)&packet, packetSize);
     
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
@@ -94,10 +138,10 @@ crcResult getLoRa() {
     if (destMAC == (selfAddress[4] << 8 | selfAddress[5])) {   //Check if addressed to this device (2 bytes, bytes 1 and 2)
       //printLoraPacket(packet,sizeof(packet));
       if(receivedLoRaMsg != 0){  // Avoid divide by 0
-        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg/receivedLoRaMsg*100) + "%");
+        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg/receivedLoRaMsg*100) + "%");
       }
       else {
-        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg));
+        DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg));
       }
       receivedLoRaMsg++;
       // Evaluate CRC
