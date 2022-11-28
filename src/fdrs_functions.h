@@ -21,6 +21,7 @@
 #include <WiFiUdp.h>
 #endif
 #ifdef USE_LORA
+#include <RadioLib.h>
 #include <LoRa.h>
 #endif
 #ifdef USE_LED
@@ -852,7 +853,7 @@ void loopFDRS(){
   while (UART_IF.available() || Serial.available()) {
     getSerial();
   }
-  if (receivedFlag) getLoRa();
+handleLoRa();
   #ifdef USE_WIFI
   if (!client.connected()) {
     reconnect(1, true);
