@@ -36,9 +36,13 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   pkt[(len * sizeof(DataReading) + 5)] = (calcCRC & 0x00FF);
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
+  int state = radio.startTransmit(pkt,sizeof(pkt));
+  if (state == RADIOLIB_ERR_NONE) {
+    DBG(" begun successfully!");
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
   }
 void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
   uint16_t calcCRC = 0x0000;
@@ -83,6 +87,11 @@ void printLoraPacket(uint8_t* p,int size) {
 }
 
 void begin_lora() {
+
+// #ifdef ESP32
+//   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+// #endif
+   #ifdef USE_LORA
   DBG("RadioLib [RADIOLIB_MODULE] Initializing ... ");
   int state = radio.begin();
   if (state == RADIOLIB_ERR_NONE) {
@@ -102,12 +111,11 @@ void begin_lora() {
     DBG(" failed, code " + String(state));
     while (true);
   }
-
-// #ifdef USE_LORA
+#endif // USE_LORA
+}
+//
 //   DBG("Initializing LoRa!");
-// #ifdef ESP32
-//   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-// #endif
+
 //   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
 //   if (!LoRa.begin(FDRS_BAND)) {
 //     DBG(" Initialization failed!");
@@ -118,8 +126,7 @@ void begin_lora() {
 //   LoRa.setTxPower(FDRS_TXPWR);
 //   DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
 
-// #endif // USE_LORA
-}
+// 
 
 
 
