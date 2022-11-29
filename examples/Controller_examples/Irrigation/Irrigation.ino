@@ -13,7 +13,7 @@
 #define CONTROL_3 103  //Address for controller 3
 #define CONTROL_4 104  //Address for controller 4
 
-#define COIL_1 12  //Coil Pin 1
+#define COIL_1 16  //Coil Pin 1
 #define COIL_2 13  //Coil Pin 2
 #define COIL_3 14  //Coil Pin 3
 #define COIL_4 5   //Coil Pin 4
