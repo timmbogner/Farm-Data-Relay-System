@@ -11,7 +11,6 @@ void setFlag(void) {
   if(!enableInterrupt) {
     return;
   }
-
   // we sent or received  packet, set the flag
   operationDone = true;
 }
@@ -37,6 +36,8 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
   int state = radio.startTransmit(pkt,sizeof(pkt));
+      transmitFlag = true;
+
   if (state == RADIOLIB_ERR_NONE) {
     DBG(" begun successfully!");
   } else {
@@ -63,8 +64,8 @@ void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
   pkt[(len * sizeof(SystemPacket) + 5)] = (calcCRC & 0x00FF);
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
-
   int state = radio.startTransmit(pkt,sizeof(pkt));
+      transmitFlag = true;
   if (state == RADIOLIB_ERR_NONE) {
     DBG(" begun successfully!");
   } else {
@@ -93,7 +94,9 @@ void begin_lora() {
 // #endif
    #ifdef USE_LORA
   DBG("RadioLib [RADIOLIB_MODULE] Initializing ... ");
-  int state = radio.begin();
+    int state = radio.begin(915.0, 125.0, FDRS_SF, 5, 0x12, LORA_TXPWR, 8, 1);
+    radio.setCRC(false);
+
   if (state == RADIOLIB_ERR_NONE) {
     DBG(" success!");
   } else {
@@ -142,7 +145,8 @@ crcResult getLoRa() {
     uint16_t destMAC = 0x0000;
   
     radio.readData((uint8_t *)&packet, packetSize);
-    
+          //printLoraPacket(packet,sizeof(packet));
+
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
     packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
