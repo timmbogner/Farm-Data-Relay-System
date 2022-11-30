@@ -22,7 +22,6 @@
 #endif
 #ifdef USE_LORA
 #include <RadioLib.h>
-#include <LoRa.h>
 #endif
 #ifdef USE_LED
 #include <FastLED.h>

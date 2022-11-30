@@ -15,7 +15,7 @@
 #endif
 #ifdef USE_LORA
 #include <ArduinoUniqueID.h>
-#include <LoRa.h>
+#include <RadioLib.h>
 #endif
 
 // enable to get detailed info from where single configuration macros have been taken
@@ -23,7 +23,6 @@
 #define LORA_RETRIES 2          // LoRa ACK automatic retries [0 - 3]
 
 #ifdef USE_LORA
-
 // select LoRa band configuration
 #if defined(LORA_BAND)
 #define FDRS_BAND LORA_BAND
@@ -87,6 +86,10 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 #ifdef USE_LORA
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
+bool transmitFlag = false;// flag to indicate transmission or reception state
+volatile bool enableInterrupt = true;// disable interrupt when it's not needed
+volatile bool operationDone = false;// flag to indicate that a packet was sent or received
 uint16_t LoRaAddress = ((UniqueID8[6] << 8) | UniqueID8[7]);
 unsigned long transmitLoRaMsgwAck = 0;  // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;     // Number of total LoRa packets with valid CRC
@@ -97,6 +100,7 @@ uint32_t wait_time = 0;
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
 crcResult esp_now_ack_flag;
+
 
 uint8_t data_count = 0;
 bool is_ping = false;
@@ -155,8 +159,48 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   }
 }
+#ifdef USE_LORA
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
+void setFlag(void) {
+  // check if the interrupt is enabled
+  if(!enableInterrupt) {
+    return;
+  }
+  // we sent or received  packet, set the flag
+  operationDone = true;
+}
+#endif
 
+void begin_lora() {
+// #ifdef ESP32
+//   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+// #endif
+   #ifdef USE_LORA
+  DBG("RadioLib [RADIOLIB_MODULE] Initializing ... ");
+    int state = radio.begin(915.0, 125.0, FDRS_SF, 5, 0x12, LORA_TXPWR, 8, 1);
+    radio.setCRC(false);
 
+  if (state == RADIOLIB_ERR_NONE) {
+    DBG(" success!");
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
+  radio.setDio0Action(setFlag);
+
+  // start listening for LoRa packets
+  Serial.print(F("[RADIOLIB_MODULE] Starting to listen ... "));
+  state = radio.startReceive();
+  if (state == RADIOLIB_ERR_NONE) {
+    DBG(" success!");
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
+#endif // USE_LORA
+}
 void beginFDRS() {
 #ifdef FDRS_DEBUG
   Serial.begin(115200);
@@ -214,22 +258,7 @@ void beginFDRS() {
 #endif
   DBG(" ESP-NOW Initialized.");
 #endif //USE_ESPNOW
-#ifdef USE_LORA
-  DBG("Initializing LoRa!");
-#ifdef ESP32
-  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-#endif
-  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
-  if (!LoRa.begin(FDRS_BAND)) {
-    DBG("Unable to initialize LoRa!");
-    while (1);
-  }
-  LoRa.setSpreadingFactor(FDRS_SF);
-  DBG(" LoRa Initialized.");
-
-  DBG("LoRa Band: " + String(FDRS_BAND));
-  DBG("LoRa SF  : " + String(FDRS_SF));
-#endif // USE_LORA
+  begin_lora();
 #ifdef DEBUG_CONFIG
   // if (resetReason != ESP_RST_DEEPSLEEP) {
     //checkConfig();
@@ -293,9 +322,13 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
     else 
       DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
     //printLoraPacket(pkt,sizeof(pkt));
-    LoRa.beginPacket();
-    LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-    LoRa.endPacket();
+  int state = radio.startTransmit(pkt,sizeof(pkt));
+      transmitFlag = true;
+  if (state == RADIOLIB_ERR_NONE) {
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
     transmitLoRaMsgwAck++;
     unsigned long loraAckTimeout = millis() + LORA_ACK_TIMEOUT; 
     retries--;
@@ -320,9 +353,13 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
 #else   // Send and do not wait for ACK reply
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
+  int state = radio.startTransmit(pkt,sizeof(pkt));
+      transmitFlag = true;
+  if (state == RADIOLIB_ERR_NONE) {
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
   transmitLoRaMsgwAck++;
 #endif    // LORA_ACK
 #endif    // USE_LORA
@@ -348,19 +385,22 @@ void transmitLoRa(uint16_t* destMAC, SystemPacket* packet, uint8_t len) {
   pkt[len * sizeof(SystemPacket) + 5] = (calcCRC & 0x00FF);
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to destination 0x" + String(*destMAC, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
+  int state = radio.startTransmit(pkt,sizeof(pkt));
+      transmitFlag = true;
+  if (state == RADIOLIB_ERR_NONE) {
+  } else {
+    DBG(" failed, code " + String(state));
+    while (true);
+  }
 #endif    // USE_LORA
 }
-
 
 // getLoRa for Sensors
 //  USED to get ACKs (SystemPacket type) from LoRa gateway at this point.  May be used in the future to get other data
 // Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
 crcResult getLoRa() {
 #ifdef USE_LORA
-  int packetSize = LoRa.parsePacket();
+  int packetSize = radio.getPacketLength();
   if((packetSize - 6) % sizeof(SystemPacket) == 0 && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of SystemPacket
     uint8_t packet[packetSize];
     uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
@@ -370,13 +410,13 @@ crcResult getLoRa() {
     
     uint ln = (packetSize - 6) / sizeof(SystemPacket);
     SystemPacket receiveData[ln];
-  
-    LoRa.readBytes((uint8_t *)&packet, packetSize);
-    
+
+    radio.readData((uint8_t *)&packet, packetSize);
+
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
     packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
-    DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(LoRa.packetRssi()) + "dBm, SNR: " + String(LoRa.packetSnr()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX));
+    DBG("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX));
     if (destMAC == LoRaAddress) {  // The packet is for us so let's process it
       //printLoraPacket(packet,sizeof(packet));
       for(int i = 0; i < (packetSize - 2); i++) { // Last 2 bytes of packet are the CRC so do not include them in calculation
@@ -451,6 +491,20 @@ return CRC_NULL;
 #endif
 }
 
+void handleLoRa(){
+  if(operationDone) {
+    enableInterrupt = false;
+    operationDone = false;
+    if(transmitFlag) {  // the previous operation was transmission, 
+      radio.startReceive();   // return to listen mode 
+      enableInterrupt = true;
+      transmitFlag = false;
+    } else {  // the previous operation was reception
+      getLoRa();
+      enableInterrupt = true;
+      }
+    }  
+  }
 void printLoraPacket(uint8_t* p, int size) {
   printf("Printing packet of size %d.", size);
   for (int i = 0; i < size; i++ ) {

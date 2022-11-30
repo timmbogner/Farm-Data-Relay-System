@@ -19,16 +19,17 @@
 #define SPI_MISO 19
 #define SPI_MOSI 27
 
-//LoRa Configuration
+// LoRa Configuration
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
+#define LORA_DIO1 33
 //433E6 for Asia
 //866E6 for Europe
 //915E6 for North America
-//#define LORA_BAND 915E6         // LoRa Frequency Band
-//#define LORA_SF 7               // LoRa Spreading Factor
-//#define LORA_TXPWR 17           // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm
+#define LORA_BAND 915E6         // LoRa Frequency Band
+#define LORA_SF 7               // LoRa Spreading Factor
+#define LORA_TXPWR 17           // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm
 
 #define LORA_ACK                // Request LoRa acknowledgment. Increases battery usage.
 

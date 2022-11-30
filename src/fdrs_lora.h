@@ -37,9 +37,8 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   //printLoraPacket(pkt,sizeof(pkt));
   int state = radio.startTransmit(pkt,sizeof(pkt));
       transmitFlag = true;
-
   if (state == RADIOLIB_ERR_NONE) {
-    DBG(" begun successfully!");
+    DBG("Begun successfully!");
   } else {
     DBG(" failed, code " + String(state));
     while (true);
@@ -145,7 +144,6 @@ crcResult getLoRa() {
     uint16_t destMAC = 0x0000;
   
     radio.readData((uint8_t *)&packet, packetSize);
-          //printLoraPacket(packet,sizeof(packet));
 
     destMAC = (packet[0] << 8) | packet[1];
     sourceMAC = (packet[2] << 8) | packet[3];
@@ -354,17 +352,13 @@ void handleLoRa(){
   if(operationDone) {
     enableInterrupt = false;
     operationDone = false;
-    if(transmitFlag) {
-      // the previous operation was transmission, 
+    if(transmitFlag) {  // the previous operation was transmission, 
       radio.startReceive();   // return to listen mode 
       enableInterrupt = true;
       transmitFlag = false;
-      
-    } else {
-      // the previous operation was reception
+    } else {  // the previous operation was reception
       getLoRa();
       enableInterrupt = true;
-
       }
     }  
   }
