@@ -352,12 +352,12 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
       handleLoRa();
     }
     if(returnCRC == CRC_OK) {
-      DBG("LoRa ACK Received! CRC OK");
+      //DBG("LoRa ACK Received! CRC OK");
       msgOkLoRa++;
       return;  // we're done
     }
     else if(returnCRC == CRC_BAD) {
-      DBG("LoRa ACK Received! CRC BAD");
+      //DBG("LoRa ACK Received! CRC BAD");
       // Resend original packet again if retries are available
     }
     else {
