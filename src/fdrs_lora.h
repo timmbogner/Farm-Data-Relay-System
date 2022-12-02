@@ -92,17 +92,15 @@ void begin_lora() {
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif
    #ifdef USE_LORA
-  DBG("RadioLib [RADIOLIB_MODULE] Initializing ... ");
-    int state = radio.begin(915.0, 125.0, FDRS_SF, 5, 0x12, LORA_TXPWR, 8, 1);
-    radio.setCRC(false);
-
+    int state = radio.begin(FDRS_BAND, 125.0, FDRS_SF, 5, 0x12, LORA_TXPWR, 8, 1);
   if (state == RADIOLIB_ERR_NONE) {
-    DBG(" success!");
+    DBG("RadioLib initialization successful!");
   } else {
-    DBG(" failed, code " + String(state));
+    DBG("RadioLib initialization failed, code " + String(state));
     while (true);
   }
   radio.setDio0Action(setFlag);
+  radio.setCRC(false);
 
   // start listening for LoRa packets
   Serial.print(F("[RADIOLIB_MODULE] Starting to listen ... "));

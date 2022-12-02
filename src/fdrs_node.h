@@ -18,28 +18,69 @@
 #include <RadioLib.h>
 #endif
 
-// enable to get detailed info from where single configuration macros have been taken
-#define LORA_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
-#define LORA_RETRIES 2          // LoRa ACK automatic retries [0 - 3]
+//Default values assigned if none present in config
+
+#define GLOBAL_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
+#define GLOBAL_LORA_RETRIES 2          // LoRa ACK automatic retries [0 - 3]
+#define GLOBAL_LORA_TXPWR 17    // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
 #ifdef USE_LORA
 // select LoRa band configuration
-#if defined(LORA_BAND)
-#define FDRS_BAND LORA_BAND
-#elif defined (GLOBAL_LORA_BAND)
-#define FDRS_BAND GLOBAL_LORA_BAND
+#if defined(LORA_FREQUENCY)
+#define FDRS_LORA_FREQUENCY LORA_FREQUENCY
 #else
-// ASSERT("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-#endif //LORA_BAND
+#define FDRS_LORA_FREQUENCY GLOBAL_LORA_FREQUENCY
+#endif //LORA_FREQUENCY
 
 // select LoRa SF configuration
 #if defined(LORA_SF)
-#define FDRS_SF LORA_SF
-#elif defined (GLOBAL_LORA_SF)
-#define FDRS_SF GLOBAL_LORA_SF
+#define FDRS_LORA_SF LORA_SF
 #else
-// ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#define FDRS_LORA_SF GLOBAL_LORA_SF
 #endif //LORA_SF
+
+// select LoRa ACK Timeout configuration
+#if defined(LORA_ACK_TIMEOUT)
+#define FDRS_ACK_TIMEOUT LORA_ACK_TIMEOUT
+#else
+#define FDRS_ACK_TIMEOUT GLOBAL_ACK_TIMEOUT
+#endif //LORA_ACK_TIMEOUT
+
+// select LoRa Retry configuration
+#if defined(LORA_RETRIES)
+#define FDRS_LORA_RETRIES LORA_RETRIES
+#else
+#define FDRS_LORA_RETRIES GLOBAL_LORA_RETRIES
+#endif //LORA_RETRIES
+
+// select  LoRa Tx Power configuration
+#if defined(LORA_TXPWR)
+#define FDRS_LORA_TXPWR LORA_TXPWR
+#else
+#define FDRS_LORA_TXPWR GLOBAL_LORA_TXPWR
+#endif //LORA_RETRIES
+
+// select  LoRa BANDWIDTH configuration
+#if defined(LORA_BANDWIDTH)
+#define FDRS_LORA_BANDWIDTH LORA_BANDWIDTH
+#else
+#define FDRS_LORA_BANDWIDTH GLOBAL_LORA_BANDWIDTH
+#endif //LORA_BANDWIDTH
+
+// select  LoRa Coding Rate configuration
+#if defined(LORA_CR)
+#define FDRS_LORA_CR LORA_CR
+#else
+#define FDRS_LORA_CR GLOBAL_LORA_CR
+#endif //LORA_CR
+
+// select  LoRa SyncWord configuration
+#if defined(LORA_SYNCWORD)
+#define FDRS_LORA_SYNCWORD LORA_SYNCWORD
+#else
+#define FDRS_LORA_SYNCWORD GLOBAL_LORA_SYNCWORD
+#endif //LORA_SYNCWORD
+
 
 #endif //USE_LORA
 
@@ -194,18 +235,15 @@ void
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif
    #ifdef USE_LORA
-  DBG("RadioLib [RADIOLIB_MODULE] Initializing ... ");
-    int state = radio.begin(915.0, 125.0, FDRS_SF, 5, 0x12, LORA_TXPWR, 8, 1);
-    radio.setCRC(false);
-
+    int state = radio.begin(FDRS_LORA_BAND, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
   if (state == RADIOLIB_ERR_NONE) {
-    DBG(" success!");
+    DBG("RadioLib initialization successful!");
   } else {
-    DBG(" failed, code " + String(state));
+    DBG("RadioLib initialization failed, code " + String(state));
     while (true);
   }
   radio.setDio0Action(setFlag);
-
+  radio.setCRC(false);
   // start listening for LoRa packets
   Serial.print(F("[RADIOLIB_MODULE] Starting to listen ... "));
   state = radio.startReceive();
@@ -233,7 +271,7 @@ void beginFDRS() {
   digitalWrite(POWER_CTRL, 1);
   delay(50);
 #endif
-  // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
+  // Init ESP-NOW for either ESP8266 or ESP32
 #ifdef USE_ESPNOW
   DBG("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
@@ -330,7 +368,7 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
   pkt[len * sizeof(DataReading) + 4] = (calcCRC >> 8);
   pkt[len * sizeof(DataReading) + 5] = (calcCRC & 0x00FF);
 #ifdef LORA_ACK  // Wait for ACK
-  int retries = LORA_RETRIES + 1;
+  int retries = FDRS_LORA_RETRIES + 1;
   while(retries != 0) {
     if(transmitLoRaMsgwAck != 0)
       DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", Ack Ok " + String((float)msgOkLoRa/transmitLoRaMsgwAck*100) + "%");
@@ -345,7 +383,7 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
     while (true);
   }
     transmitLoRaMsgwAck++;
-    unsigned long loraAckTimeout = millis() + LORA_ACK_TIMEOUT; 
+    unsigned long loraAckTimeout = millis() + FDRS_ACK_TIMEOUT; 
     retries--;
     delay(10);
     while(returnCRC == CRC_NULL && (millis() < loraAckTimeout)) {
