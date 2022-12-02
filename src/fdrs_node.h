@@ -322,8 +322,8 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
     else 
       DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
     //printLoraPacket(pkt,sizeof(pkt));
-  int state = radio.startTransmit(pkt,sizeof(pkt));
-      transmitFlag = true;
+  int state = radio.transmit(pkt,sizeof(pkt));
+      //transmitFlag = true;
   if (state == RADIOLIB_ERR_NONE) {
   } else {
     DBG(" failed, code " + String(state));
@@ -337,12 +337,12 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
       returnCRC = getLoRa();
     }
     if(returnCRC == CRC_OK) {
-      //DBG("LoRa ACK Received! CRC OK");
+      DBG("LoRa ACK Received! CRC OK");
       msgOkLoRa++;
       return;  // we're done
     }
     else if(returnCRC == CRC_BAD) {
-      //DBG("LoRa ACK Received! CRC BAD");
+      DBG("LoRa ACK Received! CRC BAD");
       // Resend original packet again if retries are available
     }
     else {
@@ -353,8 +353,8 @@ void transmitLoRa(uint16_t* destMAC, DataReading * packet, uint8_t len) {
 #else   // Send and do not wait for ACK reply
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX));
   //printLoraPacket(pkt,sizeof(pkt));
-  int state = radio.startTransmit(pkt,sizeof(pkt));
-      transmitFlag = true;
+  int state = radio.transmit(pkt,sizeof(pkt));
+      //transmitFlag = true;
   if (state == RADIOLIB_ERR_NONE) {
   } else {
     DBG(" failed, code " + String(state));
@@ -401,6 +401,7 @@ void transmitLoRa(uint16_t* destMAC, SystemPacket* packet, uint8_t len) {
 crcResult getLoRa() {
 #ifdef USE_LORA
   int packetSize = radio.getPacketLength();
+  DBG(packetSize);
   if((packetSize - 6) % sizeof(SystemPacket) == 0 && packetSize > 0) {  // packet size should be 6 bytes plus multiple of size of SystemPacket
     uint8_t packet[packetSize];
     uint16_t packetCRC = 0x0000; // CRC Extracted from received LoRa packet
@@ -492,7 +493,7 @@ return CRC_NULL;
 }
 
 void handleLoRa(){
-  if(operationDone) {
+  if(operationDone) { // the interrupt was triggered
     enableInterrupt = false;
     operationDone = false;
     if(transmitFlag) {  // the previous operation was transmission, 
@@ -500,7 +501,8 @@ void handleLoRa(){
       enableInterrupt = true;
       transmitFlag = false;
     } else {  // the previous operation was reception
-      getLoRa();
+      crcResult getLoRa();
+
       enableInterrupt = true;
       }
     }  
