@@ -102,7 +102,7 @@ void begin_lora() {
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif
   #ifdef USE_LORA
-  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
+  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 0);
   if (state == RADIOLIB_ERR_NONE) {
     DBG("RadioLib initialization successful!");
   } else {
