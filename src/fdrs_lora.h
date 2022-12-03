@@ -368,7 +368,7 @@ void handleLoRa(){
       enableInterrupt = true;
       transmitFlag = false;
     } else {  // the previous operation was reception
-          DBG("Reception hass occurred, entering getLoRa() ");
+          DBG("Reception has occurred, entering getLoRa() ");
       returnCRC = getLoRa();
       enableInterrupt = true;
       }
