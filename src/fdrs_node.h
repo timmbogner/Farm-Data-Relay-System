@@ -236,7 +236,7 @@ void handleLoRa(){
   }
 
 
- begin_lora() {
+ void begin_lora() {
 // #ifdef ESP32
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif

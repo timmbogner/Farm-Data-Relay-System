@@ -29,15 +29,11 @@
 //#define USE_LORA
 //#define USE_WIFI    //Used only for MQTT gateway
 
-#define RADIOLIB_MODULE SX1276
-
 // Neighboring gateway addresses
 #define ESPNOW_NEIGHBOR_1  0x0E  // ESPNOW1 Address 
 #define ESPNOW_NEIGHBOR_2  0x0F  // ESPNOW2 Address
 #define LORA_NEIGHBOR_1    0x02  // LoRa1 Address
 #define LORA_NEIGHBOR_2    0x0F  // LoRa2 Address
-
-
 
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14
