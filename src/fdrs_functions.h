@@ -76,6 +76,12 @@ enum {
 
 
 #ifdef USE_WIFI
+// Internal Globals
+// Default values that are assigned if none are present in config
+
+#define GLOBAL_ACK_TIMEOUT  400  // LoRa ACK timeout in ms. (Minimum = 200)
+#define GLOBAL_LORA_RETRIES 2    // LoRa ACK automatic retries [0 - 3]
+#define GLOBAL_LORA_TXPWR   17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
 // select WiFi SSID configuration
 #if defined(WIFI_SSID)
@@ -149,6 +155,11 @@ enum {
 #else
 #define FDRS_LORA_SF GLOBAL_LORA_SF
 #endif //LORA_SF
+
+// select LoRa ACK configuration
+#if defined(LORA_ACK) || defined(GLOBAL_LORA_ACK)
+#define FDRS_LORA_ACK
+#endif //LORA_ACK
 
 // select LoRa ACK Timeout configuration
 #if defined(LORA_ACK_TIMEOUT)

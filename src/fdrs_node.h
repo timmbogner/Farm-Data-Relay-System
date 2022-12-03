@@ -40,6 +40,11 @@
 #define FDRS_LORA_SF GLOBAL_LORA_SF
 #endif //LORA_SF
 
+// select LoRa ACK configuration
+#if defined(LORA_ACK) || defined(GLOBAL_LORA_ACK)
+#define FDRS_LORA_ACK
+#endif //LORA_ACK
+
 // select LoRa ACK Timeout configuration
 #if defined(LORA_ACK_TIMEOUT)
 #define FDRS_ACK_TIMEOUT LORA_ACK_TIMEOUT
@@ -59,7 +64,7 @@
 #define FDRS_LORA_TXPWR LORA_TXPWR
 #else
 #define FDRS_LORA_TXPWR GLOBAL_LORA_TXPWR
-#endif //LORA_RETRIES
+#endif //LORA_TXPWR
 
 // select  LoRa BANDWIDTH configuration
 #if defined(LORA_BANDWIDTH)
@@ -236,7 +241,7 @@ void
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif
    #ifdef USE_LORA
-    int state = radio.begin(FDRS_LORA_BAND, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
+  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
   if (state == RADIOLIB_ERR_NONE) {
     DBG("RadioLib initialization successful!");
   } else {
