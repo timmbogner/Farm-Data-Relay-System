@@ -228,19 +228,19 @@ void printLoraDetails() {
 #ifdef USE_LORA
 	printSmallSectionHeader("LoRa Details:");
 	
-#if defined(LORA_BAND)
-	DBG("LoRa Band used from LORA_BAND                 : " + String(FDRS_BAND));
-#elif defined (GLOBAL_LORA_BAND)
-	DBG("LoRa Band used from GLOBAL_LORA_BAND          : " + String(FDRS_BAND));
+#if defined(FDRS_LORA_FREQUENCY)
+	DBG("LoRa frequency used from FDRS_LORA_FREQUENCY                 : " + String(FDRS_LORA_FREQUENCY));
+#elif defined (GLOBAL_FDRS_LORA_FREQUENCY)
+	DBG("LoRa frequency used from GLOBAL_FDRS_LORA_FREQUENCY          : " + String(FDRS_LORA_FREQUENCY));
 #else 
-	DBG("NO LORA_BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO FDRS_LORA_FREQUENCY defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	//exit(0);
-#endif //LORA-BAND
+#endif //LORA-FREQUENCY
 
 #if defined(LORA_SF)
-	DBG("LoRa SF used from LORA_SF                     : " + String(FDRS_SF));
+	DBG("LoRa SF used from LORA_SF                     : " + String(FDRS_LORA_SF));
 #elif defined (GLOBAL_LORA_SF)
-	DBG("LoRa SF used from GLOBAL_LORA_SF              : " + String(FDRS_SF));
+	DBG("LoRa SF used from GLOBAL_LORA_SF              : " + String(FDRS_LORA_SF));
 #else 
 //	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	DBG("NO LORA_SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
@@ -248,9 +248,9 @@ void printLoraDetails() {
 #endif //LORA_SF
 
 #if defined(LORA_TXPWR)
-	DBG("LoRa TXPWR used from LORA_TXPWR               : " + String(FDRS_TXPWR));
+	DBG("LoRa TXPWR used from LORA_TXPWR               : " + String(FDRS_LORA_TXPWR));
 #elif defined (GLOBAL_LORA_TXPWR)
-	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR        : " + String(FDRS_TXPWR));
+	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR        : " + String(FDRS_LORA_TXPWR));
 #else 
 //	ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 	DBG("NO LORA_TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
