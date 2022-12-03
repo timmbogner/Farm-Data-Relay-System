@@ -252,11 +252,20 @@ crcResult getLoRa() {
     }
     else {
       DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
+        printLoraPacket(packet,sizeof(packet));
+        return CRC_NULL;
+
     }
   }
   else {
     if(packetSize != 0) {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
+      uint8_t packet[packetSize];
+      radio.readData((uint8_t *)&packet, packetSize);
+      printLoraPacket(packet,sizeof(packet));
+     
+      return CRC_NULL;
+
     }
   }
 #endif //USE_LORA
@@ -349,19 +358,23 @@ void releaseLoRa(uint8_t interface) {
 #endif
 }
 void handleLoRa(){
-  if(operationDone) {
+  if(operationDone) { // the interrupt was triggered
+  DBG("Interrupt");
     enableInterrupt = false;
     operationDone = false;
-    if(transmitFlag) {  // the previous operation was transmission, 
+    if(transmitFlag) {  // the previous operation was transmission,
+      DBG("Ending transmission, entering reception mode.");
       radio.startReceive();   // return to listen mode 
       enableInterrupt = true;
       transmitFlag = false;
     } else {  // the previous operation was reception
-      getLoRa();
+          DBG("Reception hass occurred, entering getLoRa() ");
+      returnCRC = getLoRa();
       enableInterrupt = true;
       }
     }  
   }
+
 void releaseSerial() {
   DBG("Releasing Serial.");
   DynamicJsonDocument doc(24576);
