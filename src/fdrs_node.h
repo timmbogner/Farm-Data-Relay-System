@@ -18,7 +18,8 @@
 #include <RadioLib.h>
 #endif
 
-//Default values assigned if none present in config
+// Internal Globals
+// Default values that are assigned if none are present in config
 
 #define GLOBAL_ACK_TIMEOUT 400    // LoRa ACK timeout in ms. (Minimum = 200)
 #define GLOBAL_LORA_RETRIES 2          // LoRa ACK automatic retries [0 - 3]

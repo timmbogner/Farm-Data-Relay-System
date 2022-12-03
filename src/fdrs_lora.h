@@ -1,8 +1,17 @@
+#ifdef USE_LORA
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
 
 bool transmitFlag = false;// flag to indicate transmission or reception state
 volatile bool enableInterrupt = true;// disable interrupt when it's not needed
 volatile bool operationDone = false;// flag to indicate that a packet was sent or received
+
+uint16_t LoRa1 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1);  // Use 2 bytes for LoRa addressing instead of previous 3 bytes
+uint16_t LoRa2 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_2);
+uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 bytes of gateway address
+uint16_t loraBroadcast = 0xFFFF;
+unsigned long receivedLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
+unsigned long ackOkLoRaMsg = 0;     // Number of total LoRa packets with valid CRC
+
 #if defined(ESP8266) || defined(ESP32)
   ICACHE_RAM_ATTR
 #endif
@@ -15,6 +24,7 @@ void setFlag(void) {
   operationDone = true;
 }
 
+#endif
 
 #ifdef USE_LORA
 void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
@@ -91,8 +101,8 @@ void begin_lora() {
 // #ifdef ESP32
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif
-   #ifdef USE_LORA
-    int state = radio.begin(FDRS_BAND, 125.0, FDRS_SF, 5, 0x12, LORA_TXPWR, 8, 1);
+  #ifdef USE_LORA
+  int state = radio.begin(FDRS_LORA_BAND, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
   if (state == RADIOLIB_ERR_NONE) {
     DBG("RadioLib initialization successful!");
   } else {
