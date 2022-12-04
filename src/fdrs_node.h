@@ -220,21 +220,22 @@ void setFlag(void) {
 #endif
 
 void handleLoRa(){
+  #ifdef USE_LORA
   if(operationDone) { // the interrupt was triggered
-  //DBG("Interrupt");
     enableInterrupt = false;
     operationDone = false;
-    if(transmitFlag) {  // the previous operation was transmission, 
+    if(transmitFlag) {  // the previous operation was transmission,
       radio.startReceive();   // return to listen mode 
       enableInterrupt = true;
       transmitFlag = false;
     } else {  // the previous operation was reception
       returnCRC = getLoRa();
+      radio.startReceive();   // fixes the problem?
       enableInterrupt = true;
       }
-    }  
+    } 
+    #endif //USE_LORA 
   }
-
 
  void begin_lora() {
 // #ifdef ESP32

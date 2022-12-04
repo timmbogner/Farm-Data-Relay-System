@@ -102,7 +102,7 @@ void begin_lora() {
 //   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 // #endif
   #ifdef USE_LORA
-  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 0);
+  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
   if (state == RADIOLIB_ERR_NONE) {
     DBG("RadioLib initialization successful!");
   } else {
@@ -260,7 +260,7 @@ crcResult getLoRa() {
     }
     else {
       DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
-        printLoraPacket(packet,sizeof(packet));
+        // printLoraPacket(packet,sizeof(packet));
         return CRC_NULL;
 
     }
@@ -268,10 +268,9 @@ crcResult getLoRa() {
   else {
     if(packetSize != 0) {
       DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
-      uint8_t packet[packetSize];
-      radio.readData((uint8_t *)&packet, packetSize);
-      printLoraPacket(packet,sizeof(packet));
-     
+      // uint8_t packet[packetSize];
+      // radio.readData((uint8_t *)&packet, packetSize);
+      // printLoraPacket(packet,sizeof(packet));
       return CRC_NULL;
 
     }
@@ -365,22 +364,23 @@ void releaseLoRa(uint8_t interface) {
   }
 #endif
 }
+
 void handleLoRa(){
+  #ifdef USE_LORA
   if(operationDone) { // the interrupt was triggered
-  DBG("Interrupt");
     enableInterrupt = false;
     operationDone = false;
     if(transmitFlag) {  // the previous operation was transmission,
-      DBG("Ending transmission, entering reception mode.");
       radio.startReceive();   // return to listen mode 
       enableInterrupt = true;
       transmitFlag = false;
     } else {  // the previous operation was reception
-          DBG("Reception has occurred, entering getLoRa() ");
       returnCRC = getLoRa();
+      radio.startReceive();   // fixes the problem?
       enableInterrupt = true;
       }
-    }  
+    } 
+    #endif //USE_LORA 
   }
 
 void releaseSerial() {
