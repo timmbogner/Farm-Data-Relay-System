@@ -48,7 +48,6 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   int state = radio.startTransmit(pkt,sizeof(pkt));
       transmitFlag = true;
   if (state == RADIOLIB_ERR_NONE) {
-    DBG("Begun successfully!");
   } else {
     DBG(" failed, code " + String(state));
     while (true);
@@ -76,14 +75,10 @@ void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
   int state = radio.startTransmit(pkt,sizeof(pkt));
       transmitFlag = true;
   if (state == RADIOLIB_ERR_NONE) {
-    DBG(" begun successfully!");
   } else {
     DBG(" failed, code " + String(state));
     while (true);
   }
-  // LoRa.beginPacket();
-  // LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  // LoRa.endPacket();
 }
 #endif //USE_LORA
 
@@ -97,10 +92,6 @@ void printLoraPacket(uint8_t* p,int size) {
 }
 
 void begin_lora() {
-
-// #ifdef ESP32
-//   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-// #endif
   #ifdef USE_LORA
   int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
   if (state == RADIOLIB_ERR_NONE) {
@@ -111,34 +102,15 @@ void begin_lora() {
   }
   radio.setDio0Action(setFlag);
   radio.setCRC(false);
-
-  // start listening for LoRa packets
-  Serial.print(F("[RADIOLIB_MODULE] Starting to listen ... "));
-  state = radio.startReceive();
+  DBG("LoRa Initialized. Frequency: " + String(FDRS_LORA_FREQUENCY) + "  Bandwidth: " + String(FDRS_LORA_BANDWIDTH) + "  SF: " + String(FDRS_LORA_SF) + "  CR: " + String(FDRS_LORA_CR) + "  SyncWord: " + String(FDRS_LORA_SYNCWORD) + "  Tx Power: " + String(FDRS_LORA_TXPWR) + "dBm");
+  state = radio.startReceive();  // start listening for LoRa packets
   if (state == RADIOLIB_ERR_NONE) {
-    DBG(" success!");
   } else {
     DBG(" failed, code " + String(state));
     while (true);
   }
 #endif // USE_LORA
 }
-//
-//   DBG("Initializing LoRa!");
-
-//   LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
-//   if (!LoRa.begin(FDRS_BAND)) {
-//     DBG(" Initialization failed!");
-//     while (1);
-//   }
-
-//   LoRa.setSpreadingFactor(FDRS_SF);
-//   LoRa.setTxPower(FDRS_TXPWR);
-//   DBG("LoRa Initialized. Band: " + String(FDRS_BAND) + " SF: " + String(FDRS_SF) + " Tx Power: " + String(LORA_TXPWR) + " dBm");
-
-// 
-
-
 
 crcResult getLoRa() {
 #ifdef USE_LORA

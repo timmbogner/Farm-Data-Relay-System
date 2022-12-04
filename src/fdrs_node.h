@@ -249,13 +249,11 @@ void handleLoRa(){
     DBG("RadioLib initialization failed, code " + String(state));
     while (true);
   }
+  DBG("LoRa Initialized. Frequency: " + String(FDRS_LORA_FREQUENCY) + "  Bandwidth: " + String(FDRS_LORA_BANDWIDTH) + "  SF: " + String(FDRS_LORA_SF) + "  CR: " + String(FDRS_LORA_CR) + "  SyncWord: " + String(FDRS_LORA_SYNCWORD) + "  Tx Power: " + String(FDRS_LORA_TXPWR) + "dBm");
   radio.setDio0Action(setFlag);
   radio.setCRC(false);
-  // start listening for LoRa packets
-  Serial.print(F("[RADIOLIB_MODULE] Starting to listen ... "));
-  state = radio.startReceive();
+  state = radio.startReceive(); // start listening for LoRa packets
   if (state == RADIOLIB_ERR_NONE) {
-    DBG(" success!");
   } else {
     DBG(" failed, code " + String(state));
     while (true);
