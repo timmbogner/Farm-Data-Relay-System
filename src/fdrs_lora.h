@@ -348,7 +348,7 @@ void handleLoRa(){
       transmitFlag = false;
     } else {  // the previous operation was reception
       returnCRC = getLoRa();
-      radio.startReceive();   // fixes the problem?
+      if (!transmitFlag) radio.startReceive();
       enableInterrupt = true;
       }
     } 
