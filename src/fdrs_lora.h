@@ -52,7 +52,7 @@ void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
     DBG(" failed, code " + String(state));
     while (true);
   }
-  }
+}
 void transmitLoRa(uint16_t* destMac, SystemPacket * packet, uint8_t len) {
   uint16_t calcCRC = 0x0000;
 
@@ -93,7 +93,7 @@ void printLoraPacket(uint8_t* p,int size) {
 
 void begin_lora() {
   #ifdef USE_LORA
-  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1);
+  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 0);
   if (state == RADIOLIB_ERR_NONE) {
     DBG("RadioLib initialization successful!");
   } else {
@@ -342,13 +342,13 @@ void handleLoRa(){
   if(operationDone) { // the interrupt was triggered
     enableInterrupt = false;
     operationDone = false;
-    if(transmitFlag) {  // the previous operation was transmission,
+    if(transmitFlag) {  // the previous operation was transmission
       radio.startReceive();   // return to listen mode 
       enableInterrupt = true;
       transmitFlag = false;
     } else {  // the previous operation was reception
       returnCRC = getLoRa();
-      if (!transmitFlag) radio.startReceive();
+      if (!transmitFlag) radio.startReceive(); //return to listen if no transmission was begun.
       enableInterrupt = true;
       }
     } 
