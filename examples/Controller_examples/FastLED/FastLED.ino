@@ -3,7 +3,7 @@
 //  FastLED Lantern
 //
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
-//  Rest in Peace, Dan Garcia. Thank you for bringing so much light to the world!
+//  Rest in Peace, Daniel Garcia. Thank you for bringing so much light to the world!
 
 //  Type
 //   1: Red
