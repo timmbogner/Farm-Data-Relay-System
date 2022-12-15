@@ -16,9 +16,13 @@
 //
 
 #define USE_PWM    //If using an RGB LED
-#define PIN_R  18
-#define PIN_G  19
-#define PIN_B  23
+// #define PIN_R  18   //ESP32 WeMos
+// #define PIN_G  19
+// #define PIN_B  23
+
+#define PIN_R  14  //8266 WeMos
+#define PIN_G  12
+#define PIN_B  13
 
 #define PIN_DATA 4  // If using a NeoPixel
 #define NUM_LEDS 24  // Number of physical LEDs.
