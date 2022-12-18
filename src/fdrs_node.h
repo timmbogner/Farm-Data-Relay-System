@@ -596,7 +596,16 @@ void loadFDRS(float d, uint8_t t) {
   fdrsData[data_count] = dr;
   data_count++;
 }
-
+void loadFDRS(float d, uint8_t t, uint16_t id) {
+  DBG("Id: " + String(id) + " - Type: " + String(t) + " - Data loaded: " + String(d));
+  if (data_count > espnow_size) sendFDRS();
+  DataReading dr;
+  dr.id = id;
+  dr.t = t;
+  dr.d = d;
+  fdrsData[data_count] = dr;
+  data_count++;
+}
 void sleepFDRS(int sleep_time) {
   DBG("Sleepytime!");
 #ifdef DEEP_SLEEP

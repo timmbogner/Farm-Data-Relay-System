@@ -8,15 +8,15 @@
 #include "fdrs_sensor_config.h"
 #include <fdrs_node.h>
 
-#define CONTROL_1    101        //Address for controller 1
-#define CONTROL_2    102        //Address for controller 2
-#define CONTROL_3    103        //Address for controller 3
-#define CONTROL_4    104        //Address for controller 4
+#define CONTROL_1 101  //Address for controller 1
+#define CONTROL_2 102  //Address for controller 2
+#define CONTROL_3 103  //Address for controller 3
+#define CONTROL_4 104  //Address for controller 4
 
-#define COIL_1       12          //Coil Pin 1
-#define COIL_2       13          //Coil Pin 2
-#define COIL_3       14          //Coil Pin 3
-#define COIL_4       5          //Coil Pin 4
+#define COIL_1 4   //Coil Pin 1
+#define COIL_2 5   //Coil Pin 2
+#define COIL_3 13  //Coil Pin 3
+#define COIL_4 14  //Coil Pin 4
 
 int status_1 = 0;
 int status_2 = 0;
@@ -46,6 +46,34 @@ void fdrs_recv_cb(DataReading theData) {
       break;
   }
 }
+void checkCoils() {  // Sends back a status report for each coil pin. 
+  if (digitalRead(COIL_1) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_1);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_1);
+  }
+  if (digitalRead(COIL_2) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_2);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_2);
+  }
+  if (digitalRead(COIL_3) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_3);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_3);
+  }
+  if (digitalRead(COIL_4) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_4);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_4);
+  }
+  if (sendFDRS()) {
+    DBG("Packet received by gateway");
+  } else {
+    DBG("Unable to communicate with gateway!");
+  }
+}
+
 void updateCoils() {
   if (status_1) {
     digitalWrite(COIL_1, LOW);
@@ -89,13 +117,12 @@ void setup() {
   digitalWrite(COIL_4, HIGH);
 
   DBG("FARM DATA RELAY SYSTEM :: Irrigation Module");
-
 }
 
-void loop()
-{
+void loop() {
   if (newData) {
     newData = false;
     updateCoils();
+    checkCoils();
   }
 }
