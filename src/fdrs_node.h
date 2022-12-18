@@ -158,6 +158,7 @@ void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
 
+#ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
@@ -207,6 +208,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   }
 }
+#endif // USE_ESPNOW
+
 #ifdef USE_LORA
 #if defined(ESP8266) || defined(ESP32)
   ICACHE_RAM_ATTR
@@ -466,7 +469,7 @@ crcResult getLoRa() {
     uint16_t sourceMAC = 0x0000;
     uint16_t destMAC = 0x0000;
     
-    uint ln = (packetSize - 6) / sizeof(SystemPacket);
+    unsigned int ln = (packetSize - 6) / sizeof(SystemPacket);
     SystemPacket receiveData[ln];
 
     radio.readData((uint8_t *)&packet, packetSize);
