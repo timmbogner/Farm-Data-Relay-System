@@ -118,7 +118,7 @@ void checkCoils() {  // Sends back a status report for each coil pin.
   }
 }
 
-void updateCoils() {
+void updateCoils() {  //These are set up for relay module which are active-LOW. Swap 'HIGH'and 'LOW' in this function to use the inverse.
   if (status_1) {
     digitalWrite(COIL_1, LOW);
   } else {
