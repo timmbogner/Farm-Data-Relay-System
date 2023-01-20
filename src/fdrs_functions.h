@@ -30,6 +30,9 @@
 #include <SPI.h>
 #include <SD.h>
 #endif
+#ifdef USE_OLED
+#include <SSD1306Wire.h>  
+#endif
 #ifdef USE_FS_LOG
 #include <LittleFS.h>
 #endif
@@ -63,9 +66,17 @@ enum {
 };
 
 #ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
+  #ifdef USE_OLED
+    #define DBG(a) (Serial.println(a); debug_OLED(a))
+  #else
+      #define DBG(a) (Serial.println(a))
+  #endif
 #else
-#define DBG(a)
+  #ifdef USE_OLED
+    #define DBG(a) (debug_OLED(a))
+  #else
+      #define DBG(a)
+  #endif
 #endif
 
 #if defined (ESP32)
