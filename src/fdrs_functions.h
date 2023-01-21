@@ -69,7 +69,8 @@ void debug_OLED(String debug_text);
 
 #ifdef FDRS_DEBUG
 #ifdef USE_OLED
-#define DBG(a) debug_OLED(String(a));
+#define DBG(a) debug_OLED(String(a)); \
+Serial.println(a);
 #else
 #define DBG(a) Serial.println(a);
 #endif
@@ -343,6 +344,7 @@ SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL);   // ADDRESS, SDA, SCL
 
 void draw_OLED_header()
 {
+  display.setFont(ArialMT_Plain_10);
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.drawString(0, 0, String(UNIT_MAC, HEX));
@@ -352,30 +354,27 @@ void draw_OLED_header()
   display.drawString(127, 0, "TBD");
   display.display();
   display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.setFont(ArialMT_Plain_10);
 
 }
 void debug_OLED(String debug_text)
 {
-  #ifdef FDRS_DEBUG
-  Serial.println(debug_text);
-  #endif
-
   draw_OLED_header();
+ display.drawHorizontalLine(0, 15, 128);
+ display.drawHorizontalLine(0, 16, 128);
+
 
   for (uint8_t i = 4; i > 0; i--)
   {
 
     debug_buffer[i] = debug_buffer[i-1];
+
   }
-  debug_buffer[0] = debug_text;
-  Serial.println("updated buffer");
+  debug_buffer[0] = String(millis()/1000)+ " " + debug_text;
   uint8_t lineNumber = 0;
   for (uint8_t i = 0; i < 5; i++)
   {
-    Serial.println("line");
-    uint8_t ret = display.drawStringMaxWidth(0, 15 +(lineNumber*9),  127,debug_buffer[i]);
-      Serial.println("--" + debug_buffer[i]);
-
+    uint8_t ret = display.drawStringMaxWidth(0, 17 + (lineNumber * 9), 127, debug_buffer[i]);
     lineNumber = ret + lineNumber;
     if (lineNumber > 5)
       break;
@@ -803,33 +802,30 @@ void handleCommands() {
 
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
-
-
 }
-void beginFDRS(){
+void beginFDRS()
+{
 #if defined(ESP8266)
   Serial.begin(115200);
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
-  #ifdef USE_OLED
+#ifdef USE_OLED
   pinMode(OLED_RST, OUTPUT);
   digitalWrite(OLED_RST, LOW);
   delay(30);
   digitalWrite(OLED_RST, HIGH);
   Wire.begin(OLED_SDA, OLED_SCL);
-// Initialising the UI will init the display too.
   display.init();
   display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_10);
   draw_OLED_header();
   DBG("Display initialized!")
   DBG("Hello, World!")
 
 #endif
 
-  DBG("Address:" + String (UNIT_MAC, HEX));
+  DBG("Address:" + String(UNIT_MAC, HEX));
 
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
