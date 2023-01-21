@@ -8,6 +8,8 @@
 #include "fdrs_sensor_config.h"
 #include <fdrs_node.h>
 
+#define 
+
 #define CONTROL_1 101  //Address for controller 1
 #define CONTROL_2 102  //Address for controller 2
 #define CONTROL_3 103  //Address for controller 3
@@ -24,29 +26,71 @@ int status_3 = 0;
 int status_4 = 0;
 
 bool newData = false;
+bool newStatus = false;
 
 void fdrs_recv_cb(DataReading theData) {
   DBG(String(theData.id));
-  switch (theData.id) {
-    case CONTROL_1:
-      status_1 = (int)theData.d;
-      newData = true;
+  switch (theData.t) {
+    case 0:  // Incoming command is to SET a value
+      
+      switch (theData.id) {
+        case CONTROL_1:
+          status_1 = (int)theData.d;
+          newData = true;
+          break;
+        case CONTROL_2:
+          status_2 = (int)theData.d;
+          newData = true;
+          break;
+        case CONTROL_3:
+          status_3 = (int)theData.d;
+          newData = true;
+          break;
+        case CONTROL_4:
+          status_4 = (int)theData.d;
+          newData = true;
+          break;
+      }
       break;
-    case CONTROL_2:
-      status_2 = (int)theData.d;
-      newData = true;
+
+    case 1:  // Incoming command is to GET a value
+switch (theData.id) {
+        case CONTROL_1:
+          if (digitalRead(COIL_1) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_1);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_1);
+          }
+          break;
+        case CONTROL_2:
+          if (digitalRead(COIL_2) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_2);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_2);
+          }
+          break;
+        case CONTROL_3:
+          if (digitalRead(COIL_3) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_3);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_3);
+          }
+          break;
+        case CONTROL_4:
+          if (digitalRead(COIL_4) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_4);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_4);
+          }
+          break;
+      }
+      newStatus = true;
       break;
-    case CONTROL_3:
-      status_3 = (int)theData.d;
-      newData = true;
-      break;
-    case CONTROL_4:
-      status_4 = (int)theData.d;
-      newData = true;
-      break;
+
   }
 }
-void checkCoils() {  // Sends back a status report for each coil pin. 
+
+void checkCoils() {  // Sends back a status report for each coil pin.
   if (digitalRead(COIL_1) == HIGH) {
     loadFDRS(1, STATUS_T, CONTROL_1);
   } else {
@@ -74,7 +118,7 @@ void checkCoils() {  // Sends back a status report for each coil pin.
   }
 }
 
-void updateCoils() {
+void updateCoils() {  //These are set up for relay module which are active-LOW. Swap 'HIGH'and 'LOW' in this function to use the inverse.
   if (status_1) {
     digitalWrite(COIL_1, LOW);
   } else {
@@ -124,5 +168,13 @@ void loop() {
     newData = false;
     updateCoils();
     checkCoils();
+  }
+  if (newStatus) {
+    newStatus = false;
+    if (sendFDRS()) {
+      DBG("Packet received by gateway");
+    } else {
+      DBG("Unable to communicate with gateway!");
+    }
   }
 }
