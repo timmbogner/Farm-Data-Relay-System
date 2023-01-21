@@ -27,7 +27,7 @@
 #include <WiFiUdp.h>
 #endif
 #ifdef USE_LORA
-#include <LoRa.h>
+#include <RadioLib.h>
 #endif
 #ifdef USE_LED
 #include <FastLED.h>
@@ -82,6 +82,12 @@ enum {
 
 
 #ifdef USE_WIFI
+// Internal Globals
+// Default values that are assigned if none are present in config
+
+#define GLOBAL_ACK_TIMEOUT  400  // LoRa ACK timeout in ms. (Minimum = 200)
+#define GLOBAL_LORA_RETRIES 2    // LoRa ACK automatic retries [0 - 3]
+#define GLOBAL_LORA_TXPWR   17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
 #ifdef USE_CELLULAR
 const char apn[]      = "YourAPN";
@@ -142,41 +148,73 @@ const char gprsPass[] = "";
 #else 
 // ASSERT("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //MQTT_PASS
-
 #if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
 #define FDRS_MQTT_AUTH
 #endif //MQTT_AUTH
-
 #endif //USE_WIFI
 
 #ifdef USE_LORA
-
 // select LoRa band configuration
-#if defined(LORA_BAND)
-#define FDRS_BAND LORA_BAND
-#elif defined (GLOBAL_LORA_BAND)
-#define FDRS_BAND GLOBAL_LORA_BAND
-#else 
-// ASSERT("NO LORA-BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-#endif //LORA_BAND
+#if defined(LORA_FREQUENCY)
+#define FDRS_LORA_FREQUENCY LORA_FREQUENCY
+#else
+#define FDRS_LORA_FREQUENCY GLOBAL_LORA_FREQUENCY
+#endif //LORA_FREQUENCY
 
 // select LoRa SF configuration
 #if defined(LORA_SF)
-#define FDRS_SF LORA_SF
-#elif defined (GLOBAL_LORA_SF)
-#define FDRS_SF GLOBAL_LORA_SF
-#else 
-// ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#define FDRS_LORA_SF LORA_SF
+#else
+#define FDRS_LORA_SF GLOBAL_LORA_SF
 #endif //LORA_SF
 
-// select LoRa TXPWR configuration
+// select LoRa ACK configuration
+#if defined(LORA_ACK) || defined(GLOBAL_LORA_ACK)
+#define FDRS_LORA_ACK
+#endif //LORA_ACK
+
+// select LoRa ACK Timeout configuration
+#if defined(LORA_ACK_TIMEOUT)
+#define FDRS_ACK_TIMEOUT LORA_ACK_TIMEOUT
+#else
+#define FDRS_ACK_TIMEOUT GLOBAL_ACK_TIMEOUT
+#endif //LORA_ACK_TIMEOUT
+
+// select LoRa Retry configuration
+#if defined(LORA_RETRIES)
+#define FDRS_LORA_RETRIES LORA_RETRIES
+#else
+#define FDRS_LORA_RETRIES GLOBAL_LORA_RETRIES
+#endif //LORA_RETRIES
+
+// select  LoRa Tx Power configuration
 #if defined(LORA_TXPWR)
-#define FDRS_TXPWR LORA_TXPWR
-#elif defined (GLOBAL_LORA_TXPWR)
-#define FDRS_TXPWR GLOBAL_LORA_TXPWR
-#else 
-// ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#define FDRS_LORA_TXPWR LORA_TXPWR
+#else
+#define FDRS_LORA_TXPWR GLOBAL_LORA_TXPWR
 #endif //LORA_TXPWR
+
+// select  LoRa BANDWIDTH configuration
+#if defined(LORA_BANDWIDTH)
+#define FDRS_LORA_BANDWIDTH LORA_BANDWIDTH
+#else
+#define FDRS_LORA_BANDWIDTH GLOBAL_LORA_BANDWIDTH
+#endif //LORA_BANDWIDTH
+
+// select  LoRa Coding Rate configuration
+#if defined(LORA_CR)
+#define FDRS_LORA_CR LORA_CR
+#else
+#define FDRS_LORA_CR GLOBAL_LORA_CR
+#endif //LORA_CR
+
+// select  LoRa SyncWord configuration
+#if defined(LORA_SYNCWORD)
+#define FDRS_LORA_SYNCWORD LORA_SYNCWORD
+#else
+#define FDRS_LORA_SYNCWORD GLOBAL_LORA_SYNCWORD
+#endif //LORA_SYNCWORD
+
 
 #endif //USE_LORA
 
@@ -218,15 +256,6 @@ uint8_t incMAC[6];
 uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
 uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 
-
-#ifdef USE_LORA
-uint16_t LoRa1 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1);  // Use 2 bytes for LoRa addressing instead of previous 3 bytes
-uint16_t LoRa2 =         ((mac_prefix[4] << 8) | LORA_NEIGHBOR_2);
-uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 bytes of gateway address
-uint16_t loraBroadcast = 0xFFFF;
-unsigned long receivedLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
-unsigned long ackOkLoRaMsg = 0;     // Number of total LoRa packets with valid CRC
-#endif
 
 #if defined (USE_SD_LOG) || defined (USE_FS_LOG)
 char logBuffer[512];
@@ -307,7 +336,6 @@ void transmitLoRa(uint16_t*, DataReading*, uint8_t);
 void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);
 static uint16_t crc16_update(uint16_t, uint8_t);
 
-
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
 /** @ingroup util_crc16
@@ -336,10 +364,9 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   return crc;
 }
 
-
-
 #include <fdrs_lora.h>
 #include <fdrs_espnow.h>
+
 
 void getSerial() {
   String incomingString;
@@ -894,7 +921,7 @@ void loopFDRS(){
   while (UART_IF.available() || Serial.available()) {
     getSerial();
   }
-  getLoRa();
+handleLoRa();
   #ifdef USE_WIFI
   if (!client.connected()) {
     reconnect(1, true);
