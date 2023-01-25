@@ -30,6 +30,9 @@
 #include <SPI.h>
 #include <SD.h>
 #endif
+#ifdef USE_OLED
+#include <SSD1306Wire.h>  
+#endif
 #ifdef USE_FS_LOG
 #include <LittleFS.h>
 #endif
@@ -62,10 +65,21 @@ enum {
   cmd_ack
 };
 
+void debug_OLED(String debug_text);
+
 #ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
+#ifdef USE_OLED
+#define DBG(a) debug_OLED(String(a)); \
+Serial.println(a);
+#else
+#define DBG(a) Serial.println(a);
+#endif
+#else
+#ifdef USE_OLED
+#define DBG(a) debug_OLED(String(a));
 #else
 #define DBG(a)
+#endif
 #endif
 
 #if defined (ESP32)
@@ -349,6 +363,49 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 
 #include <fdrs_lora.h>
 #include <fdrs_espnow.h>
+
+String debug_buffer[5] = {"", "", "", "", ""};
+SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL);   // ADDRESS, SDA, SCL
+
+void draw_OLED_header()
+{
+  display.setFont(ArialMT_Plain_10);
+  display.clear();
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.drawString(0, 0, String(UNIT_MAC, HEX));
+  display.setTextAlignment(TEXT_ALIGN_CENTER);
+  display.drawString(63, 0, OLED_HEADER);
+  display.setTextAlignment(TEXT_ALIGN_RIGHT);
+  display.drawString(127, 0, "TBD");
+  display.display();
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.setFont(ArialMT_Plain_10);
+
+}
+void debug_OLED(String debug_text)
+{
+  draw_OLED_header();
+ display.drawHorizontalLine(0, 15, 128);
+ display.drawHorizontalLine(0, 16, 128);
+
+
+  for (uint8_t i = 4; i > 0; i--)
+  {
+
+    debug_buffer[i] = debug_buffer[i-1];
+
+  }
+  debug_buffer[0] = String(millis()/1000)+ " " + debug_text;
+  uint8_t lineNumber = 0;
+  for (uint8_t i = 0; i < 5; i++)
+  {
+    uint8_t ret = display.drawStringMaxWidth(0, 17 + (lineNumber * 9), 127, debug_buffer[i]);
+    lineNumber = ret + lineNumber;
+    if (lineNumber > 5)
+      break;
+  }
+  display.display();
+}
 
 
 void getSerial() {
@@ -770,17 +827,31 @@ void handleCommands() {
 
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
-
-
 }
-void beginFDRS(){
-  #if defined(ESP8266)
+void beginFDRS()
+{
+#if defined(ESP8266)
   Serial.begin(115200);
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
-  DBG("Address:" + String (UNIT_MAC, HEX));
+#ifdef USE_OLED
+  pinMode(OLED_RST, OUTPUT);
+  digitalWrite(OLED_RST, LOW);
+  delay(30);
+  digitalWrite(OLED_RST, HIGH);
+  Wire.begin(OLED_SDA, OLED_SCL);
+  display.init();
+  display.flipScreenVertically();
+  draw_OLED_header();
+  DBG("Display initialized!")
+  DBG("Hello, World!")
+
+#endif
+
+  DBG("Address:" + String(UNIT_MAC, HEX));
+
 #ifdef USE_LED
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   leds[0] = CRGB::Blue;
