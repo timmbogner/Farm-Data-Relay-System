@@ -16,6 +16,11 @@
 #define SERIAL_ACT     sendESPNOW(0x02); bufferLoRa(1); sendESPNOWpeers(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
+// Neighbor Actions
+#define ESPNOW1_ACT   
+#define ESPNOW2_ACT                    
+#define LORA1_ACT      sendSerial();
+#define LORA2_ACT 
 
 // Protocols -- Define which protocols the gateway will use.
 // Warning: ESP-NOW and WiFi should not be used simultaneously.
@@ -29,12 +34,6 @@
 #define ESPNOW_NEIGHBOR_2  0x0F  // ESPNOW2 Address
 #define LORA_NEIGHBOR_1    0x02  // LoRa1 Address
 #define LORA_NEIGHBOR_2    0x0F  // LoRa2 Address
-
-// Neighbor Actions
-#define ESPNOW1_ACT   
-#define ESPNOW2_ACT                    
-#define LORA1_ACT   sendSerial();
-#define LORA2_ACT 
 
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14
@@ -54,17 +53,14 @@
 #define SPI_MISO 19
 #define SPI_MOSI 27
 
-// LoRa Configuration -- Needed only if using LoRa
+// LoRa Configuration
+#define RADIOLIB_MODULE SX1276 //Tested on SX1276
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
-
-//433E6 for Asia
-//866E6 for Europe
-//915E6 for North America
-#define LORA_BAND 915E6     // LoRa Frequency Band
-#define LORA_SF 7           // LoRa Spreading Factor
-#define LORA_TXPWR 17       // LoRa TX power in dBm (+2dBm - +20dBm), default is +17dBm.  Lower power = less battery use
+#define LORA_DIO1 33
+#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
+#define LORA_ACK        // Request LoRa acknowledgment.
 
 // Buffer Delays - in milliseconds - Uncomment to enable any buffer
 
