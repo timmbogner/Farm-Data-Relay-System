@@ -1,6 +1,74 @@
 #ifdef USE_LORA
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
+#include <RadioLib.h>
 
+#define GLOBAL_ACK_TIMEOUT  400  // LoRa ACK timeout in ms. (Minimum = 200)
+#define GLOBAL_LORA_RETRIES 2    // LoRa ACK automatic retries [0 - 3]
+#define GLOBAL_LORA_TXPWR   17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
+
+// select LoRa band configuration
+#if defined(LORA_FREQUENCY)
+#define FDRS_LORA_FREQUENCY LORA_FREQUENCY
+#else
+#define FDRS_LORA_FREQUENCY GLOBAL_LORA_FREQUENCY
+#endif //LORA_FREQUENCY
+
+// select LoRa SF configuration
+#if defined(LORA_SF)
+#define FDRS_LORA_SF LORA_SF
+#else
+#define FDRS_LORA_SF GLOBAL_LORA_SF
+#endif //LORA_SF
+
+// select LoRa ACK configuration
+#if defined(LORA_ACK) || defined(GLOBAL_LORA_ACK)
+#define FDRS_LORA_ACK
+#endif //LORA_ACK
+
+// select LoRa ACK Timeout configuration
+#if defined(LORA_ACK_TIMEOUT)
+#define FDRS_ACK_TIMEOUT LORA_ACK_TIMEOUT
+#else
+#define FDRS_ACK_TIMEOUT GLOBAL_ACK_TIMEOUT
+#endif //LORA_ACK_TIMEOUT
+
+// select LoRa Retry configuration
+#if defined(LORA_RETRIES)
+#define FDRS_LORA_RETRIES LORA_RETRIES
+#else
+#define FDRS_LORA_RETRIES GLOBAL_LORA_RETRIES
+#endif //LORA_RETRIES
+
+// select  LoRa Tx Power configuration
+#if defined(LORA_TXPWR)
+#define FDRS_LORA_TXPWR LORA_TXPWR
+#else
+#define FDRS_LORA_TXPWR GLOBAL_LORA_TXPWR
+#endif //LORA_TXPWR
+
+// select  LoRa BANDWIDTH configuration
+#if defined(LORA_BANDWIDTH)
+#define FDRS_LORA_BANDWIDTH LORA_BANDWIDTH
+#else
+#define FDRS_LORA_BANDWIDTH GLOBAL_LORA_BANDWIDTH
+#endif //LORA_BANDWIDTH
+
+// select  LoRa Coding Rate configuration
+#if defined(LORA_CR)
+#define FDRS_LORA_CR LORA_CR
+#else
+#define FDRS_LORA_CR GLOBAL_LORA_CR
+#endif //LORA_CR
+
+// select  LoRa SyncWord configuration
+#if defined(LORA_SYNCWORD)
+#define FDRS_LORA_SYNCWORD LORA_SYNCWORD
+#else
+#define FDRS_LORA_SYNCWORD GLOBAL_LORA_SYNCWORD
+#endif //LORA_SYNCWORD
+
+const uint8_t lora_size   = 256 / sizeof(DataReading);
+
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
 bool transmitFlag = false;// flag to indicate transmission or reception state
 volatile bool enableInterrupt = true;// disable interrupt when it's not needed
 volatile bool operationDone = false;// flag to indicate that a packet was sent or received
@@ -11,6 +79,59 @@ uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 byt
 uint16_t loraBroadcast = 0xFFFF;
 unsigned long receivedLoRaMsg = 0;  // Number of total LoRa packets destined for us and of valid size
 unsigned long ackOkLoRaMsg = 0;     // Number of total LoRa packets with valid CRC
+DataReading LORAGbuffer[256];
+uint8_t lenLORAG = 0;
+uint32_t timeLORAG = 0;
+DataReading LORA1buffer[256];
+uint8_t lenLORA1 = 0;
+uint32_t timeLORA1 = 0;
+DataReading LORA2buffer[256];
+uint8_t lenLORA2 = 0;
+uint32_t timeLORA2 = 0;
+
+#endif //USE_LORA
+
+enum crcResult
+{
+  CRC_NULL,
+  CRC_OK,
+  CRC_BAD,
+} returnCRC = CRC_NULL;
+
+
+// Function prototypes
+void transmitLoRa(uint16_t*, DataReading*, uint8_t);
+void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);
+static uint16_t crc16_update(uint16_t, uint8_t);
+
+// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
+
+/** @ingroup util_crc16
+    Processor-independent CRC-16 calculation.
+    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+    Initial value: 0xFFFF
+    This CRC is normally used in disk-drive controllers.
+    @param uint16_t crc (0x0000..0xFFFF)
+    @param uint8_t a (0x00..0xFF)
+    @return calculated CRC (0x0000..0xFFFF)
+*/
+
+static uint16_t crc16_update(uint16_t crc, uint8_t a)
+{
+  int i;
+
+  crc ^= a;
+  for (i = 0; i < 8; ++i)
+  {
+    if (crc & 1)
+      crc = (crc >> 1) ^ 0xA001;
+    else
+      crc = (crc >> 1);
+  }
+
+  return crc;
+}
+#ifdef USE_LORA
 
 #if defined(ESP8266) || defined(ESP32)
   ICACHE_RAM_ATTR
@@ -24,9 +145,6 @@ void setFlag(void) {
   operationDone = true;
 }
 
-#endif
-
-#ifdef USE_LORA
 void transmitLoRa(uint16_t* destMac, DataReading * packet, uint8_t len) {
   uint16_t calcCRC = 0x0000;
 
@@ -354,17 +472,4 @@ void handleLoRa(){
     } 
     #endif //USE_LORA 
   }
-
-void releaseSerial() {
-  DBG("Releasing Serial.");
-  DynamicJsonDocument doc(24576);
-  for (int i = 0; i < lenSERIAL; i++) {
-    doc[i]["id"]   = SERIALbuffer[i].id;
-    doc[i]["type"] = SERIALbuffer[i].t;
-    doc[i]["data"] = SERIALbuffer[i].d;
-  }
-  serializeJson(doc, UART_IF);
-  UART_IF.println();
-  lenSERIAL = 0;
-}
 

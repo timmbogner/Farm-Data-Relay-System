@@ -2,6 +2,37 @@
 // If you are missing any data type, please open an issue at:
 // https://github.com/timmbogner/Farm-Data-Relay-System/issues
  
+typedef struct FDRSPeer {
+  uint8_t mac[6];
+  uint32_t last_seen = 0;
+
+} FDRSPeer;
+
+typedef struct __attribute__((packed)) DataReading {
+  float d;
+  uint16_t id;
+  uint8_t t;
+
+} DataReading;
+
+typedef struct __attribute__((packed)) SystemPacket {
+  uint8_t cmd;
+  uint32_t param;
+} SystemPacket;
+
+enum crcResult {
+  CRC_NULL,
+  CRC_OK,
+  CRC_BAD,
+} returnCRC;
+
+enum {
+  cmd_clear,
+  cmd_ping,
+  cmd_add,
+  cmd_ack,
+};
+
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 

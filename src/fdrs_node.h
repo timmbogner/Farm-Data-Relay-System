@@ -5,6 +5,8 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
 //
 #include <fdrs_datatypes.h>
+#include <fdrs_globals.h>
+
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <espnow.h>
@@ -96,37 +98,14 @@
 #define DBG(a)
 #endif
 
-#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
 #ifdef DEBUG_CONFIG
 //#include "fdrs_checkConfig.h"
 #endif
 
-typedef struct __attribute__((packed)) DataReading {
-  float d;
-  uint16_t id;
-  uint8_t t;
-
-} DataReading;
 
 
-enum crcResult {
-  CRC_NULL,
-  CRC_OK,
-  CRC_BAD,
-} returnCRC;
 
-enum {
-  cmd_clear,
-  cmd_ping,
-  cmd_add,
-  cmd_ack,
-};
-
-typedef struct __attribute__((packed)) SystemPacket {
-  uint8_t cmd;
-  uint32_t param;
-} SystemPacket;
 
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};

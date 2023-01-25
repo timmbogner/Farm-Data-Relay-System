@@ -1,3 +1,40 @@
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <espnow.h>
+#elif defined(ESP32)
+#include <esp_now.h>
+#include <WiFi.h>
+#include <esp_wifi.h>
+#endif
+
+FDRSPeer peer_list[16];
+const uint8_t espnow_size = 250 / sizeof(DataReading);
+
+const uint8_t mac_prefix[] = {MAC_PREFIX};
+
+#ifdef ESP32
+esp_now_peer_info_t peerInfo;
+#endif
+
+uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
+uint8_t incMAC[6];
+
+uint8_t ESPNOW1[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
+uint8_t ESPNOW2[] =       {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
+
+#ifdef USE_ESPNOW
+DataReading ESPNOW1buffer[256];
+uint8_t lenESPNOW1 = 0;
+uint32_t timeESPNOW1 = 0;
+DataReading ESPNOW2buffer[256];
+uint8_t lenESPNOW2 = 0;
+uint32_t timeESPNOW2 = 0;
+DataReading ESPNOWGbuffer[256];
+uint8_t lenESPNOWG = 0;
+uint32_t timeESPNOWG = 0;
+#endif //USE_ESPNOW
+
 #ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)

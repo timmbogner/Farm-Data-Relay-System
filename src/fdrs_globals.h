@@ -8,6 +8,7 @@
 #ifndef FDRS_GLOBALS
 #define FDRS_GLOBALS
 
+
 #define GLOBAL_SSID "Your SSID"
 #define GLOBAL_PASS "Password"
 
@@ -24,6 +25,7 @@
 #define GLOBAL_LORA_CR 5    // LoRa link coding rate denominator. Allowed values range from 5 to 8.
 #define GLOBAL_LORA_SYNCWORD 0x12    // LoRa sync word. Can be used to distinguish different networks. Note that 0x34 is reserved for LoRaWAN.
 
+#define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
 
 #endif //FDRS_GLOBALS
