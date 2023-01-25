@@ -355,6 +355,7 @@ CRGB leds[NUM_LEDS];
 const char apn[]      = FDRS_CELL_APN;
 const char gprsUser[] = FDRS_CELL_USER;
 const char gprsPass[] = FDRS_CELL_PASS;
+TinyGsm modem(Serial1);
 TinyGsmClient client(modem);
 #else
 WiFiClient espClient;
