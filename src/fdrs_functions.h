@@ -412,11 +412,6 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 #include <fdrs_lora.h>
 #include <fdrs_espnow.h>
 
-#define USE_OLED
-#define OLED_HEADER "FDRS"
-#define OLED_SDA 4
-#define OLED_SCL 15
-#define OLED_RST 16
 String debug_buffer[5] = {"", "", "", "", ""};
 SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL);   // ADDRESS, SDA, SCL
 
