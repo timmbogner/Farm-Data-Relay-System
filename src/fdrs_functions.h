@@ -103,17 +103,13 @@ Serial.println(a);
 #define GLOBAL_LORA_RETRIES 2    // LoRa ACK automatic retries [0 - 3]
 #define GLOBAL_LORA_TXPWR   17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
-#ifdef USE_CELLULAR
-const char apn[]      = "YourAPN";
-const char gprsUser[] = "";
-const char gprsPass[] = "";
-#endif //USE_CELLULAR
+
 
 // select WiFi SSID configuration
 #if defined(WIFI_SSID)
 #define FDRS_WIFI_SSID WIFI_SSID
-#elif defined (GLOBAL_SSID)
-#define FDRS_WIFI_SSID GLOBAL_SSID
+#elif defined (GLOBAL_WIFI_SSID)
+#define FDRS_WIFI_SSID GLOBAL_WIFI_SSID
 #else 
 // ASSERT("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //WIFI_SSID
@@ -121,8 +117,8 @@ const char gprsPass[] = "";
 // select WiFi password 
 #if defined(WIFI_PASS)
 #define FDRS_WIFI_PASS WIFI_PASS
-#elif defined (GLOBAL_PASS)
-#define FDRS_WIFI_PASS GLOBAL_PASS
+#elif defined (GLOBAL_WIFI_PASS)
+#define FDRS_WIFI_PASS GLOBAL_WIFI_PASS
 #else 
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
 #endif //WIFI_PASS
@@ -165,6 +161,36 @@ const char gprsPass[] = "";
 #if defined (MQTT_AUTH) || defined (GLOBAL_MQTT_AUTH)
 #define FDRS_MQTT_AUTH
 #endif //MQTT_AUTH
+
+#ifdef USE_CELLULAR
+// select Cellular APN
+#if defined(CELL_APN)
+#define FDRS_CELL_APN CELL_APN
+#elif defined (GLOBAL_CELL_APN)
+#define FDRS_CELL_APN GLOBAL_CELL_APN
+#else 
+// ASSERT("NO APN defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //CELL_APN
+
+// select cellular password 
+#if defined(CELL_USER)
+#define FDRS_CELL_USER CELL_USER
+#elif defined (GLOBAL_CELL_USER)
+#define FDRS_CELL_USER GLOBAL_CELL_USER
+#else 
+// ASSERT("NO cellular username defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //CELL_USER
+
+// select cellular password 
+#if defined(CELL_PASS)
+#define FDRS_CELL_PASS CELL_PASS
+#elif defined (GLOBAL_CELL_PASS)
+#define FDRS_CELL_PASS GLOBAL_CELL_PASS
+#else 
+// ASSERT("NO cellular password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+#endif //CELL_PASS
+
+#endif //USE_CELLULAR
 #endif //USE_WIFI
 
 #ifdef USE_LORA
@@ -231,6 +257,8 @@ const char gprsPass[] = "";
 
 
 #endif //USE_LORA
+
+
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
 
@@ -324,6 +352,9 @@ CRGB leds[NUM_LEDS];
 
 #ifdef USE_WIFI
 #ifdef USE_CELLULAR
+const char apn[]      = FDRS_CELL_APN;
+const char gprsUser[] = FDRS_CELL_USER;
+const char gprsPass[] = FDRS_CELL_PASS;
 TinyGsmClient client(modem);
 #else
 WiFiClient espClient;

@@ -138,8 +138,8 @@ void printWifiDetails() {
 
 #if defined(WIFI_SSID)
 	DBG("WiFi SSID used from WIFI_SSID            : " + String(FDRS_WIFI_SSID));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi SSID used from GLOBAL_SSID          : " + String(FDRS_WIFI_SSID));
+#elif defined (GLOBAL_WIFI_SSID)
+	DBG("WiFi SSID used from GLOBAL_WIFI_SSID          : " + String(FDRS_WIFI_SSID));
 #else 
 	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
@@ -147,8 +147,8 @@ void printWifiDetails() {
 
 #if defined(WIFI_PASS)
 	DBG("WiFi password used from WIFI_PASS        : " + obfuscatePassword(FDRS_WIFI_PASS));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi password used from GLOBAL_PASS      : " + obfuscatePassword(FDRS_WIFI_PASS));
+#elif defined (GLOBAL_WIFI_SSID)
+	DBG("WiFi password used from GLOBAL_WIFI_PASS      : " + obfuscatePassword(FDRS_WIFI_PASS));
 #else 
 	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
 	//exit(0);
