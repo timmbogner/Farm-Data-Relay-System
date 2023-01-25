@@ -48,6 +48,11 @@
 #define SD_FILENAME "fdrs_log.csv"
 #define FS_FILENAME "fdrs_log.csv"
 
+///#define USE_OLED
+#define OLED_HEADER "FDRS"
+#define OLED_SDA 4
+#define OLED_SCL 15
+#define OLED_RST 16
 // SPI Configuration -- Needed only on boards with multiple SPI interfaces like the ESP32
 
 #define SPI_SCK 5
