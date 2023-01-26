@@ -7,7 +7,7 @@
 //  https://www.printables.com/model/176752-gypson-water-sensor
 
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
 

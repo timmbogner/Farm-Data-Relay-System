@@ -9,7 +9,7 @@
 #define DEBUG
 #define CREDENTIALS
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 #include <RTClib.h>
 RTC_DS3231 rtc;

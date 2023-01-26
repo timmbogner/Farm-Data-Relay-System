@@ -6,7 +6,7 @@
 
 #define REED_PIN 2
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
 unsigned int theCount = 0;

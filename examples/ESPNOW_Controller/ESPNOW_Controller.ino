@@ -6,7 +6,7 @@
 //  An example of how to send data via ESP-NOW using FDRS.
 //
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
 void fdrs_recv_cb(DataReading theData) {

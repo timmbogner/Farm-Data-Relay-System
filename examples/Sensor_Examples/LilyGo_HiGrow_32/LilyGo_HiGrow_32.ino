@@ -14,7 +14,7 @@
 #define USER_BUTTON         35
 #define DS18B20_PIN         21
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 #include <BH1750.h>
 #include <Adafruit_BME280.h>

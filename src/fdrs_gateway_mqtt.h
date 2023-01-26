@@ -8,7 +8,7 @@
 #elif defined(GLOBAL_MQTT_ADDR)
 #define FDRS_MQTT_ADDR GLOBAL_MQTT_ADDR
 #else
-// ASSERT("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+// ASSERT("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // MQTT_ADDR
 
 // select MQTT server port
@@ -26,7 +26,7 @@
 #elif defined(GLOBAL_MQTT_USER)
 #define FDRS_MQTT_USER GLOBAL_MQTT_USER
 #else
-// ASSERT("NO MQTT user defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+// ASSERT("NO MQTT user defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // MQTT_USER
 
 // select MQTT user password
@@ -35,7 +35,7 @@
 #elif defined(GLOBAL_MQTT_PASS)
 #define FDRS_MQTT_PASS GLOBAL_MQTT_PASS
 #else
-// ASSERT("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+// ASSERT("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // MQTT_PASS
 #if defined(MQTT_AUTH) || defined(GLOBAL_MQTT_AUTH)
 #define FDRS_MQTT_AUTH

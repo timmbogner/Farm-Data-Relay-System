@@ -6,7 +6,7 @@
 //  Connect sensor to the analog pin of the ESP (A0).
 //
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 void setup() {
   Serial.begin(115200);

@@ -5,7 +5,7 @@
 //  https://github.com/gadjet/Multifunction-ESP8266-Sensor-board
 //  
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <Adafruit_AHT10.h>
 #include <fdrs_node.h>
 

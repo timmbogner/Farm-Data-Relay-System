@@ -10,13 +10,14 @@
 FDRSPeer peer_list[16];
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 
-const uint8_t mac_prefix[] = {MAC_PREFIX};
 
 #ifdef ESP32
 esp_now_peer_info_t peerInfo;
 #endif
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+const uint8_t mac_prefix[] = {MAC_PREFIX};
 uint8_t selfAddress[] =   {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
 

@@ -6,7 +6,7 @@
 //
 
 #include "fdrs_gateway_config.h"
-#include <fdrs_functions.h>
+#include <fdrs_gateway.h>
 
 void setup() {
 beginFDRS();

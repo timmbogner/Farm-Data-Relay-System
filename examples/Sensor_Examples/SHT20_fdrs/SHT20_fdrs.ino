@@ -6,7 +6,7 @@
 //  If you are using the sensor for air monitoring, change SOIL_T to HUMIDITY_T.
 //
 #include "DFRobot_SHT20.h"
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
 DFRobot_SHT20 sht20(&Wire, SHT20_I2C_ADDR);

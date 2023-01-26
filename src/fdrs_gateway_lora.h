@@ -91,14 +91,6 @@ uint32_t timeLORA2 = 0;
 
 #endif //USE_LORA
 
-enum crcResult
-{
-  CRC_NULL,
-  CRC_OK,
-  CRC_BAD,
-} returnCRC = CRC_NULL;
-
-
 // Function prototypes
 void transmitLoRa(uint16_t*, DataReading*, uint8_t);
 void transmitLoRa(uint16_t*, SystemPacket*, uint8_t);

@@ -6,7 +6,7 @@
 #ifndef __FDRS_FUNCTIONS_H__
 #define __FDRS_FUNCTIONS_H__
 #include "fdrs_datatypes.h"
-
+#include "fdrs_globals.h"
 
 enum
 {
@@ -22,14 +22,6 @@ enum
 };
 
 
-enum
-{
-  cmd_clear,
-  cmd_ping,
-  cmd_add,
-  cmd_ack
-};
-
 // void debug_OLED(String debug_text);
 
 
@@ -43,11 +35,11 @@ bool is_ping = false;
 
 #include "fdrs_gateway_oled.h"
 #include "fdrs_gateway_debug.h"
+#include "fdrs_gateway_espnow.h"
 #include "fdrs_gateway_lora.h"
 #include "fdrs_gateway_wifi.h"
 #include "fdrs_gateway_filesystem.h"
 #include "fdrs_gateway_mqtt.h"
-#include "fdrs_gateway_espnow.h"
 #include "fdrs_gateway_serial.h"
 
 #ifdef DEBUG_CONFIG

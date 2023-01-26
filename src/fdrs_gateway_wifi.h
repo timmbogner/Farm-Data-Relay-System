@@ -13,7 +13,7 @@
 #elif defined (GLOBAL_SSID)
 #define FDRS_WIFI_SSID GLOBAL_SSID
 #else 
-// ASSERT("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+// ASSERT("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif //WIFI_SSID
 
 // select WiFi password 
@@ -22,6 +22,6 @@
 #elif defined (GLOBAL_PASS)
 #define FDRS_WIFI_PASS GLOBAL_PASS
 #else 
-// ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+// ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif //WIFI_PASS
 #endif // USE_WIFI
