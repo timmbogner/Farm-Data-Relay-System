@@ -8,7 +8,6 @@
 #include "fdrs_datatypes.h"
 #include "fdrs_globals.h"
 
-
 SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
@@ -66,7 +65,6 @@ void beginFDRS()
 #endif
 }
 
-
 int getFDRSPeer(uint8_t *mac)
 { // Returns the index of the array element that contains the provided MAC address
   DBG("Getting peer #");
@@ -83,7 +81,7 @@ int getFDRSPeer(uint8_t *mac)
   // DBG("Couldn't find peer");
   return -1;
 }
-int findOpenPeer()
+int find_espnow_peer()
 { // Returns an expired entry in peer_list, -1 if full.
   // uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   for (int i = 0; i < 16; i++)
@@ -113,74 +111,13 @@ void handleCommands()
   switch (theCmd.cmd)
   {
   case cmd_ping:
-    DBG("Ping back to sender");
-    SystemPacket sys_packet;
-    sys_packet.cmd = cmd_ping;
-    if (!esp_now_is_peer_exist(incMAC))
-    {
-#ifdef ESP8266
-      esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-#endif
-#if defined(ESP32)
-      esp_now_peer_info_t peerInfo;
-      peerInfo.ifidx = WIFI_IF_STA;
-      peerInfo.channel = 0;
-      peerInfo.encrypt = false;
-      memcpy(peerInfo.peer_addr, incMAC, 6);
-      if (esp_now_add_peer(&peerInfo) != ESP_OK)
-      {
-        DBG("Failed to add peer");
-        return;
-      }
-#endif
-      esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-      esp_now_del_peer(incMAC);
-    }
-    else
-    {
-      esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-    }
+    pingback_espnow();
     break;
 
   case cmd_add:
-    DBG("Device requesting peer registration");
-    int peer_num = getFDRSPeer(&incMAC[0]);
-    if (peer_num == -1)
-    { // if the device isn't registered
-      DBG("Device not yet registered, adding to internal peer list");
-      int open_peer = findOpenPeer();                // find open spot in peer_list
-      memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
-      peer_list[open_peer].last_seen = millis();
-#if defined(ESP32)
-      esp_now_peer_info_t peerInfo;
-      peerInfo.ifidx = WIFI_IF_STA;
-      peerInfo.channel = 0;
-      peerInfo.encrypt = false;
-      memcpy(peerInfo.peer_addr, incMAC, 6);
-      if (esp_now_add_peer(&peerInfo) != ESP_OK)
-      {
-        DBG("Failed to add peer");
-        return;
-      }
-#endif
-#if defined(ESP8266)
-      esp_now_add_peer(incMAC, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
-
-#endif
-      SystemPacket sys_packet = {.cmd = cmd_add, .param = PEER_TIMEOUT};
-      esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-    }
-    else
-    {
-      DBG("Refreshing existing peer registration");
-      peer_list[peer_num].last_seen = millis();
-
-      SystemPacket sys_packet = {.cmd = cmd_add, .param = PEER_TIMEOUT};
-      esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-    }
+    add_espnow_peer();
     break;
   }
-
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
 }
