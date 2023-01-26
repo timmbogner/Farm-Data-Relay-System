@@ -25,3 +25,13 @@
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif //WIFI_PASS
 #endif // USE_WIFI
+void begin_wifi(){
+      delay(10);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    DBG("Connecting to WiFi...");
+    DBG(FDRS_WIFI_SSID);
+    delay(500);
+  }
+}

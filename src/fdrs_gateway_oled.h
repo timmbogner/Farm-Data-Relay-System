@@ -41,4 +41,16 @@ void debug_OLED(String debug_text)
     }
     display.display();
 }
+void init_oled(){
+  pinMode(OLED_RST, OUTPUT);
+  digitalWrite(OLED_RST, LOW);
+  delay(30);
+  digitalWrite(OLED_RST, HIGH);
+  Wire.begin(OLED_SDA, OLED_SCL);
+  display.init();
+  display.flipScreenVertically();
+  draw_OLED_header();
+
+
+  }
 #endif

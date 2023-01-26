@@ -33,6 +33,18 @@ enum {
   cmd_ack,
 };
 
+enum
+{
+  event_clear,
+  event_espnowg,
+  event_espnow1,
+  event_espnow2,
+  event_serial,
+  event_mqtt,
+  event_lorag,
+  event_lora1,
+  event_lora2
+};
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 

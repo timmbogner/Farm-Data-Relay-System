@@ -8,23 +8,6 @@
 #include "fdrs_datatypes.h"
 #include "fdrs_globals.h"
 
-enum
-{
-  event_clear,
-  event_espnowg,
-  event_espnow1,
-  event_espnow2,
-  event_serial,
-  event_mqtt,
-  event_lorag,
-  event_lora1,
-  event_lora2
-};
-
-
-// void debug_OLED(String debug_text);
-
-
 
 SystemPacket theCmd;
 DataReading theData[256];
@@ -45,6 +28,45 @@ bool is_ping = false;
 #ifdef DEBUG_CONFIG
 #include "fdrs_checkConfig.h"
 #endif
+
+void beginFDRS()
+{
+#if defined(ESP8266)
+  Serial.begin(115200);
+#elif defined(ESP32)
+  Serial.begin(115200);
+  UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
+#endif
+#ifdef USE_OLED
+  init_oled();
+  DBG("Display initialized!");
+  DBG("Hello, World!");
+#endif
+  DBG("Address:" + String(UNIT_MAC, HEX));
+#ifdef USE_LORA
+  begin_lora();
+#endif
+#ifdef USE_WIFI
+  begin_wifi();
+  DBG("WiFi Connected");
+  begin_mqtt();
+#else
+  begin_espnow();
+#endif
+#ifdef USE_SD_LOG
+  begin_SD();
+#endif
+#ifdef USE_FS_LOG
+  begin_FS();
+#endif
+
+  // DBG(sizeof(DataReading));
+#ifdef USE_WIFI
+  client.publish(TOPIC_STATUS, "FDRS initialized");
+#endif
+}
+
+
 int getFDRSPeer(uint8_t *mac)
 { // Returns the index of the array element that contains the provided MAC address
   DBG("Getting peer #");
@@ -162,71 +184,6 @@ void handleCommands()
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
 }
-void beginFDRS()
-{
-#if defined(ESP8266)
-  Serial.begin(115200);
-#elif defined(ESP32)
-  Serial.begin(115200);
-  UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
-#endif
-#ifdef USE_OLED
-  pinMode(OLED_RST, OUTPUT);
-  digitalWrite(OLED_RST, LOW);
-  delay(30);
-  digitalWrite(OLED_RST, HIGH);
-  Wire.begin(OLED_SDA, OLED_SCL);
-  display.init();
-  display.flipScreenVertically();
-  draw_OLED_header();
-  DBG("Display initialized!")
-  DBG("Hello, World!")
-
-#endif
-
-  DBG("Address:" + String(UNIT_MAC, HEX));
-
-#ifdef USE_LED
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  leds[0] = CRGB::Blue;
-  FastLED.show();
-#endif
-#ifdef USE_LORA
-  begin_lora();
-#endif
-#ifdef USE_WIFI
-  delay(10);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    DBG("Connecting to WiFi...");
-    DBG(FDRS_WIFI_SSID);
-
-    delay(500);
-  }
-  DBG("WiFi Connected");
-  client.setServer(mqtt_server, mqtt_port);
-  if (!client.connected())
-  {
-    reconnect(5);
-  }
-  client.setCallback(mqtt_callback);
-#else
-  begin_espnow();
-#endif
-
-#ifdef USE_SD_LOG
-  begin_SD();
-#endif
-#ifdef USE_FS_LOG
-  begin_FS();
-#endif
-
-  // DBG(sizeof(DataReading));
-#ifdef USE_WIFI
-  client.publish(TOPIC_STATUS, "FDRS initialized");
-#endif
-}
 
 void loopFDRS()
 {
@@ -312,7 +269,7 @@ void loopFDRS()
 #ifdef USE_WIFI
   if (!client.connected())
   {
-    reconnect(1, true);
+    reconnect_mqtt(1, true);
   }
   client.loop(); // for recieving incoming messages and maintaining connection
 

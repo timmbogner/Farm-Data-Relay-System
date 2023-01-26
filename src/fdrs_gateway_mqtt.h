@@ -62,10 +62,17 @@ const char *mqtt_pass = NULL;
 
 #endif // USE_WIFI
 
-void reconnect(short int attempts, bool silent)
+void begin_mqtt(){
+  client.setServer(mqtt_server, mqtt_port);
+  if (!client.connected())
+  {
+    reconnect_mqtt(5);
+  }
+  client.setCallback(mqtt_callback);
+}
+void reconnect_mqtt(short int attempts, bool silent)
 {
 #ifdef USE_WIFI
-
     if (!silent)
         DBG("Connecting MQTT...");
 
@@ -100,9 +107,9 @@ void reconnect(short int attempts, bool silent)
 #endif // USE_WIFI
 }
 
-void reconnect(int attempts)
+void reconnect_mqtt(int attempts)
 {
-    reconnect(attempts, false);
+    reconnect_mqtt(attempts, false);
 }
 #ifdef USE_WIFI
 void mqtt_callback(char *topic, byte *message, unsigned int length)
