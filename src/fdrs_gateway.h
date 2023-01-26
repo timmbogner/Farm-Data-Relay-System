@@ -81,30 +81,7 @@ int getFDRSPeer(uint8_t *mac)
   // DBG("Couldn't find peer");
   return -1;
 }
-int find_espnow_peer()
-{ // Returns an expired entry in peer_list, -1 if full.
-  // uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  for (int i = 0; i < 16; i++)
-  {
-    if (peer_list[i].last_seen == 0)
-    {
-      DBG("Using peer entry " + String(i));
-      return i;
-    }
-  }
-  for (int i = 0; i < 16; i++)
-  {
-    if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT)
-    {
-      DBG("Recycling peer entry " + String(i));
-      esp_now_del_peer(peer_list[i].mac);
 
-      return i;
-    }
-  }
-  DBG("No open peers");
-  return -1;
-}
 
 void handleCommands()
 {

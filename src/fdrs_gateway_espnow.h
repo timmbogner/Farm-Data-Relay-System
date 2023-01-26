@@ -131,14 +131,41 @@ void begin_espnow()
 #endif // USE_ESPNOW
 }
 
+// Returns an expired entry in peer_list, -1 if full.
+// uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+int find_espnow_peer()
+{
+  for (int i = 0; i < 16; i++)
+  {
+    if (peer_list[i].last_seen == 0)
+    {
+      //DBG("Using peer entry " + String(i));
+      return i;
+    }
+  }
+  for (int i = 0; i < 16; i++)
+  {
+    if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT)
+    {
+      //DBG("Recycling peer entry " + String(i));
+      esp_now_del_peer(peer_list[i].mac);
+
+      return i;
+    }
+  }
+  DBG("No open peers");
+  return -1;
+}
+
+//
 void add_espnow_peer()
 {
   DBG("Device requesting peer registration");
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
-    DBG("Device not yet registered, adding to internal peer list");
-    int open_peer = find_espnow_peer();                // find open spot in peer_list
+    DBG("Device not yet registered, adding to peer list");
+    int open_peer = find_espnow_peer();            // find open spot in peer_list
     memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
     peer_list[open_peer].last_seen = millis();
 #if defined(ESP32)
@@ -169,6 +196,8 @@ void add_espnow_peer()
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
 }
+
+//Sends ping reply to sender
 void pingback_espnow()
 {
   DBG("Ping back to sender");
@@ -199,6 +228,9 @@ void pingback_espnow()
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
 }
+
+
+
 void sendESPNOWpeers()
 {
 #ifdef USE_ESPNOW
