@@ -41,10 +41,6 @@
 #define FDRS_MQTT_AUTH
 #endif // MQTT_AUTH
 
-DataReading MQTTbuffer[256];
-uint8_t lenMQTT = 0;
-uint32_t timeMQTT = 0;
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -178,34 +174,5 @@ void sendMQTT()
     String outgoingString;
     serializeJson(doc, outgoingString);
     mqtt_publish((char *)outgoingString.c_str());
-#endif // USE_WIFI
-}
-void bufferMQTT()
-{
-#ifdef USE_WIFI
-    DBG("Buffering MQTT.");
-    for (int i = 0; i < ln; i++)
-    {
-        MQTTbuffer[lenMQTT + i] = theData[i];
-    }
-    lenMQTT += ln;
-#endif // USE_WIFI
-}
-
-void releaseMQTT()
-{
-#ifdef USE_WIFI
-    DBG("Releasing MQTT.");
-    DynamicJsonDocument doc(24576);
-    for (int i = 0; i < lenMQTT; i++)
-    {
-        doc[i]["id"] = MQTTbuffer[i].id;
-        doc[i]["type"] = MQTTbuffer[i].t;
-        doc[i]["data"] = MQTTbuffer[i].d;
-    }
-    String outgoingString;
-    serializeJson(doc, outgoingString);
-    mqtt_publish((char *)outgoingString.c_str());
-    lenMQTT = 0;
 #endif // USE_WIFI
 }

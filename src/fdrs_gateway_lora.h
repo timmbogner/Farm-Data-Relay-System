@@ -419,7 +419,7 @@ crcResult getLoRa()
 void broadcastLoRa()
 {
 #ifdef USE_LORA
-  DBG("Buffering LoRa.");
+  DBG("Sending to LoRa broadcast buffer");
 
   for (int i = 0; i < ln; i++)
   {
@@ -434,7 +434,7 @@ void broadcastLoRa()
 void sendLoRaNbr(uint8_t interface)
 {
 #ifdef USE_LORA
-  DBG("Buffering LoRa.");
+  DBG("Sending to LoRa neighbor buffer");
   switch (interface)
   {
   case 1:

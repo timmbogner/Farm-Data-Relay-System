@@ -7,10 +7,6 @@
 #endif
 
 
-DataReading SERIALbuffer[256];
-uint8_t lenSERIAL = 0;
-uint32_t timeSERIAL = 0;
-
 void getSerial() {
   String incomingString;
   if (UART_IF.available()){
@@ -57,26 +53,3 @@ void sendSerial() {
 #endif
 
 }
-
-void bufferSerial() {
-  DBG("Buffering Serial.");
-  for (int i = 0; i < ln; i++) {
-    SERIALbuffer[lenSERIAL + i] = theData[i];
-  }
-  lenSERIAL += ln;
-  //UART_IF.println("SENDSERIAL:" + String(lenSERIAL) + " ");
-}
-
-void releaseSerial() {
-  DBG("Releasing Serial.");
-  DynamicJsonDocument doc(24576);
-  for (int i = 0; i < lenSERIAL; i++) {
-    doc[i]["id"]   = SERIALbuffer[i].id;
-    doc[i]["type"] = SERIALbuffer[i].t;
-    doc[i]["data"] = SERIALbuffer[i].d;
-  }
-  serializeJson(doc, UART_IF);
-  UART_IF.println();
-  lenSERIAL = 0;
-}
-
