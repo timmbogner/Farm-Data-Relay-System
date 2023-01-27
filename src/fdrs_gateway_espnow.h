@@ -231,7 +231,7 @@ void pingback_espnow()
 
 
 
-void sendESPNOWpeers()
+void sendESPNowPeers()
 {
 #ifdef USE_ESPNOW
   DBG("Sending to ESP-NOW peers.");
@@ -251,7 +251,7 @@ void sendESPNOWpeers()
 #endif // USE_ESPNOW
 }
 
-void sendESPNOW(uint8_t address)
+void sendESPNow(uint8_t address)
 {
 #ifdef USE_ESPNOW
   DBG("Sending ESP-NOW.");

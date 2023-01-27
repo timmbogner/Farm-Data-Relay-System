@@ -9,11 +9,11 @@
 #define UNIT_MAC     0x01  // The address of this gateway
 
 // Actions -- Define what happens when a packet arrives at each interface:
-// Current function options are: sendESPNOW(MAC), sendSerial(), sendMQTT(),
+// Current function options are: sendESPNow(MAC), sendSerial(), sendMQTT(),
 //  bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
 
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     sendESPNOW(0x02); bufferLoRa(1); sendESPNOWpeers(); 
+#define SERIAL_ACT     sendESPNow(0x02); bufferLoRa(1); sendESPNowPeers(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
 // Neighbor Actions
