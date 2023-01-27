@@ -47,8 +47,7 @@ uint32_t timeMQTT = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-const char *ssid = FDRS_WIFI_SSID;
-const char *password = FDRS_WIFI_PASS;
+
 const char *mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
 
@@ -60,19 +59,10 @@ const char *mqtt_user = NULL;
 const char *mqtt_pass = NULL;
 #endif // FDRS_MQTT_AUTH
 
-#endif // USE_WIFI
 
-void begin_mqtt(){
-  client.setServer(mqtt_server, mqtt_port);
-  if (!client.connected())
-  {
-    reconnect_mqtt(5);
-  }
-  client.setCallback(mqtt_callback);
-}
+
 void reconnect_mqtt(short int attempts, bool silent)
 {
-#ifdef USE_WIFI
     if (!silent)
         DBG("Connecting MQTT...");
 
@@ -104,14 +94,13 @@ void reconnect_mqtt(short int attempts, bool silent)
 
     if (!silent)
         DBG(" Connecting MQTT failed.");
-#endif // USE_WIFI
 }
 
 void reconnect_mqtt(int attempts)
 {
     reconnect_mqtt(attempts, false);
 }
-#ifdef USE_WIFI
+
 void mqtt_callback(char *topic, byte *message, unsigned int length)
 {
     String incomingString;
@@ -143,11 +132,18 @@ void mqtt_callback(char *topic, byte *message, unsigned int length)
         DBG("Incoming MQTT.");
     }
 }
-#endif // USE_WIFI
+
+void begin_mqtt(){
+  client.setServer(mqtt_server, mqtt_port);
+  if (!client.connected())
+  {
+    reconnect_mqtt(5);
+  }
+  client.setCallback(mqtt_callback);
+}
 
 void mqtt_publish(const char *payload)
 {
-#ifdef USE_WIFI
     if (!client.publish(TOPIC_DATA, payload))
     {
         DBG(" Error on sending MQTT");
@@ -164,8 +160,9 @@ void mqtt_publish(const char *payload)
         time(&last_mqtt_success);
 #endif
     }
-#endif // USE_WIFI
 }
+#endif // USE_WIFI
+
 void sendMQTT()
 {
 #ifdef USE_WIFI

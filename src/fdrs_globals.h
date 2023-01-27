@@ -5,8 +5,8 @@
 // Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 
 
-#define GLOBAL_SSID "Your SSID"
-#define GLOBAL_PASS "Password"
+#define GLOBAL_WIFI_SSID "Your SSID"
+#define GLOBAL_WIFI_PASS "Password"
 
 #define GLOBAL_MQTT_ADDR "192.168.0.8"
 #define GLOBAL_MQTT_PORT 1883

@@ -65,22 +65,6 @@ void beginFDRS()
 #endif
 }
 
-int getFDRSPeer(uint8_t *mac)
-{ // Returns the index of the array element that contains the provided MAC address
-  DBG("Getting peer #");
-
-  for (int i = 0; i < 16; i++)
-  {
-    if (memcmp(mac, &peer_list[i].mac, 6) == 0)
-    {
-      DBG("Peer is entry #" + String(i));
-      return i;
-    }
-  }
-
-  // DBG("Couldn't find peer");
-  return -1;
-}
 
 
 void handleCommands()

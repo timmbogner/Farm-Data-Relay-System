@@ -139,7 +139,7 @@ int find_espnow_peer()
   {
     if (peer_list[i].last_seen == 0)
     {
-      //DBG("Using peer entry " + String(i));
+      // DBG("Using peer entry " + String(i));
       return i;
     }
   }
@@ -147,7 +147,7 @@ int find_espnow_peer()
   {
     if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT)
     {
-      //DBG("Recycling peer entry " + String(i));
+      // DBG("Recycling peer entry " + String(i));
       esp_now_del_peer(peer_list[i].mac);
 
       return i;
@@ -157,7 +157,25 @@ int find_espnow_peer()
   return -1;
 }
 
-//
+// Returns the index of the array element that contains the provided MAC address, -1 if not found
+int getFDRSPeer(uint8_t *mac)
+{ 
+  DBG("Getting peer #");
+
+  for (int i = 0; i < 16; i++)
+  {
+    if (memcmp(mac, &peer_list[i].mac, 6) == 0)
+    {
+      DBG("Peer is entry #" + String(i));
+      return i;
+    }
+  }
+
+  // DBG("Couldn't find peer");
+  return -1;
+}
+
+
 void add_espnow_peer()
 {
   DBG("Device requesting peer registration");
@@ -197,7 +215,7 @@ void add_espnow_peer()
   }
 }
 
-//Sends ping reply to sender
+// Sends ping reply to sender
 void pingback_espnow()
 {
   DBG("Ping back to sender");
@@ -228,8 +246,6 @@ void pingback_espnow()
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
 }
-
-
 
 void sendESPNowPeers()
 {
@@ -327,6 +343,7 @@ void releaseESPNOW(uint8_t interface)
   DBG("Releasing ESP-NOW.");
   switch (interface)
   {
+
   case 0:
   {
     DataReading thePacket[espnow_size];
