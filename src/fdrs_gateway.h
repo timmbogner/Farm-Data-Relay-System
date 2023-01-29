@@ -65,8 +65,6 @@ void beginFDRS()
 #endif
 }
 
-
-
 void handleCommands()
 {
   switch (theCmd.cmd)
@@ -87,27 +85,16 @@ void loopFDRS()
 {
   handleCommands();
 #if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-  if ((millis() - timeLOGBUF) >= LOGBUF_DELAY)
-  {
-    timeLOGBUF = millis();
-    if (logBufferPos > 0)
-      releaseLogBuffer();
-  }
+  handleLogger();
 #endif
-
-  while (UART_IF.available() || Serial.available())
-  {
-    getSerial();
-  }
+ handleSerial();
+#ifdef USE_LORA
   handleLoRa();
-#ifdef USE_WIFI
-  if (!client.connected())
-  {
-    reconnect_mqtt(1, true);
-  }
-  client.loop(); // for recieving incoming messages and maintaining connection
-
 #endif
+#ifdef USE_WIFI
+ handleMQTT();
+#endif
+
   if (newData != event_clear)
   {
     switch (newData)

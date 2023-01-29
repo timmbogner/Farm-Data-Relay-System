@@ -55,8 +55,6 @@ const char *mqtt_user = NULL;
 const char *mqtt_pass = NULL;
 #endif // FDRS_MQTT_AUTH
 
-
-
 void reconnect_mqtt(short int attempts, bool silent)
 {
     if (!silent)
@@ -97,6 +95,16 @@ void reconnect_mqtt(int attempts)
     reconnect_mqtt(attempts, false);
 }
 
+// Handles MQTT in loop()
+void handleMQTT()
+{
+    if (!client.connected())
+    {
+        reconnect_mqtt(1, true);
+    }
+    client.loop(); // for recieving incoming messages and maintaining connection
+}
+
 void mqtt_callback(char *topic, byte *message, unsigned int length)
 {
     String incomingString;
@@ -129,13 +137,14 @@ void mqtt_callback(char *topic, byte *message, unsigned int length)
     }
 }
 
-void begin_mqtt(){
-  client.setServer(mqtt_server, mqtt_port);
-  if (!client.connected())
-  {
-    reconnect_mqtt(5);
-  }
-  client.setCallback(mqtt_callback);
+void begin_mqtt()
+{
+    client.setServer(mqtt_server, mqtt_port);
+    if (!client.connected())
+    {
+        reconnect_mqtt(5);
+    }
+    client.setCallback(mqtt_callback);
 }
 
 void mqtt_publish(const char *payload)

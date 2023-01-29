@@ -53,3 +53,9 @@ void sendSerial() {
 #endif
 
 }
+void handleSerial(){
+  while (UART_IF.available() || Serial.available())
+  {
+    getSerial();
+  }
+}

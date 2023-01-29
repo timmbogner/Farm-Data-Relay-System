@@ -518,9 +518,9 @@ void asyncReleaseLoRa(bool first_run)
   }
 }
 
+#ifdef USE_LORA
 void handleLoRa()
 {
-#ifdef USE_LORA
   if (operationDone) // the interrupt was triggered
   {
     enableInterrupt = false;
@@ -547,7 +547,7 @@ void handleLoRa()
       enableInterrupt = true;
     }
   }
-#endif // USE_LORA
 }
+#endif // USE_LORA
 
 
