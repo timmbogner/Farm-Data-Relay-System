@@ -120,7 +120,6 @@ void begin_espnow()
 }
 
 // Returns an expired entry in peer_list, -1 if full.
-// uint8_t zero_addr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 int find_espnow_peer()
 {
   for (int i = 0; i < 16; i++)
@@ -145,9 +144,9 @@ int find_espnow_peer()
   return -1;
 }
 
-// Returns the index of the array element that contains the provided MAC address, -1 if not found
+// Returns the index of the peer list array element that contains the provided MAC address, -1 if not found
 int getFDRSPeer(uint8_t *mac)
-{ 
+{
   DBG("Getting peer #");
 
   for (int i = 0; i < 16; i++)
@@ -162,7 +161,6 @@ int getFDRSPeer(uint8_t *mac)
   // DBG("Couldn't find peer");
   return -1;
 }
-
 
 void add_espnow_peer()
 {
@@ -235,6 +233,53 @@ void pingback_espnow()
   }
 }
 
+void sendESPNowNbr(uint8_t interface)
+{
+#ifdef USE_ESPNOW
+  switch (interface)
+  {
+  case 1:
+  { // These brackets are required!
+     DBG("Sending to ESP-NOW neighbor 1");
+    DataReading thePacket[ln];
+    int j = 0;
+    for (int i = 0; i < ln; i++)
+    {
+      if (j > espnow_size)
+      {
+        j = 0;
+        esp_now_send(ESPNOW1, (uint8_t *)&thePacket, sizeof(thePacket));
+      }
+      thePacket[j] = theData[i];
+      j++;
+    }
+    esp_now_send(ESPNOW1, (uint8_t *)&thePacket, j * sizeof(DataReading));
+    break;
+  } // These brackets are required!
+  case 2:
+  {
+         DBG("Sending to ESP-NOW neighbor 1");
+
+    DataReading thePacket[ln];
+    int j = 0;
+    for (int i = 0; i < ln; i++)
+    {
+      if (j > espnow_size)
+      {
+        j = 0;
+        esp_now_send(ESPNOW2, (uint8_t *)&thePacket, sizeof(thePacket));
+      }
+      thePacket[j] = theData[i];
+      j++;
+    }
+    esp_now_send(ESPNOW2, (uint8_t *)&thePacket, j * sizeof(DataReading));
+    break;
+  }
+  }
+
+#endif // USE_ESPNOW
+}
+
 void sendESPNowPeers()
 {
 #ifdef USE_ESPNOW
@@ -291,4 +336,3 @@ void sendESPNow(uint8_t address)
 
 #endif // USE_ESPNOW
 }
-
