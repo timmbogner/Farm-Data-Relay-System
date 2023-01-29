@@ -90,6 +90,17 @@ DataBuffer LORA1Buffer;
 DataBuffer LORA2Buffer;
 DataBuffer LORABBuffer;
 
+enum
+{
+  TxLoRa1,
+  TxLoRa2,
+  TxLoRaB,
+  TxIdle
+} TxStatus;
+
+uint8_t tx_buffer_position = 0;
+uint32_t tx_start_time;
+
 #endif // USE_LORA
 
 // Function prototypes
@@ -219,9 +230,9 @@ void printLoraPacket(uint8_t *p, int size)
   printf("\n");
 }
 
+#ifdef USE_LORA
 void begin_lora()
 {
-#ifdef USE_LORA
   int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 0);
   if (state == RADIOLIB_ERR_NONE)
   {
@@ -246,8 +257,8 @@ void begin_lora()
     while (true)
       ;
   }
-#endif // USE_LORA
 }
+#endif // USE_LORA
 
 crcResult getLoRa()
 {
@@ -455,58 +466,56 @@ void sendLoRaNbr(uint8_t interface)
 #endif // USE_LORA
 }
 
-void release_lora_buffer(uint8_t interface)
+void asyncReleaseLoRa(bool first_run)
 {
-#ifdef USE_LORA
-  DBG("Releasing LoRa buffers.");
-
-  DataReading thePacket[lora_size];
-
-  int j = 0;
-  for (int i = 0; i < LORA1Buffer.len; i++)
+  if (first_run)
   {
-    if (j > lora_size)
-    {
-      transmitLoRa(&LoRa1, thePacket, j);
-      j = 0;
-    }
-    thePacket[j] = LORA1Buffer.buffer[i];
-    j++;
+    TxStatus = TxLoRa1;
+    tx_start_time = millis();
   }
-  transmitLoRa(&LoRa1, thePacket, j);
-  LORA1Buffer.len = 0;
-
-  j = 0;
-  for (int i = 0; i < LORA2Buffer.len; i++)
+  switch (TxStatus)
   {
-    if (j > lora_size)
+  case TxLoRa1:
+    if (LORA1Buffer.len - tx_buffer_position > lora_size)
     {
-      transmitLoRa(&LoRa2, thePacket, j);
-      j = 0;
+      transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], lora_size);
+      tx_buffer_position += lora_size;
     }
-    thePacket[j] = LORA2Buffer.buffer[i];
-    j++;
-  }
-
-  transmitLoRa(&LoRa2, thePacket, j);
-
-  LORA2Buffer.len = 0;
-
-  j = 0;
-  for (int i = 0; i < LORABBuffer.len; i++)
-  {
-    if (j > lora_size)
+    else
     {
-      transmitLoRa(&loraBroadcast, thePacket, j);
-      j = 0;
+      transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], LORA1Buffer.len - tx_buffer_position);
+      tx_buffer_position = 0;
+      TxStatus = TxLoRa2;
     }
-    thePacket[j] = LORABBuffer.buffer[i];
-    j++;
+    break;
+  case TxLoRa2:
+    if (LORA2Buffer.len - tx_buffer_position > lora_size)
+    {
+      transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], lora_size);
+      tx_buffer_position += lora_size;
+    }
+    else
+    {
+      transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], LORA2Buffer.len - tx_buffer_position);
+      tx_buffer_position = 0;
+      TxStatus = TxLoRaB;
+    }
+    break;
+  case TxLoRaB:
+    if (LORABBuffer.len - tx_buffer_position > lora_size)
+    {
+      transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], lora_size);
+      tx_buffer_position += lora_size;
+    }
+    else
+    {
+      transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
+      DBG(millis() - tx_start_time);
+      tx_buffer_position = 0;
+      TxStatus = TxIdle;
+    }
+    break;
   }
-  transmitLoRa(&loraBroadcast, thePacket, j);
-  LORABBuffer.len = 0;
-
-#endif
 }
 
 void handleLoRa()
@@ -516,8 +525,14 @@ void handleLoRa()
   {
     enableInterrupt = false;
     operationDone = false;
-    if (transmitFlag)
-    {                       // the previous operation was transmission
+    if (transmitFlag) // the previous operation was transmission
+    {
+      if (TxStatus != TxIdle)
+      {
+        asyncReleaseLoRa(false);
+        enableInterrupt = true;
+      }
+
       radio.startReceive(); // return to listen mode
       enableInterrupt = true;
       transmitFlag = false;
@@ -534,3 +549,5 @@ void handleLoRa()
   }
 #endif // USE_LORA
 }
+
+
