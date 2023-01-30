@@ -96,7 +96,7 @@ enum
   TxLoRa2,
   TxLoRaB,
   TxIdle
-} TxStatus;
+} TxStatus = TxIdle;
 
 uint8_t tx_buffer_position = 0;
 uint32_t tx_start_time;
@@ -532,10 +532,12 @@ void handleLoRa()
         asyncReleaseLoRa(false);
         enableInterrupt = true;
       }
-
-      radio.startReceive(); // return to listen mode
-      enableInterrupt = true;
-      transmitFlag = false;
+      else
+      {
+        radio.startReceive(); // return to listen mode
+        enableInterrupt = true;
+        transmitFlag = false;
+      }
     }
     else // the previous operation was reception
     {
@@ -549,5 +551,3 @@ void handleLoRa()
   }
 }
 #endif // USE_LORA
-
-
