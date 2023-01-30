@@ -254,7 +254,12 @@ class OLEDDisplay : public Stream {
     // returns 0 if everything fits on the screen or the numbers of characters in the
     // first line if not
     uint16_t drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, const String &text);
-
+    
+    
+    // Modified version with closer spacing. Also returns number of lines used.
+  
+    uint16_t FDRS_drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, const String &text);
+    
     // Returns the width of the const char* with the current
     // font settings
     uint16_t getStringWidth(const char* text, uint16_t length, bool utf8 = false);

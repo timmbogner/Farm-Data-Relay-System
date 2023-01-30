@@ -34,7 +34,7 @@ void debug_OLED(String debug_text)
     uint8_t lineNumber = 0;
     for (uint8_t i = 0; i < 5; i++)
     {
-        uint8_t ret = display.drawStringMaxWidth(0, 17 + (lineNumber * 9), 127, debug_buffer[i]);
+        uint8_t ret = display.FDRS_drawStringMaxWidth(0, 17 + (lineNumber * 9), 127, debug_buffer[i]);
         lineNumber = ret + lineNumber;
         if (lineNumber > 5)
             break;
