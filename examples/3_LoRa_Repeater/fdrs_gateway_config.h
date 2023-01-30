@@ -57,7 +57,7 @@
 // LoRa Configuration -- Needed only if using LoRa
 #define LORA_SS 18
 #define LORA_RST 14
-#define LORA_DIO0 26
+#define LORA_DIO 26
 
 //433E6 for Asia
 //866E6 for Europe

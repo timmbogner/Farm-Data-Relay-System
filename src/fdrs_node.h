@@ -112,7 +112,7 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 #ifdef USE_LORA
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
 bool transmitFlag = false;// flag to indicate transmission or reception state
 volatile bool enableInterrupt = true;// disable interrupt when it's not needed
 volatile bool operationDone = false;// flag to indicate that a packet was sent or received

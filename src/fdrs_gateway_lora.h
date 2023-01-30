@@ -68,7 +68,7 @@
 
 const uint8_t lora_size = 256 / sizeof(DataReading);
 
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO0, LORA_RST, LORA_DIO1);
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
@@ -244,7 +244,9 @@ void begin_lora()
     while (true)
       ;
   }
+
   radio.setDio0Action(setFlag);
+
   radio.setCRC(false);
   DBG("LoRa Initialized. Frequency: " + String(FDRS_LORA_FREQUENCY) + "  Bandwidth: " + String(FDRS_LORA_BANDWIDTH) + "  SF: " + String(FDRS_LORA_SF) + "  CR: " + String(FDRS_LORA_CR) + "  SyncWord: " + String(FDRS_LORA_SYNCWORD) + "  Tx Power: " + String(FDRS_LORA_TXPWR) + "dBm");
   state = radio.startReceive(); // start listening for LoRa packets
@@ -465,6 +467,7 @@ void sendLoRaNbr(uint8_t interface)
   }
 #endif // USE_LORA
 }
+#ifdef USE_LORA
 
 void asyncReleaseLoRa(bool first_run)
 {
@@ -518,7 +521,6 @@ void asyncReleaseLoRa(bool first_run)
   }
 }
 
-#ifdef USE_LORA
 void handleLoRa()
 {
   if (operationDone) // the interrupt was triggered
