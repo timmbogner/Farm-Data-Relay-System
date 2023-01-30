@@ -10,10 +10,10 @@
 
 // Actions -- Define what happens when a packet arrives at each interface:
 // Current function options are: sendESPNow(MAC), sendSerial(), sendMQTT(),
-//  bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
+//  sendLoRaNbr(interface) , sendESPNowNbr(interface).
 
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     sendESPNow(0x02); bufferLoRa(1); sendESPNowPeers(); 
+#define SERIAL_ACT     sendESPNow(0x02); sendLoRaNbr(1); sendESPNowPeers(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
 // Neighbor Actions

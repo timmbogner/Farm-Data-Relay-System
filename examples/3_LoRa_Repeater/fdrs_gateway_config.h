@@ -10,12 +10,12 @@
 
 // Actions -- Define what happens when a packet arrives at each interface:
 // Current function options are: sendESPNow(MAC), sendSerial(), sendMQTT(),
-//  bufferLoRa(interface), bufferESPNOW(interface), bufferSerial(), and bufferMQTT().
+//  sendLoRaNbr(interface) , sendESPNowNbr(interface).
 
-#define ESPNOWG_ACT    bufferLoRa(1);
+#define ESPNOWG_ACT    sendLoRaNbr(1);
 #define SERIAL_ACT         
 #define MQTT_ACT          
-#define LORAG_ACT      bufferLoRa(1); 
+#define LORAG_ACT      sendLoRaNbr(1); 
 
 // Protocols -- Define which protocols the gateway will use.
 // Warning: ESP-NOW and WiFi should not be used simultaneously.
