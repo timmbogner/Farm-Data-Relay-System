@@ -76,6 +76,7 @@ void begin_espnow()
   {
     return;
   }
+
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
@@ -92,7 +93,6 @@ void begin_espnow()
 
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
-  // Register first peer
 
   memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK)
@@ -100,20 +100,7 @@ void begin_espnow()
     DBG("Failed to add peer bcast");
     return;
   }
-  // #ifdef ESPNOW1_PEER
-  //   memcpy(peerInfo.peer_addr, ESPNOW1, 6);
-  //   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-  //     DBG("Failed to add peer 1");
-  //     return;
-  //   }
-  // #endif
-  // #ifdef ESPNOW2_PEER
-  //   memcpy(peerInfo.peer_addr, ESPNOW2, 6);
-  //   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-  //     DBG("Failed to add peer 2");
-  //     return;
-  //   }
-  // #endif
+}
 #endif // ESP8266
   DBG(" ESP-NOW Initialized.");
 #endif // USE_ESPNOW
@@ -240,9 +227,22 @@ void sendESPNowNbr(uint8_t interface)
   {
   case 1:
   { // These brackets are required!
-     DBG("Sending to ESP-NOW neighbor 1");
+    DBG("Sending to ESP-NOW neighbor 1");
+#if defined(ESP32)
+    esp_now_peer_info_t peerInfo;
+    peerInfo.ifidx = WIFI_IF_STA;
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    memcpy(peerInfo.peer_addr, ESPNOW1, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK)
+    {
+      DBG("Failed to add peer");
+      return;
+    }
+#endif // ESP32
     DataReading thePacket[ln];
     int j = 0;
+
     for (int i = 0; i < ln; i++)
     {
       if (j > espnow_size)
@@ -254,12 +254,25 @@ void sendESPNowNbr(uint8_t interface)
       j++;
     }
     esp_now_send(ESPNOW1, (uint8_t *)&thePacket, j * sizeof(DataReading));
+    esp_now_del_peer(ESPNOW1);
+
     break;
   } // These brackets are required!
   case 2:
   {
-         DBG("Sending to ESP-NOW neighbor 1");
-
+    DBG("Sending to ESP-NOW neighbor 1");
+#if defined(ESP32)
+    esp_now_peer_info_t peerInfo;
+    peerInfo.ifidx = WIFI_IF_STA;
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    memcpy(peerInfo.peer_addr, ESPNOW2, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK)
+    {
+      DBG("Failed to add peer");
+      return;
+    }
+#endif // ESP32
     DataReading thePacket[ln];
     int j = 0;
     for (int i = 0; i < ln; i++)
@@ -273,6 +286,8 @@ void sendESPNowNbr(uint8_t interface)
       j++;
     }
     esp_now_send(ESPNOW2, (uint8_t *)&thePacket, j * sizeof(DataReading));
+    esp_now_del_peer(ESPNOW2);
+
     break;
   }
   }
