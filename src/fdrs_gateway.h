@@ -23,7 +23,7 @@ bool is_ping = false;
 #include "fdrs_gateway_filesystem.h"
 #include "fdrs_gateway_mqtt.h"
 #include "fdrs_gateway_serial.h"
-
+#include "fdrs_gateway_scheduler.h"
 #ifdef DEBUG_CONFIG
 #include "fdrs_checkConfig.h"
 #endif
@@ -44,6 +44,7 @@ void beginFDRS()
   DBG("Address:" + String(UNIT_MAC, HEX));
 #ifdef USE_LORA
   begin_lora();
+  scheduleFDRS(asyncReleaseLoRaFirst, FDRS_LORA_INTERVAL);
 #endif
 #ifdef USE_WIFI
   begin_wifi();
@@ -59,7 +60,6 @@ void beginFDRS()
   begin_FS();
 #endif
 
-  // DBG(sizeof(DataReading));
 #ifdef USE_WIFI
   client.publish(TOPIC_STATUS, "FDRS initialized");
 #endif
@@ -83,6 +83,7 @@ void handleCommands()
 
 void loopFDRS()
 {
+handle_schedule();
   handleCommands();
 #if defined(USE_SD_LOG) || defined(USE_FS_LOG)
   handleLogger();

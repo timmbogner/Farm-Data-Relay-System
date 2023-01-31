@@ -66,6 +66,13 @@
 #define FDRS_LORA_SYNCWORD GLOBAL_LORA_SYNCWORD
 #endif // LORA_SYNCWORD
 
+// select  LoRa Release Interval configuration
+#if defined(LORA_INTERVAL)
+#define FDRS_LORA_INTERVAL LORA_INTERVAL
+#else
+#define FDRS_LORA_INTERVAL GLOBAL_LORA_INTERVAL
+#endif // LORA_INTERVAL
+
 const uint8_t lora_size = 256 / sizeof(DataReading);
 
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
@@ -100,6 +107,7 @@ enum
 
 uint8_t tx_buffer_position = 0;
 uint32_t tx_start_time;
+bool tx_time_set = false;
 
 #endif // USE_LORA
 
@@ -438,7 +446,7 @@ void broadcastLoRa()
   {
     LORABBuffer.buffer[LORABBuffer.len + i] = theData[i];
   }
-  LORA2Buffer.len += ln;
+  LORABBuffer.len += ln;
 
 #endif // USE_LORA
 }
@@ -474,82 +482,123 @@ void asyncReleaseLoRa(bool first_run)
   if (first_run)
   {
     TxStatus = TxLoRa1;
+    tx_time_set = true;
     tx_start_time = millis();
   }
   switch (TxStatus)
   {
   case TxLoRa1:
-    if (LORA1Buffer.len - tx_buffer_position > lora_size)
+    if (LORA1Buffer.len == 0)
     {
-      transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], lora_size);
-      tx_buffer_position += lora_size;
-    }
-    else
-    {
-      transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], LORA1Buffer.len - tx_buffer_position);
-      tx_buffer_position = 0;
       TxStatus = TxLoRa2;
-    }
-    break;
-  case TxLoRa2:
-    if (LORA2Buffer.len - tx_buffer_position > lora_size)
-    {
-      transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], lora_size);
-      tx_buffer_position += lora_size;
+      goto TxL2;
     }
     else
     {
-      transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], LORA2Buffer.len - tx_buffer_position);
-      tx_buffer_position = 0;
-      TxStatus = TxLoRaB;
-    }
-    break;
-  case TxLoRaB:
-    if (LORABBuffer.len - tx_buffer_position > lora_size)
-    {
-      transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], lora_size);
-      tx_buffer_position += lora_size;
-    }
-    else
-    {
-      transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
-      DBG(millis() - tx_start_time);
-      tx_buffer_position = 0;
-      TxStatus = TxIdle;
-    }
-    break;
-  }
-}
-
-void handleLoRa()
-{
-  if (operationDone) // the interrupt was triggered
-  {
-    enableInterrupt = false;
-    operationDone = false;
-    if (transmitFlag) // the previous operation was transmission
-    {
-      if (TxStatus != TxIdle)
+      if (LORA1Buffer.len - tx_buffer_position > lora_size)
       {
-        asyncReleaseLoRa(false);
-        enableInterrupt = true;
+        transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], lora_size);
+        tx_buffer_position += lora_size;
       }
       else
       {
-        radio.startReceive(); // return to listen mode
-        enableInterrupt = true;
-        transmitFlag = false;
+        transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], LORA1Buffer.len - tx_buffer_position);
+        tx_buffer_position = 0;
+        TxStatus = TxLoRa2;
       }
-    }
-    else // the previous operation was reception
-    {
-      returnCRC = getLoRa();
-      if (!transmitFlag) // return to listen if no transmission was begun
+      break;
+    case TxLoRa2:
+    TxL2:
+      if (LORA2Buffer.len == 0)
       {
-        radio.startReceive();
+        TxStatus = TxLoRaB;
+        goto TxLB;
       }
-      enableInterrupt = true;
+      else
+      {
+        if (LORA2Buffer.len - tx_buffer_position > lora_size)
+        {
+          transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], lora_size);
+          tx_buffer_position += lora_size;
+        }
+        else
+        {
+          transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], LORA2Buffer.len - tx_buffer_position);
+          tx_buffer_position = 0;
+          TxStatus = TxLoRaB;
+        }
+      }
+      break;
+    case TxLoRaB:
+    TxLB:
+      // DBG(LORABBuffer.len);
+      if (LORABBuffer.len == 0)
+      {
+        TxStatus = TxIdle;
+        goto TxFin;
+      }
+      else
+      {
+        if (LORABBuffer.len - tx_buffer_position > lora_size)
+        {
+          transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], lora_size);
+          tx_buffer_position += lora_size;
+        }
+        else
+        {
+          transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
+        TxFin:
+          LORABBuffer.len = 0;
+          LORA1Buffer.len = 0;
+          LORA2Buffer.len = 0;
+          tx_time_set = false;
+
+          tx_buffer_position = 0;
+          TxStatus = TxIdle;
+        }
+      }
+      break;
     }
   }
 }
+  void asyncReleaseLoRaFirst()
+  {
+    asyncReleaseLoRa(true);
+  }
+
+  void handleLoRa()
+  {
+    if (operationDone) // the interrupt was triggered
+    {
+      enableInterrupt = false;
+      operationDone = false;
+      if (transmitFlag) // the previous operation was transmission
+      {
+        if (TxStatus != TxIdle)
+        {
+          asyncReleaseLoRa(false);
+          enableInterrupt = true;
+        }
+        else
+        {
+          if (tx_time_set){
+            DBG("ToA: " + String(millis() - tx_start_time));
+            tx_time_set = false;
+          }
+          radio.startReceive(); // return to listen mode
+          enableInterrupt = true;
+          transmitFlag = false;
+        }
+      }
+      else // the previous operation was reception
+      {
+        returnCRC = getLoRa();
+        if (!transmitFlag) // return to listen if no transmission was begun
+        {
+          radio.startReceive();
+        }
+        enableInterrupt = true;
+      }
+    }
+  }
 #endif // USE_LORA
