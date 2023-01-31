@@ -227,7 +227,7 @@ void sendESPNowNbr(uint8_t interface)
   {
   case 1:
   { // These brackets are required!
-    DBG("Sending to ESP-NOW neighbor 1");
+    DBG("Sending to ESP-NOW Neighbor #1");
 #if defined(ESP32)
     esp_now_peer_info_t peerInfo;
     peerInfo.ifidx = WIFI_IF_STA;
@@ -260,7 +260,7 @@ void sendESPNowNbr(uint8_t interface)
   } // These brackets are required!
   case 2:
   {
-    DBG("Sending to ESP-NOW neighbor 1");
+    DBG("Sending to ESP-NOW Neighbor #2");
 #if defined(ESP32)
     esp_now_peer_info_t peerInfo;
     peerInfo.ifidx = WIFI_IF_STA;
