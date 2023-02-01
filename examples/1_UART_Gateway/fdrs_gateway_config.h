@@ -13,10 +13,9 @@
 //#define USE_WIFI
 
 // Actions -- Define what happens when a packet arrives at each interface:
-// .
-
+// sendESPNowNbr(1 or 2); sendESPNowPeers(); sendLoRaNbr(1 or 2); broadcastLoRa(); sendSerial(); sendMQTT();
 #define ESPNOWG_ACT    sendSerial();
-#define SERIAL_ACT     sendESPNow(0x02); sendLoRaNbr(1); sendESPNowPeers(); 
+#define SERIAL_ACT     sendESPNowNbr(2); sendLoRaNbr(2); sendESPNowPeers(); broadcastLoRa(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
 // Neighbor Actions
@@ -25,22 +24,15 @@
 #define LORA1_ACT      sendSerial();
 #define LORA2_ACT 
 
-// Functions available:
-//  sendESPNowNbr(int neighbor); sendESPNowPeers();
-//  sendLoRaNbr(neighbor); broadcastLoRa();
-//  sendSerial(); sendMQTT();
 
-
-
-// Protocols -- Define which protocols the gateway will use.
-// Warning: ESP-NOW and WiFi should not be used simultaneously.
-
+// 
+// 
+// 
 // Neighboring gateway addresses
-#define ESPNOW_NEIGHBOR_1  0x0E  // ESPNOW1 Address 
-#define ESPNOW_NEIGHBOR_2  0xFF  // ESPNOW2 Address
-#define LORA_NEIGHBOR_1    0x02  // LoRa1 Address
-#define LORA_NEIGHBOR_2    0xFF  // LoRa2 Address
-
+#define ESPNOW_NEIGHBOR_1  0x00  // ESPNOW1 Address 
+#define ESPNOW_NEIGHBOR_2  0x02  // ESPNOW2 Address
+#define LORA_NEIGHBOR_1    0x00  // LoRa1 Address
+#define LORA_NEIGHBOR_2    0x03  // LoRa2 Address
 
 // LoRa Configuration
 #define RADIOLIB_MODULE SX1276 //Tested on SX1276
@@ -54,12 +46,12 @@
 #define RXD2 14
 #define TXD2 15
 
-// WiFi and MQTT Credentials  -- Override the global settings
+// WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID   "Your SSID"  
 //#define WIFI_PASS   "Your Password"
+
 //#define MQTT_ADDR   "192.168.0.8"
 //#define MQTT_PORT   1883 // Default MQTT port is 1883
-
 //#define MQTT_AUTH   //Enable MQTT authentication 
 //#define MQTT_USER   "Your MQTT Username"
 //#define MQTT_PASS   "Your MQTT Password"
