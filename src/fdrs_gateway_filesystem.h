@@ -33,7 +33,7 @@ void releaseLogBuffer()
 {
 #ifdef USE_SD_LOG
   DBG("Releasing Log buffer to SD");
-  File logfile = SD.open(SD_FILENAME, FILE_WRITE);
+  File logfile = SD.open(LOG_FILENAME, FILE_WRITE);
   if ((logfile.size() / 1024.0) < SD_MAX_FILESIZE)
   {
     logfile.print(logBuffer);
@@ -95,7 +95,7 @@ void resendLog()
 {
 #ifdef USE_SD_LOG
   DBG("Resending logged values from SD card.");
-  File logfile = SD.open(SD_FILENAME, FILE_READ);
+  File logfile = SD.open(LOG_FILENAME, FILE_READ);
   while (1)
   {
     String line = logfile.readStringUntil('\n');
@@ -113,7 +113,7 @@ void resendLog()
     else
     {
       logfile.close();
-      SD.remove(SD_FILENAME); // if all values are sent
+      SD.remove(LOG_FILENAME); // if all values are sent
       break;
     }
   }

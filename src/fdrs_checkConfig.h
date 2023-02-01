@@ -62,8 +62,8 @@ void printLoggingInformation() {
 #else
 	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
 #endif
-#ifdef SD_FILENAME
-	DBG("log filename          : " + SD_FILENAME);
+#ifdef LOG_FILENAME
+	DBG("log filename          : " + LOG_FILENAME);
 #else
 	DBG("log filename          : NOT SPECIFIED - check config!");
 #endif

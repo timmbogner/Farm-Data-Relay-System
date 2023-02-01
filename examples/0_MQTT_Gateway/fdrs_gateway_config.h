@@ -46,7 +46,7 @@
 //#define USE_FS_LOG        //Enable filesystem (flash) logging
 #define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
 #define SD_SS 0             //SD card CS pin (Use different pins for LoRa and SD)
-#define SD_FILENAME "fdrs_log.csv"
+#define LOG_FILENAME "fdrs_log.csv"
 #define FS_FILENAME "fdrs_log.csv"
 
 // SPI Configuration -- Needed only on Boards with multiple SPI interfaces like the ESP32

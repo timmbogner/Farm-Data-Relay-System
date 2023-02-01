@@ -100,7 +100,6 @@ void begin_espnow()
     DBG("Failed to add peer bcast");
     return;
   }
-}
 #endif // ESP8266
   DBG(" ESP-NOW Initialized.");
 #endif // USE_ESPNOW
