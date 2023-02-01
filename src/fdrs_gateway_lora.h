@@ -252,8 +252,11 @@ void begin_lora()
     while (true)
       ;
   }
-
+#ifdef USE_SX126X
+  radio.setDio1Action(setFlag);
+#else
   radio.setDio0Action(setFlag);
+#endif
 
   radio.setCRC(false);
   DBG("LoRa Initialized. Frequency: " + String(FDRS_LORA_FREQUENCY) + "  Bandwidth: " + String(FDRS_LORA_BANDWIDTH) + "  SF: " + String(FDRS_LORA_SF) + "  CR: " + String(FDRS_LORA_CR) + "  SyncWord: " + String(FDRS_LORA_SYNCWORD) + "  Tx Power: " + String(FDRS_LORA_TXPWR) + "dBm");
@@ -561,44 +564,45 @@ void asyncReleaseLoRa(bool first_run)
     }
   }
 }
-  void asyncReleaseLoRaFirst()
-  {
-    asyncReleaseLoRa(true);
-  }
+void asyncReleaseLoRaFirst()
+{
+  asyncReleaseLoRa(true);
+}
 
-  void handleLoRa()
+void handleLoRa()
+{
+  if (operationDone) // the interrupt was triggered
   {
-    if (operationDone) // the interrupt was triggered
+    enableInterrupt = false;
+    operationDone = false;
+    if (transmitFlag) // the previous operation was transmission
     {
-      enableInterrupt = false;
-      operationDone = false;
-      if (transmitFlag) // the previous operation was transmission
+      if (TxStatus != TxIdle)
       {
-        if (TxStatus != TxIdle)
-        {
-          asyncReleaseLoRa(false);
-          enableInterrupt = true;
-        }
-        else
-        {
-          if (tx_time_set){
-            DBG("ToA: " + String(millis() - tx_start_time));
-            tx_time_set = false;
-          }
-          radio.startReceive(); // return to listen mode
-          enableInterrupt = true;
-          transmitFlag = false;
-        }
-      }
-      else // the previous operation was reception
-      {
-        returnCRC = getLoRa();
-        if (!transmitFlag) // return to listen if no transmission was begun
-        {
-          radio.startReceive();
-        }
+        asyncReleaseLoRa(false);
         enableInterrupt = true;
       }
+      else
+      {
+        if (tx_time_set)
+        {
+          DBG("ToA: " + String(millis() - tx_start_time));
+          tx_time_set = false;
+        }
+        radio.startReceive(); // return to listen mode
+        enableInterrupt = true;
+        transmitFlag = false;
+      }
+    }
+    else // the previous operation was reception
+    {
+      returnCRC = getLoRa();
+      if (!transmitFlag) // return to listen if no transmission was begun
+      {
+        radio.startReceive();
+      }
+      enableInterrupt = true;
     }
   }
+}
 #endif // USE_LORA

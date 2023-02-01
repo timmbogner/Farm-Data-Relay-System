@@ -35,7 +35,9 @@
 #define LORA_NEIGHBOR_2    0x03  // LoRa2 Address
 
 // LoRa Configuration
-#define RADIOLIB_MODULE SX1276 //Tested on SX1276
+// LoRa Configuration
+#define RADIOLIB_MODULE SX1262 //Tested on SX1276
+#define USE_SX126X
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO 26
