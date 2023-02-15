@@ -24,9 +24,6 @@
 #define LORA1_ACT      sendSerial();
 #define LORA2_ACT 
 
-
-// 
-// 
 // 
 // Neighboring gateway addresses
 #define ESPNOW_NEIGHBOR_1  0x00  // ESPNOW1 Address 
@@ -43,6 +40,11 @@
 #define LORA_DIO 14
 #define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 #define LORA_ACK        // Request LoRa acknowledgment.
+
+//#define CUSTOM_SPI
+#define LORA_SPI_SCK 5
+#define LORA_SPI_MISO 19
+#define LORA_SPI_MOSI 27
 
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14

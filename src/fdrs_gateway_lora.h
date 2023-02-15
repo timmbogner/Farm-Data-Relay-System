@@ -75,7 +75,15 @@
 
 const uint8_t lora_size = 256 / sizeof(DataReading);
 
+#ifdef CUSTOM_SPI
+#ifdef ESP32
+SPIClass LORA_SPI(HSPI);
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
+#endif // ESP32
+#else
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
+#endif // CUSTOM_SPI
+
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
@@ -241,6 +249,13 @@ void printLoraPacket(uint8_t *p, int size)
 #ifdef USE_LORA
 void begin_lora()
 {
+#ifdef CUSTOM_SPI
+#ifdef ESP32
+  LORA_SPI.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
+#endif // ESP32
+#else
+#endif // CUSTOM_SPI
+
   int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 0);
   if (state == RADIOLIB_ERR_NONE)
   {
