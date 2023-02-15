@@ -616,7 +616,9 @@ crcResult getLoRa()
     }
   }
   return CRC_NULL;
-#endif
+#else
+  return CRC_NULL;
+#endif // USE_LORA
 }
 
 void printLoraPacket(uint8_t *p, int size)
