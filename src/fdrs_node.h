@@ -782,6 +782,7 @@ uint32_t pingFDRS(int timeout)
   // transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
   DBG(" LoRa ping not sent because it isn't implemented.");
 #endif
+  return 0;
 }
 bool subscribeFDRS(uint16_t sub_id)
 {
