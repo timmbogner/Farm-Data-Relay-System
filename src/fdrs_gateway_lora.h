@@ -434,8 +434,8 @@ crcResult getLoRa()
     }
     else
     {
-      DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
-      // printLoraPacket(packet,sizeof(packet));
+      // DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
+      //  printLoraPacket(packet,sizeof(packet));
       return CRC_NULL;
     }
   }
@@ -443,10 +443,10 @@ crcResult getLoRa()
   {
     if (packetSize != 0)
     {
-      DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
-      // uint8_t packet[packetSize];
-      // radio.readData((uint8_t *)&packet, packetSize);
-      // printLoraPacket(packet,sizeof(packet));
+      // DBG("Incoming LoRa packet of " + String(packetSize) + "bytes not processed.");
+      //  uint8_t packet[packetSize];
+      //  radio.readData((uint8_t *)&packet, packetSize);
+      //  printLoraPacket(packet,sizeof(packet));
       return CRC_NULL;
     }
   }
@@ -477,19 +477,23 @@ void sendLoRaNbr(uint8_t interface)
   switch (interface)
   {
   case 1:
+  {
     for (int i = 0; i < ln; i++)
     {
       LORA1Buffer.buffer[LORA1Buffer.len + i] = theData[i];
     }
     LORA1Buffer.len += ln;
     break;
+  }
   case 2:
+  {
     for (int i = 0; i < ln; i++)
     {
       LORA2Buffer.buffer[LORA2Buffer.len + i] = theData[i];
     }
     LORA2Buffer.len += ln;
     break;
+  }
   }
 #endif // USE_LORA
 }

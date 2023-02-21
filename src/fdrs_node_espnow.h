@@ -42,9 +42,6 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
 #endif
-
-    memcpy(&incMAC, mac, sizeof(incMAC));
-
     if (len < sizeof(DataReading))
     {
         SystemPacket command;
@@ -62,42 +59,9 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
     }
     else
     {
-        memcpy(&incData, incomingData, len);
-        int pkt_readings = len / sizeof(DataReading);
-        for (int i = 0; i <= pkt_readings; i++)
-        { // Cycle through array of incoming DataReadings for any addressed to this device
-            for (int j = 0; j < 255; j++)
-            { // Cycle through subscriptions for active entries
-                if (active_subs[j])
-                {
-                    if (incData[i].id == subscription_list[j])
-                    {
-                        (*callback_ptr)(incData[i]);
-                    }
-                }
-            }
-        }
+        memcpy(&theData, incomingData, len);
+        ln = len / sizeof(DataReading);
+        newData = true;
     }
 }
 #endif // USE_ESPNOW
-
-bool seekFDRS(int timeout)
-{
-    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
-#ifdef USE_ESPNOW
-    esp_now_send(broadcast_mac, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-    DBG("Seeking nearby gateways");
-    uint32_t ping_start = millis();
-    is_ping = false;
-    while ((millis() - ping_start) <= timeout)
-    {
-        yield(); // do I need to yield or does it automatically?
-        if (is_ping)
-        {
-            DBG("Responded:" + String(incMAC[5]));
-            return true;
-        }
-    }
-    return false;
-#endif
-}

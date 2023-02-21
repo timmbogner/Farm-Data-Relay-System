@@ -7,6 +7,7 @@
 #include <esp_wifi.h>
 #endif
 
+#define PEER_TIMEOUT 300000
 FDRSPeer peer_list[16];
 const uint8_t espnow_size = 250 / sizeof(DataReading);
 
@@ -133,7 +134,7 @@ int find_espnow_peer()
 // Returns the index of the peer list array element that contains the provided MAC address, -1 if not found
 int getFDRSPeer(uint8_t *mac)
 {
-  DBG("Getting peer #");
+  //DBG("Getting peer #");
 
   for (int i = 0; i < 16; i++)
   {
@@ -154,7 +155,7 @@ void add_espnow_peer()
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
-    DBG("Device not yet registered, adding to peer list");
+    //DBG("Device not yet registered, adding to peer list");
     int open_peer = find_espnow_peer();            // find open spot in peer_list
     memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
     peer_list[open_peer].last_seen = millis();

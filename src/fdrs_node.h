@@ -2,7 +2,7 @@
 //
 //  "fdrs_node.h"
 //
-//  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //
 #include <fdrs_datatypes.h>
 #include <fdrs_globals.h>
@@ -45,6 +45,10 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 // #include "fdrs_checkConfig.h"
 #endif
 
+SystemPacket theCmd;
+DataReading theData[256];
+uint8_t ln;
+bool newData;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 
@@ -133,6 +137,30 @@ void beginFDRS()
 #endif // DEBUG_CONFIG
 }
 
+void handleIncoming()
+{
+  if (newData)
+  {
+
+    newData = false;
+    for (int i = 0; i < ln; i++)
+    { // Cycle through array of incoming DataReadings for any we are subbed to
+      for (int j = 0; j < 255; j++)
+      { // Cycle through subscriptions for active entries
+        if (active_subs[j])
+        {
+
+          if (theData[i].id == subscription_list[j])
+          {
+
+            (*callback_ptr)(theData[i]);
+          }
+        }
+      }
+    }
+  }
+}
+
 bool sendFDRS()
 {
   DBG("Sending FDRS Packet!");
@@ -206,13 +234,16 @@ void sleepFDRS(int sleep_time)
 
 void loopFDRS()
 {
-  if (is_added)
-  {
-    if ((millis() - last_refresh) >= gtwy_timeout)
-    {
-      last_refresh = millis();
-    }
-  }
+  handleLoRa();
+  handleIncoming();
+  // // TO-DO:
+  // if (is_added)
+  // {
+  //   if ((millis() - last_refresh) >= gtwy_timeout)
+  //   {
+  //     last_refresh = millis();
+  //   }
+  // }
 }
 
 bool subscribeFDRS(uint16_t sub_id)
@@ -221,7 +252,7 @@ bool subscribeFDRS(uint16_t sub_id)
   {
     if ((subscription_list[i] == sub_id) && (active_subs[i]))
     {
-      DBG("You're already subscribed to that!");
+      DBG("You're already subscribed to ID " + String(sub_id));
       return true;
     }
   }
@@ -229,7 +260,7 @@ bool subscribeFDRS(uint16_t sub_id)
   {
     if (!active_subs[i])
     {
-      DBG("Adding subscription at position " + String(i));
+      DBG("Subscribing to DataReading ID " + String(sub_id));
       subscription_list[i] = sub_id;
       active_subs[i] = true;
       return true;
@@ -244,7 +275,7 @@ bool unsubscribeFDRS(uint16_t sub_id)
   {
     if ((subscription_list[i] == sub_id) && (active_subs[i]))
     {
-      DBG("Removing subscription.");
+      DBG("Removing subscription to ID " + String(sub_id));
       active_subs[i] = false;
       return true;
     }
@@ -253,11 +284,36 @@ bool unsubscribeFDRS(uint16_t sub_id)
   return false;
 }
 
+bool addFDRS(void (*new_cb_ptr)(DataReading))
+{
+  callback_ptr = new_cb_ptr;
+#ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  uint32_t add_start = millis();
+  is_added = false;
+  while ((millis() - add_start) <= 1000) // 1000ms timeout
+  {
+    yield();
+    if (is_added)
+    {
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      last_refresh = millis();
+      return true;
+    }
+  }
+  DBG("No gateways accepted the request");
+  return false;
+#endif // USE_ESPNOW
+  return true;
+}
+
 bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
 {
   callback_ptr = new_cb_ptr;
-  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
 #ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
   esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
   uint32_t add_start = millis();
@@ -274,7 +330,8 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
   }
   DBG("No gateways accepted the request");
   return false;
-#endif
+#endif // USE_ESPNOW
+  return true;
 }
 
 uint32_t pingFDRS(int timeout)

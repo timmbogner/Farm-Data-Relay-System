@@ -24,7 +24,6 @@
 #define GLOBAL_LORA_BANDWIDTH 125.0  // LoRa link bandwidth in kHz. Allowed values are 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250 and 500 kHz.
 #define GLOBAL_LORA_CR 5    // LoRa link coding rate denominator. Allowed values range from 5 to 8.
 #define GLOBAL_LORA_SYNCWORD 0x12    // LoRa sync word. Can be used to distinguish different networks. Note that 0x34 is reserved for LoRaWAN.
-#define GLOBAL_LORA_INTERVAL 10000  // Interval between LoRa buffer releases. Must be longer than transmission time-on-air.
+#define GLOBAL_LORA_INTERVAL 5000  // Interval between LoRa buffer releases. Must be longer than transmission time-on-air.
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // Should only be changed if implementing multiple FDRS systems.
-#define PEER_TIMEOUT 300000
