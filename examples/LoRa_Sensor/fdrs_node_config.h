@@ -16,6 +16,7 @@
 
 // LoRa Configuration
 #define RADIOLIB_MODULE SX1276 //Tested on SX1276
+//#define USE_SX126X
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO 26
