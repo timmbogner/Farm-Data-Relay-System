@@ -106,6 +106,8 @@ void begin_espnow()
 #endif // USE_ESPNOW
 }
 
+#ifdef USE_ESPNOW
+
 // Returns an expired entry in peer_list, -1 if full.
 int find_espnow_peer()
 {
@@ -219,6 +221,7 @@ void pingback_espnow()
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
 }
+#endif // USE_ESPNOW
 
 void sendESPNowNbr(uint8_t interface)
 {

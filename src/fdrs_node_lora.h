@@ -367,7 +367,7 @@ crcResult getLoRa()
             }
             else if ((packetSize - 6) == sizeof(SystemPacket))
             {
-                uint ln = (packetSize - 6) / sizeof(SystemPacket);
+                unsigned int ln = (packetSize - 6) / sizeof(SystemPacket);
                 SystemPacket receiveData[ln];
 
                 if (calcCRC == packetCRC)

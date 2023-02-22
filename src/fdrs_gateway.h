@@ -70,11 +70,17 @@ void handleCommands()
   switch (theCmd.cmd)
   {
   case cmd_ping:
+#ifdef USE_ESPNOW
     pingback_espnow();
+#endif // USE_ESPNOW
+
     break;
 
   case cmd_add:
+#ifdef USE_ESPNOW
     add_espnow_peer();
+#endif // USE_ESPNOW
+
     break;
   }
   theCmd.cmd = cmd_clear;
@@ -83,17 +89,17 @@ void handleCommands()
 
 void loopFDRS()
 {
-handle_schedule();
+  handle_schedule();
   handleCommands();
 #if defined(USE_SD_LOG) || defined(USE_FS_LOG)
   handleLogger();
 #endif
- handleSerial();
+  handleSerial();
 #ifdef USE_LORA
   handleLoRa();
 #endif
 #ifdef USE_WIFI
- handleMQTT();
+  handleMQTT();
 #endif
 
   if (newData != event_clear)

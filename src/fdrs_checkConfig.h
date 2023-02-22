@@ -19,7 +19,8 @@ const char* headerAndFooter = "=================================================
 // helper function for obfuscating passwords
 String obfuscatePassword(String password) {
 	char obfuscatedPass[password.length()];
-	std::fill(obfuscatedPass, obfuscatedPass + password.length(), '*');
+	// TO DO: The following line is disabled due to AVR incompatibility.
+	// std::fill(obfuscatedPass, obfuscatedPass + password.length(), '*'); 
 	return String(obfuscatedPass);
 }
 
