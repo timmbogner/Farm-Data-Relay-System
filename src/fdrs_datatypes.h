@@ -43,7 +43,8 @@ enum
   event_mqtt,
   event_lorag,
   event_lora1,
-  event_lora2
+  event_lora2,
+  event_internal
 };
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES

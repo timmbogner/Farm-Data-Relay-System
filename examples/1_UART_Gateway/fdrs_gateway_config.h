@@ -18,7 +18,8 @@
 #define SERIAL_ACT     sendESPNowNbr(2); sendLoRaNbr(2); sendESPNowPeers(); broadcastLoRa(); 
 #define MQTT_ACT          
 #define LORAG_ACT      sendSerial();
-// Neighbor Actions
+#define INTERNAL_ACT   sendSerial();
+
 #define ESPNOW1_ACT   
 #define ESPNOW2_ACT                    
 #define LORA1_ACT      sendSerial();
@@ -49,6 +50,8 @@
 //Pins for UART data interface (ESP32 only)
 #define RXD2 14
 #define TXD2 15
+
+//#define USE_LR  // Use ESP-NOW LR mode (ESP32 only)
 
 // WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID   "Your SSID"  

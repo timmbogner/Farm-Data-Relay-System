@@ -15,6 +15,9 @@ uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;
 bool is_ping = false;
 
+DataReading fdrsData[256]; // buffer for loadFDRS()
+uint8_t data_count = 0;
+
 #include "fdrs_gateway_oled.h"
 #include "fdrs_gateway_debug.h"
 #include "fdrs_gateway_espnow.h"
@@ -27,6 +30,31 @@ bool is_ping = false;
 #ifdef DEBUG_CONFIG
 #include "fdrs_checkConfig.h"
 #endif
+
+void sendFDRS()
+{
+  for (int i = 0; i < data_count; i++)
+  {
+    theData[i].id = fdrsData[i].id;
+    theData[i].t = fdrsData[i].t;
+    theData[i].d = fdrsData[i].d;
+  }
+  ln = data_count;
+  data_count = 0;
+  newData = event_internal;
+  DBG("Entered internal data.");
+}
+
+void loadFDRS(float d, uint8_t t, uint16_t id)
+{
+  DBG("Id: " + String(id) + " - Type: " + String(t) + " - Data loaded: " + String(d));
+  DataReading dr;
+  dr.id = id;
+  dr.t = t;
+  dr.d = d;
+  fdrsData[data_count] = dr;
+  data_count++;
+}
 
 void beginFDRS()
 {
@@ -129,6 +157,9 @@ void loopFDRS()
       break;
     case event_lora2:
       LORA2_ACT
+      break;
+    case event_internal:
+      INTERNAL_ACT
       break;
     }
     newData = event_clear;
