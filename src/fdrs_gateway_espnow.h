@@ -72,6 +72,9 @@ void begin_espnow()
   WiFi.disconnect();
   // Init ESP-NOW for either ESP8266 or ESP32 and set MAC address
 #if defined(ESP8266)
+#ifdef USE_LR
+  DBG(" LR mode is only available on ESP32. ESP-NOW will begin in normal mode.");
+#endif
   wifi_set_macaddr(STATION_IF, selfAddress);
   if (esp_now_init() != 0)
   {
@@ -83,6 +86,10 @@ void begin_espnow()
   esp_now_register_recv_cb(OnDataRecv);
 
 #elif defined(ESP32)
+#ifdef USE_LR
+  DBG(" ESP-NOW LR mode is active!");
+  esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_LR);
+#endif
   esp_wifi_set_mac(WIFI_IF_STA, &selfAddress[0]);
   if (esp_now_init() != ESP_OK)
   {
@@ -136,7 +143,7 @@ int find_espnow_peer()
 // Returns the index of the peer list array element that contains the provided MAC address, -1 if not found
 int getFDRSPeer(uint8_t *mac)
 {
-  //DBG("Getting peer #");
+  // DBG("Getting peer #");
 
   for (int i = 0; i < 16; i++)
   {
@@ -157,7 +164,7 @@ void add_espnow_peer()
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
-    //DBG("Device not yet registered, adding to peer list");
+    // DBG("Device not yet registered, adding to peer list");
     int open_peer = find_espnow_peer();            // find open spot in peer_list
     memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
     peer_list[open_peer].last_seen = millis();

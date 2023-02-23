@@ -85,11 +85,15 @@ void beginFDRS()
   delay(50);
 #endif
   // Init ESP-NOW for either ESP8266 or ESP32
+
 #ifdef USE_ESPNOW
   DBG("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
 #if defined(ESP8266)
+#ifdef USE_LR
+  DBG(" LR mode is only available on ESP32. ESP-NOW will begin in normal mode.");
+#endif
   if (esp_now_init() != 0)
   {
     return;
@@ -101,7 +105,10 @@ void beginFDRS()
   // Register peers
   esp_now_add_peer(gatewayAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
 #elif defined(ESP32)
-
+#ifdef USE_LR
+  DBG(" ESP-NOW LR mode is active!");
+  esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_LR);
+#endif
   if (esp_now_init() != ESP_OK)
   {
     DBG("Error initializing ESP-NOW");
