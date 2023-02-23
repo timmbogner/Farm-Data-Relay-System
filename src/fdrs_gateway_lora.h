@@ -183,6 +183,9 @@ void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
     // printf("CRC: %02X : %d\n",calcCRC, i);
     calcCRC = crc16_update(calcCRC, pkt[i]);
   }
+  if(*destMac == 0xFFFF) {
+    calcCRC = crc16_update(calcCRC, 0xA1); 
+  }
   pkt[(len * sizeof(DataReading) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(DataReading) + 5)] = (calcCRC & 0x00FF);
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
