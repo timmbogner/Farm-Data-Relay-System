@@ -78,5 +78,9 @@ enum
 #define PM1_T           27 // 1 Particles
 #define PM2_5_T         28 // 2.5 Particles
 #define PM10_T          29 // 10 Particles
+#define POWER_T         30 // Power
+#define POWER2_T        31 // Power #2
+#define ENERGY_T        32 // Energy
+#define ENERGY2_T       33 // Energy #2
 
 #endif //FDRS_DATA_TYPES
