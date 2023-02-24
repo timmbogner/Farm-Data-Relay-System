@@ -79,7 +79,7 @@ void reconnect_mqtt(short int attempts, bool silent)
                 sprintf(msg, " Attempt %d/%d", i, attempts);
                 DBG(msg);
             }
-            if ((attempts = !1))
+            if ((attempts != 1))
             {
                 delay(3000);
             }
