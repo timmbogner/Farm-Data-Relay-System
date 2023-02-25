@@ -2,7 +2,7 @@
 //
 //  CAPACITIVE SOIL MOISTURE SENSOR MODULE
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //  Connect sensor to the analog pin of the ESP (A0).
 //
 

@@ -2,7 +2,7 @@
 //
 //  GATEWAY 2.000
 //
-//  Developed by Timm Bogner (timmbogner@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //
 
 #include "fdrs_gateway_config.h"

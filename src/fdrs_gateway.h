@@ -7,6 +7,34 @@
 #define __FDRS_FUNCTIONS_H__
 #include "fdrs_datatypes.h"
 #include "fdrs_globals.h"
+#ifndef ESPNOWG_ACT
+#define ESPNOWG_ACT
+#endif
+#ifndef ESPNOW1_ACT
+#define ESPNOW1_ACT
+#endif
+#ifndef ESPNOW2_ACT
+#define ESPNOW2_ACT
+#endif
+#ifndef SERIAL_ACT
+#define SERIAL_ACT
+#endif
+#ifndef MQTT_ACT
+#define MQTT_ACT
+#endif
+#ifndef LORAG_ACT
+#define LORAG_ACT
+#endif
+#ifndef LORA1_ACT
+#define LORA1_ACT
+#endif
+#ifndef LORA2_ACT
+#define LORA2_ACT
+#endif
+#ifndef INTERNAL_ACT
+#define INTERNAL_ACT
+#endif
+
 
 SystemPacket theCmd;
 DataReading theData[256];
@@ -76,9 +104,10 @@ void beginFDRS()
 #endif
 #ifdef USE_WIFI
   begin_wifi();
-  DBG("WiFi Connected");
+  DBG("Connected.");
   begin_mqtt();
-#else
+#endif
+#ifdef USE_ESPNOW
   begin_espnow();
 #endif
 #ifdef USE_SD_LOG
@@ -129,7 +158,6 @@ void loopFDRS()
 #ifdef USE_WIFI
   handleMQTT();
 #endif
-
   if (newData != event_clear)
   {
     switch (newData)
