@@ -190,7 +190,6 @@ bool sendFDRS()
 #endif
 #ifdef USE_LORA
   transmitLoRa(&gtwyAddress, fdrsData, data_count);
-  DBG(" LoRa sent.");
   data_count = 0;
   returnCRC = CRC_NULL;
 #endif
@@ -223,7 +222,6 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
 }
 void sleepFDRS(int sleep_time)
 {
-  DBG("Sleepytime!");
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
