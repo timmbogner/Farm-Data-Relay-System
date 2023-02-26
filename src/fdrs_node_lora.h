@@ -80,6 +80,8 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
 #else
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
 #endif                                // CUSTOM_SPI
+
+bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
@@ -381,7 +383,7 @@ crcResult getLoRa()
                     { // We have received a ping request or reply??
                         if (receiveData[0].param == 1)
                         { // This is a reply to our ping request
-                            is_ping = true;
+                            pingFlag = true;
                             DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
                         }
                         else if (receiveData[0].param == 0)
@@ -410,7 +412,7 @@ crcResult getLoRa()
                     { // We have received a ping request or reply??
                         if (receiveData[0].param == 1)
                         { // This is a reply to our ping request
-                            is_ping = true;
+                            pingFlag = true;
                             DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
                         }
                         else if (receiveData[0].param == 0)
@@ -456,6 +458,34 @@ crcResult getLoRa()
 #endif // USE_LORA
     return CRC_NULL;
 }
+
+// FDRS Sensor pings gateway and listens for a defined amount of time for a reply
+// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
+// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
+uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
+{
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
+
+    transmitLoRa(address, &sys_packet, 1);
+    DBG("LoRa ping sent to address: 0x" + String(*address, HEX));
+    uint32_t ping_start = millis();
+    pingFlag = false;
+    while ((millis() - ping_start) <= timeout)
+    {
+        handleLoRa();
+        yield(); //do I need to yield or does it automatically?
+        if (pingFlag)
+        {
+            DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
+            pingFlag = false;
+            return (millis() - ping_start);
+        }
+    }
+    DBG("No LoRa ping returned within " + String(timeout) + "ms.");
+    return UINT32_MAX;
+}
+
+
 void printLoraPacket(uint8_t *p, int size)
 {
     printf("Printing packet of size %d.", size);

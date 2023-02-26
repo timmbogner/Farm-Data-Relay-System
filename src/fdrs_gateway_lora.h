@@ -381,7 +381,7 @@ crcResult getLoRa()
           { // We have received a ping request or reply??
             if (receiveData[0].param == 1)
             { // This is a reply to our ping request
-              is_ping = true;
+              pingFlag = true;
               DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
             }
             else if (receiveData[0].param == 0)
@@ -410,7 +410,7 @@ crcResult getLoRa()
           { // We have received a ping request or reply??
             if (receiveData[0].param == 1)
             { // This is a reply to our ping request
-              is_ping = true;
+              pingFlag = true;
               DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
             }
             else if (receiveData[0].param == 0)

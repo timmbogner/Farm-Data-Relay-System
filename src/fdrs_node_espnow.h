@@ -10,6 +10,7 @@
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
+bool pingFlag = false;
 
 #ifdef USE_ESPNOW
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -49,7 +50,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
         switch (command.cmd)
         {
         case cmd_ping:
-            is_ping = true;
+            pingFlag = true;
             break;
         case cmd_add:
             is_added = true;
@@ -64,4 +65,28 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
         newData = true;
     }
 }
+
+// FDRS node pings gateway and listens for a defined amount of time for a reply
+// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
+// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
+uint32_t pingFDRSEspNow(uint16_t *address, uint32_t timeout) {
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
+    
+    esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    DBG(" ESP-NOW ping sent.");
+    uint32_t ping_start = millis();
+    pingFlag = false;
+    while ((millis() - ping_start) <= timeout)
+    {
+        yield(); // do I need to yield or does it automatically?
+        if (pingFlag)
+        {
+            DBG("Ping Returned:" + String(millis() - ping_start) + " from " + String(incMAC[5]));
+            return (millis() - ping_start);
+        }
+    }
+    DBG("No ESP-NOW ping returned within " + String(timeout) + "ms.");
+    return UINT32_MAX;
+}
+
 #endif // USE_ESPNOW
