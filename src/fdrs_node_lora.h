@@ -79,7 +79,7 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
 #endif // ESP32
 #else
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
-#endif                                // CUSTOM_SPI
+#endif // CUSTOM_SPI
 
 bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
@@ -216,9 +216,13 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
     while (retries != 0)
     {
         if (transmitLoRaMsgwAck != 0)
+        {
             DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1) + ", Ack Ok " + String((float)msgOkLoRa / transmitLoRaMsgwAck * 100) + "%");
+        }
         else
+        {
             DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
+        }
         // printLoraPacket(pkt,sizeof(pkt));
         int state = radio.transmit(pkt, sizeof(pkt));
         transmitFlag = true;
@@ -295,7 +299,7 @@ crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
     // Calculate CRC of address and data portion of the packet
     // Last 2 bytes are CRC so do not include them in the calculation itself
     for (int i = 0; i < (sizeof(pkt) - 2); i++)
-    { 
+    {
         // printf("CRC: %02X : %d\n",calcCRC, i);
         calcCRC = crc16_update(calcCRC, pkt[i]);
     }
@@ -495,7 +499,7 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
     while ((millis() - ping_start) <= timeout)
     {
         handleLoRa();
-        yield(); //do I need to yield or does it automatically?
+        yield(); // do I need to yield or does it automatically?
         if (pingFlag)
         {
             DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
@@ -507,7 +511,6 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
     return UINT32_MAX;
 #endif // USE_LORA
 }
-
 
 void printLoraPacket(uint8_t *p, int size)
 {
