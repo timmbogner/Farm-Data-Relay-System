@@ -41,7 +41,6 @@ DataReading theData[256];
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;
-bool is_ping = false;
 
 DataReading fdrsData[256]; // buffer for loadFDRS()
 uint8_t data_count = 0;

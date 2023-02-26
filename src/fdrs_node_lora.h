@@ -80,6 +80,8 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
 #else
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
 #endif                                // CUSTOM_SPI
+
+bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
@@ -94,6 +96,8 @@ unsigned long msgOkLoRa = 0;           // Number of total LoRa packets with vali
 void printLoraPacket(uint8_t *p, int size);
 
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
+
+// Function prototypes
 crcResult getLoRa();
 
 #if defined(ESP8266) || defined(ESP32)
@@ -109,11 +113,13 @@ void setFlag(void)
 }
 #endif // USE_LORA
 
-void handleLoRa()
+crcResult handleLoRa()
 {
 #ifdef USE_LORA
+    crcResult crcReturned = CRC_NULL;
     if (operationDone)
     { // the interrupt was triggered
+        // DBG("Interrupt Triggered.");
         enableInterrupt = false;
         operationDone = false;
         if (transmitFlag)
@@ -124,7 +130,7 @@ void handleLoRa()
         }
         else
         { // the previous operation was reception
-            returnCRC = getLoRa();
+            crcReturned = getLoRa();
             if (!transmitFlag) // return to listen if no transmission was begun
             {
                 radio.startReceive();
@@ -132,6 +138,7 @@ void handleLoRa()
             enableInterrupt = true;
         }
     }
+    return crcReturned;
 #endif // USE_LORA
 }
 
@@ -165,6 +172,7 @@ void begin_lora()
 #endif
     radio.setCRC(false);
     LoRaAddress = ((radio.randomByte() << 8) | radio.randomByte());
+    DBG("LoRa node address is " + String(LoRaAddress, HEX) + " (hex).");
     state = radio.startReceive(); // start listening for LoRa packets
     if (state == RADIOLIB_ERR_NONE)
     {
@@ -178,9 +186,13 @@ void begin_lora()
 #endif // USE_LORA
 }
 
-void transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
+// Transmits Lora data by calling RadioLib library function
+// Returns the CRC result if ACKs are enabled otherwise returns CRC_NULL
+
+crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
 {
 #ifdef USE_LORA
+    crcResult crcReturned = CRC_NULL;
     uint8_t pkt[6 + (len * sizeof(DataReading))];
     uint16_t calcCRC = 0x0000;
 
@@ -223,17 +235,17 @@ void transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
         unsigned long loraAckTimeout = millis() + FDRS_ACK_TIMEOUT;
         retries--;
         delay(10);
-        while (returnCRC == CRC_NULL && (millis() < loraAckTimeout))
+        while (crcReturned == CRC_NULL && (millis() < loraAckTimeout))
         {
-            handleLoRa();
+            crcReturned = handleLoRa();
         }
-        if (returnCRC == CRC_OK)
+        if (crcReturned == CRC_OK)
         {
             // DBG("LoRa ACK Received! CRC OK");
             msgOkLoRa++;
-            return; // we're done
+            return CRC_OK; // we're done
         }
-        else if (returnCRC == CRC_BAD)
+        else if (crcReturned == CRC_BAD)
         {
             // DBG("LoRa ACK Received! CRC BAD");
             //  Resend original packet again if retries are available
@@ -260,29 +272,38 @@ void transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
     }
     transmitLoRaMsgwAck++;
 #endif // LORA_ACK
+    return crcReturned;
 #endif // USE_LORA
 }
 
 // For now SystemPackets will not use ACK but will calculate CRC
-void transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
+// Returns CRC_NULL ask SystemPackets do not use ACKS at current time
+crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
 {
 #ifdef USE_LORA
+    crcResult crcReturned = CRC_NULL;
     uint8_t pkt[6 + (len * sizeof(SystemPacket))];
     uint16_t calcCRC = 0x0000;
 
+    // Building packet -- address portion - first 4 bytes
     pkt[0] = (*destMAC >> 8);
     pkt[1] = (*destMAC & 0x00FF);
     pkt[2] = (LoRaAddress >> 8);
     pkt[3] = (LoRaAddress & 0x00FF);
+    // Building packet -- data portion - 5 bytes
     memcpy(&pkt[4], packet, len * sizeof(SystemPacket));
+    // Calculate CRC of address and data portion of the packet
+    // Last 2 bytes are CRC so do not include them in the calculation itself
     for (int i = 0; i < (sizeof(pkt) - 2); i++)
-    { // Last 2 bytes are CRC so do not include them in the calculation itself
+    { 
         // printf("CRC: %02X : %d\n",calcCRC, i);
         calcCRC = crc16_update(calcCRC, pkt[i]);
     }
     calcCRC = crc16_update(calcCRC, 0xA1); // Recalculate CRC for No ACK
+    // Building packet -- adding CRC - last 2 bytes
     pkt[len * sizeof(SystemPacket) + 4] = (calcCRC >> 8);
     pkt[len * sizeof(SystemPacket) + 5] = (calcCRC & 0x00FF);
+    // Packet is constructed now transmit the packet
     DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to destination 0x" + String(*destMAC, HEX));
     // printLoraPacket(pkt,sizeof(pkt));
     int state = radio.startTransmit(pkt, sizeof(pkt));
@@ -296,9 +317,11 @@ void transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
         while (true)
             ;
     }
+    return crcReturned;
 #endif // USE_LORA
 }
 
+// ****DO NOT CALL getLoRa() directly! *****   Call handleLoRa() instead!
 // getLoRa for Sensors
 //  USED to get ACKs (SystemPacket type) from LoRa gateway at this point.  May be used in the future to get other data
 // Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
@@ -320,7 +343,7 @@ crcResult getLoRa()
         destMAC = (packet[0] << 8) | packet[1];
         sourceMAC = (packet[2] << 8) | packet[3];
         packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
-        // DBG("Packet Address: 0x" + String(packet[0], HEX) + String(packet[1], HEX) + " Self Address: 0x" + String(selfAddress[4], HEX) + String(selfAddress[5], HEX));
+        // DBG("Source Address: 0x" + String(packet[2], HEX) + String(packet[3], HEX) + " Destination Address: 0x" + String(packet[0], HEX) + String(packet[1], HEX));
         if ((destMAC == LoRaAddress) || (destMAC == 0xFFFF))
         { // Check if addressed to this device or broadcast
             // printLoraPacket(packet,sizeof(packet));
@@ -381,7 +404,7 @@ crcResult getLoRa()
                     { // We have received a ping request or reply??
                         if (receiveData[0].param == 1)
                         { // This is a reply to our ping request
-                            is_ping = true;
+                            pingFlag = true;
                             DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
                         }
                         else if (receiveData[0].param == 0)
@@ -410,7 +433,7 @@ crcResult getLoRa()
                     { // We have received a ping request or reply??
                         if (receiveData[0].param == 1)
                         { // This is a reply to our ping request
-                            is_ping = true;
+                            pingFlag = true;
                             DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
                         }
                         else if (receiveData[0].param == 0)
@@ -437,8 +460,8 @@ crcResult getLoRa()
         }
         else
         {
-            // DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
-            //  printLoraPacket(packet,sizeof(packet));
+            DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
+            // printLoraPacket(packet,sizeof(packet));
             return CRC_NULL;
         }
     }
@@ -453,9 +476,39 @@ crcResult getLoRa()
             return CRC_NULL;
         }
     }
-#endif // USE_LORA
     return CRC_NULL;
+#endif // USE_LORA
 }
+
+// FDRS Sensor pings gateway and listens for a defined amount of time for a reply
+// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
+// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
+uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
+{
+#ifdef USE_LORA
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
+
+    transmitLoRa(address, &sys_packet, 1);
+    DBG("LoRa ping sent to address: 0x" + String(*address, HEX));
+    uint32_t ping_start = millis();
+    pingFlag = false;
+    while ((millis() - ping_start) <= timeout)
+    {
+        handleLoRa();
+        yield(); //do I need to yield or does it automatically?
+        if (pingFlag)
+        {
+            DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
+            pingFlag = false;
+            return (millis() - ping_start);
+        }
+    }
+    DBG("No LoRa ping returned within " + String(timeout) + "ms.");
+    return UINT32_MAX;
+#endif // USE_LORA
+}
+
+
 void printLoraPacket(uint8_t *p, int size)
 {
     printf("Printing packet of size %d.", size);

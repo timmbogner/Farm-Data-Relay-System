@@ -11,7 +11,10 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
 
+
 #ifdef USE_ESPNOW
+bool pingFlag = false;
+
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
@@ -49,7 +52,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
         switch (command.cmd)
         {
         case cmd_ping:
-            is_ping = true;
+            pingFlag = true;
             break;
         case cmd_add:
             is_added = true;
@@ -64,4 +67,28 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
         newData = true;
     }
 }
+
+// FDRS node pings gateway and listens for a defined amount of time for a reply
+// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
+// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
+uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
+    
+    esp_now_send(address, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    DBG(" ESP-NOW ping sent.");
+    uint32_t ping_start = millis();
+    pingFlag = false;
+    while ((millis() - ping_start) <= timeout)
+    {
+        yield(); // do I need to yield or does it automatically?
+        if (pingFlag)
+        {
+            DBG("ESP-NOW Ping Reply in " + String(millis() - ping_start) + "ms from " + String(address[0], HEX) + ":" + String(address[1], HEX) + ":" + String(address[2], HEX) + ":" + String(address[3], HEX) + ":" + String(address[4], HEX) + ":" + String(address[5], HEX));
+            return (millis() - ping_start);
+        }
+    }
+    DBG("No ESP-NOW ping returned within " + String(timeout) + "ms.");
+    return UINT32_MAX;
+}
+
 #endif // USE_ESPNOW

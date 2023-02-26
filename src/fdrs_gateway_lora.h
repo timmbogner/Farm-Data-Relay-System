@@ -84,6 +84,7 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
 #endif // CUSTOM_SPI
 
+bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
@@ -120,8 +121,8 @@ bool tx_time_set = false;
 #endif // USE_LORA
 
 // Function prototypes
-void transmitLoRa(uint16_t *, DataReading *, uint8_t);
-void transmitLoRa(uint16_t *, SystemPacket *, uint8_t);
+crcResult transmitLoRa(uint16_t *, DataReading *, uint8_t);
+crcResult transmitLoRa(uint16_t *, SystemPacket *, uint8_t);
 static uint16_t crc16_update(uint16_t, uint8_t);
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
@@ -167,8 +168,9 @@ void setFlag(void)
   operationDone = true;
 }
 
-void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
+crcResult transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
 {
+  crcResult crcReturned = CRC_NULL;
   uint16_t calcCRC = 0x0000;
 
   uint8_t pkt[6 + (len * sizeof(DataReading))];
@@ -201,9 +203,12 @@ void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
     while (true)
       ;
   }
+  return crcReturned;
 }
-void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
+
+crcResult transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
 {
+  crcResult crcReturned = CRC_NULL;
   uint16_t calcCRC = 0x0000;
 
   uint8_t pkt[6 + (len * sizeof(SystemPacket))];
@@ -234,6 +239,7 @@ void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
     while (true)
       ;
   }
+  return crcReturned;
 }
 #endif // USE_LORA
 
@@ -381,7 +387,7 @@ crcResult getLoRa()
           { // We have received a ping request or reply??
             if (receiveData[0].param == 1)
             { // This is a reply to our ping request
-              is_ping = true;
+              pingFlag = true;
               DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
             }
             else if (receiveData[0].param == 0)
@@ -410,7 +416,7 @@ crcResult getLoRa()
           { // We have received a ping request or reply??
             if (receiveData[0].param == 1)
             { // This is a reply to our ping request
-              is_ping = true;
+              pingFlag = true;
               DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
             }
             else if (receiveData[0].param == 0)
@@ -591,8 +597,9 @@ void asyncReleaseLoRaFirst()
   asyncReleaseLoRa(true);
 }
 
-void handleLoRa()
+crcResult handleLoRa()
 {
+  crcResult crcReturned = CRC_NULL;
   if (operationDone) // the interrupt was triggered
   {
     enableInterrupt = false;
@@ -618,7 +625,7 @@ void handleLoRa()
     }
     else // the previous operation was reception
     {
-      returnCRC = getLoRa();
+      crcReturned = getLoRa();
       if (!transmitFlag) // return to listen if no transmission was begun
       {
         radio.startReceive();
@@ -626,5 +633,6 @@ void handleLoRa()
       enableInterrupt = true;
     }
   }
+  return crcReturned;
 }
 #endif // USE_LORA

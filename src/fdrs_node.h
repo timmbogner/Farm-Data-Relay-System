@@ -46,6 +46,7 @@ uint8_t ln;
 bool newData;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 const uint16_t espnow_size = 250 / sizeof(DataReading);
+crcResult crcReturned = CRC_NULL;
 
 uint32_t gtwy_timeout = 0;
 uint8_t incMAC[6];
@@ -53,7 +54,6 @@ DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
 
 uint8_t data_count = 0;
-bool is_ping = false;
 
 uint32_t last_refresh;
 void (*callback_ptr)(DataReading);
@@ -173,6 +173,9 @@ void handleIncoming()
 
 bool sendFDRS()
 {
+  if(data_count == 0) {
+    return false;
+  }
   DBG("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *)&fdrsData, data_count * sizeof(DataReading));
@@ -193,12 +196,25 @@ bool sendFDRS()
   }
 #endif
 #ifdef USE_LORA
-  transmitLoRa(&gtwyAddress, fdrsData, data_count);
-  DBG(" LoRa sent.");
+  crcReturned = transmitLoRa(&gtwyAddress, fdrsData, data_count);
+  // DBG(" LoRa sent.");
+#ifdef LORA_ACK
+  if(crcReturned == CRC_OK) {
   data_count = 0;
-  returnCRC = CRC_NULL;
+    return true;
+  }
 #endif
+#ifndef LORA_ACK
+  if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
+    data_count = 0;
   return true;
+}
+#endif
+  else {
+    data_count = 0;
+    return false;
+  }
+#endif
 }
 
 void loadFDRS(float d, uint8_t t)
@@ -227,7 +243,6 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
 }
 void sleepFDRS(int sleep_time)
 {
-  DBG("Sleepytime!");
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
@@ -344,27 +359,14 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
   return true;
 }
 
-uint32_t pingFDRS(int timeout)
+uint32_t pingFDRS(uint32_t timeout)
 {
-  SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
 #ifdef USE_ESPNOW
-  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG(" ESP-NOW ping sent.");
-  uint32_t ping_start = millis();
-  is_ping = false;
-  while ((millis() - ping_start) <= timeout)
-  {
-    yield(); // do I need to yield or does it automatically?
-    if (is_ping)
-    {
-      DBG("Ping Returned:" + String(millis() - ping_start) + " from " + String(incMAC[5]));
-      return millis() - ping_start;
-    }
-  }
+  uint32_t pingResponseMs = pingFDRSEspNow(gatewayAddress, timeout);
+  return pingResponseMs;
 #endif
 #ifdef USE_LORA
-  // transmitLoRa(gtwyAddress, sys_packet, data_count); // TODO: Make this congruent to esp_now_send()
-  DBG(" LoRa ping not sent because it isn't implemented.");
+  uint32_t pingResponseMs = pingFDRSLoRa(&gtwyAddress, timeout);
+  return pingResponseMs;
 #endif
-  return 0;
 }
