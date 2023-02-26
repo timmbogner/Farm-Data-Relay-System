@@ -10,9 +10,11 @@
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
-bool pingFlag = false;
+
 
 #ifdef USE_ESPNOW
+bool pingFlag = false;
+
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
@@ -69,10 +71,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 // FDRS node pings gateway and listens for a defined amount of time for a reply
 // Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
 // Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
-uint32_t pingFDRSEspNow(uint16_t *address, uint32_t timeout) {
+uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
     SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
     
-    esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    esp_now_send(address, (uint8_t *)&sys_packet, sizeof(SystemPacket));
     DBG(" ESP-NOW ping sent.");
     uint32_t ping_start = millis();
     pingFlag = false;

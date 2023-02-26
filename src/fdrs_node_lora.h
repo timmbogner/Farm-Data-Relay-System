@@ -485,6 +485,7 @@ crcResult getLoRa()
 // Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
 uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
 {
+#ifdef USE_LORA
     SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
 
     transmitLoRa(address, &sys_packet, 1);
@@ -504,6 +505,7 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
     }
     DBG("No LoRa ping returned within " + String(timeout) + "ms.");
     return UINT32_MAX;
+#endif // USE_LORA
 }
 
 

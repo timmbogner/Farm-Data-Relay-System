@@ -51,6 +51,7 @@ uint8_t ln;
 bool newData;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 const uint16_t espnow_size = 250 / sizeof(DataReading);
+crcResult crcReturned = CRC_NULL;
 
 uint32_t gtwy_timeout = 0;
 uint8_t incMAC[6];
@@ -355,7 +356,7 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
   return true;
 }
 
-uint32_t pingFDRS(uint32 timeout)
+uint32_t pingFDRS(uint32_t timeout)
 {
 #ifdef USE_ESPNOW
   uint32_t pingResponseMs = pingFDRSEspNow(gatewayAddress, timeout);
