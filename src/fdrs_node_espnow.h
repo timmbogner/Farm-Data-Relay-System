@@ -83,7 +83,7 @@ uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
         yield(); // do I need to yield or does it automatically?
         if (pingFlag)
         {
-            DBG("Ping Returned:" + String(millis() - ping_start) + " from " + String(incMAC[5]));
+            DBG("ESP-NOW Ping Reply in " + String(millis() - ping_start) + "ms from " + String(address[0], HEX) + ":" + String(address[1], HEX) + ":" + String(address[2], HEX) + ":" + String(address[3], HEX) + ":" + String(address[4], HEX) + ":" + String(address[5], HEX));
             return (millis() - ping_start);
         }
     }
