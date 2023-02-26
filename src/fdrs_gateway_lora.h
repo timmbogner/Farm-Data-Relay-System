@@ -185,8 +185,9 @@ crcResult transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
     // printf("CRC: %02X : %d\n",calcCRC, i);
     calcCRC = crc16_update(calcCRC, pkt[i]);
   }
-  if(*destMac == 0xFFFF) {
-    calcCRC = crc16_update(calcCRC, 0xA1); 
+  if (*destMac == 0xFFFF)
+  {
+    calcCRC = crc16_update(calcCRC, 0xA1);
   }
   pkt[(len * sizeof(DataReading) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(DataReading) + 5)] = (calcCRC & 0x00FF);
@@ -615,7 +616,7 @@ crcResult handleLoRa()
       {
         if (tx_time_set)
         {
-          DBG("ToA: " + String(millis() - tx_start_time));
+          DBG("LoRa airtime: " + String(millis() - tx_start_time) + "ms");
           tx_time_set = false;
         }
         radio.startReceive(); // return to listen mode
