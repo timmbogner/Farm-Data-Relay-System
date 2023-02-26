@@ -169,6 +169,9 @@ void handleIncoming()
 
 bool sendFDRS()
 {
+  if(data_count == 0) {
+    return false;
+  }
   DBG("Sending FDRS Packet!");
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *)&fdrsData, data_count * sizeof(DataReading));
@@ -189,11 +192,25 @@ bool sendFDRS()
   }
 #endif
 #ifdef USE_LORA
-  transmitLoRa(&gtwyAddress, fdrsData, data_count);
+  crcReturned = transmitLoRa(&gtwyAddress, fdrsData, data_count);
+  // DBG(" LoRa sent.");
+#ifdef LORA_ACK
+  if(crcReturned == CRC_OK) {
   data_count = 0;
-  returnCRC = CRC_NULL;
+    return true;
+  }
 #endif
+#ifndef LORA_ACK
+  if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
+    data_count = 0;
   return true;
+}
+#endif
+  else {
+    data_count = 0;
+    return false;
+  }
+#endif
 }
 
 void loadFDRS(float d, uint8_t t)
