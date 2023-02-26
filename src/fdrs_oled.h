@@ -7,10 +7,11 @@ SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL); // ADDRESS, SDA, SCL
 
 void draw_OLED_header()
 {
+    #ifdef FDRS_GATEWAY
     display.setFont(ArialMT_Plain_10);
     display.clear();
     display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.drawString(0, 0, String(UNIT_MAC, HEX));
+    display.drawString(0, 0, "MAC: " + String(UNIT_MAC, HEX));
     display.setTextAlignment(TEXT_ALIGN_CENTER);
     display.drawString(63, 0, OLED_HEADER);
     display.setTextAlignment(TEXT_ALIGN_RIGHT);
@@ -18,7 +19,22 @@ void draw_OLED_header()
     display.display();
     display.setTextAlignment(TEXT_ALIGN_LEFT);
     display.setFont(ArialMT_Plain_10);
+    #endif
+    #ifdef FDRS_NODE
+    display.setFont(ArialMT_Plain_10);
+    display.clear();
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.drawString(0, 0, "ID: " + String(READING_ID));
+    display.setTextAlignment(TEXT_ALIGN_CENTER);
+    display.drawString(63, 0, OLED_HEADER);
+    display.setTextAlignment(TEXT_ALIGN_RIGHT);
+    display.drawString(127, 0, "GW: " + String(GTWY_MAC, HEX));
+    display.display();
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.setFont(ArialMT_Plain_10);
+    #endif
 }
+
 void debug_OLED(String debug_text)
 {
     draw_OLED_header();

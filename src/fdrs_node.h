@@ -6,6 +6,7 @@
 //
 #include <fdrs_datatypes.h>
 #include <fdrs_globals.h>
+#define FDRS_NODE
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
@@ -35,12 +36,6 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   return crc;
 }
 
-#ifdef FDRS_DEBUG
-#define DBG(a) (Serial.println(a))
-#else
-#define DBG(a)
-#endif
-
 #ifdef DEBUG_CONFIG
 // #include "fdrs_checkConfig.h"
 #endif
@@ -64,8 +59,11 @@ uint32_t last_refresh;
 void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
-#include <fdrs_node_espnow.h>
-#include <fdrs_node_lora.h>
+
+#include "fdrs_oled.h"
+#include "fdrs_debug.h"
+#include "fdrs_node_espnow.h"
+#include "fdrs_node_lora.h"
 
 void beginFDRS()
 {
@@ -74,6 +72,11 @@ void beginFDRS()
   // // find out the reset reason
   // esp_reset_reason_t resetReason;
   // resetReason = esp_reset_reason();
+#endif
+#ifdef USE_OLED
+  init_oled();
+  DBG("Display initialized!");
+  DBG("Hello, World!");
 #endif
   DBG("FDRS User Node initializing...");
   DBG(" Reading ID " + String(READING_ID));

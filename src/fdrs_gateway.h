@@ -3,10 +3,10 @@
 //  GATEWAY Main Functions
 //  Developed by Timm Bogner (timmbogner@gmail.com)
 
-#ifndef __FDRS_FUNCTIONS_H__
-#define __FDRS_FUNCTIONS_H__
 #include "fdrs_datatypes.h"
 #include "fdrs_globals.h"
+#define FDRS_GATEWAY
+
 #ifndef ESPNOWG_ACT
 #define ESPNOWG_ACT
 #endif
@@ -46,8 +46,8 @@ bool is_ping = false;
 DataReading fdrsData[256]; // buffer for loadFDRS()
 uint8_t data_count = 0;
 
-#include "fdrs_gateway_oled.h"
-#include "fdrs_gateway_debug.h"
+#include "fdrs_oled.h"
+#include "fdrs_debug.h"
 #include "fdrs_gateway_espnow.h"
 #include "fdrs_gateway_lora.h"
 #include "fdrs_gateway_wifi.h"
@@ -193,4 +193,4 @@ void loopFDRS()
     newData = event_clear;
   }
 }
-#endif //__FDRS_FUNCTIONS_H__
+
