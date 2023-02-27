@@ -12,7 +12,7 @@
 
 // Interfaces
 //#define USE_ESPNOW  
-//#define USE_LORA
+#define USE_LORA
 #define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
 //#define USE_ETHERNET
 

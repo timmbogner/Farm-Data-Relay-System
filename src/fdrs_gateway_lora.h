@@ -95,6 +95,7 @@ uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 byt
 uint16_t loraBroadcast = 0xFFFF;
 unsigned long receivedLoRaMsg = 0; // Number of total LoRa packets destined for us and of valid size
 unsigned long ackOkLoRaMsg = 0;    // Number of total LoRa packets with valid CRC
+extern time_t now;
 
 typedef struct DataBuffer
 {
@@ -166,6 +167,18 @@ void setFlag(void)
   }
   // we sent or received  packet, set the flag
   operationDone = true;
+}
+
+void printLoraPacket(uint8_t *p, int size)
+{
+  printf("Printing packet of size %d.", size);
+  for (int i = 0; i < size; i++)
+  {
+    if (i % 2 == 0)
+      printf("\n%02d: ", i);
+    printf("%02X ", p[i]);
+  }
+  printf("\n");
 }
 
 crcResult transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
@@ -244,16 +257,16 @@ crcResult transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
 }
 #endif // USE_LORA
 
-void printLoraPacket(uint8_t *p, int size)
-{
-  printf("Printing packet of size %d.", size);
-  for (int i = 0; i < size; i++)
-  {
-    if (i % 2 == 0)
-      printf("\n%02d: ", i);
-    printf("%02X ", p[i]);
-  }
-  printf("\n");
+void timeFDRSLoRa(uint8_t *address) {
+  SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
+  uint16_t LoRaAddress;
+
+  // DBG("Sending time " + String(now) + " to LoRa address 0x" + String(*address, HEX) + String(*(address + 1), HEX));
+  LoRaAddress = ((int16_t) *address << 8) + *(address + 1);
+  DBG("Sending time " + String(now) + " to LoRa address 0x" + String(LoRaAddress, HEX));
+
+  transmitLoRa(&LoRaAddress, &spTimeLoRa, 1);
+
 }
 
 #ifdef USE_LORA

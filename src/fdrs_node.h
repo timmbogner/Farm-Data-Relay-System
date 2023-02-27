@@ -63,6 +63,7 @@ bool active_subs[256] = {};
 #include "fdrs_oled.h"
 #include "fdrs_debug.h"
 #include "fdrs_node_espnow.h"
+#include "fdrs_node_time.h"
 #include "fdrs_node_lora.h"
 
 void beginFDRS()
@@ -259,6 +260,7 @@ void sleepFDRS(int sleep_time)
 
 void loopFDRS()
 {
+  updateTime();
   handleLoRa();
   handleIncoming();
   // // TO-DO:

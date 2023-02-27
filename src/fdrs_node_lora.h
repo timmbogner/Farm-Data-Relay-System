@@ -96,6 +96,10 @@ unsigned long msgOkLoRa = 0;           // Number of total LoRa packets with vali
 void printLoraPacket(uint8_t *p, int size);
 
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
+extern time_t now;
+extern struct tm timeinfo;                   // Structure containing time elements
+extern struct timeval tv;
+
 
 // Function prototypes
 crcResult getLoRa();
@@ -418,6 +422,14 @@ crcResult getLoRa()
                             transmitLoRa(&sourceMAC, &pingReply, 1);
                         }
                     }
+                    else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+                        now = receiveData[0].param;
+                        tv.tv_sec = now;
+                        settimeofday(&tv,NULL);
+                        localtime_r(&now, &timeinfo);
+                        DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
+                        printTime();
+                    }
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.
                         DBG("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
@@ -446,6 +458,14 @@ crcResult getLoRa()
                             SystemPacket pingReply = {.cmd = cmd_ping, .param = 1};
                             transmitLoRa(&sourceMAC, &pingReply, 1);
                         }
+                    }
+                    else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+                        now = receiveData[0].param;
+                        tv.tv_sec = now;
+                        settimeofday(&tv,NULL);
+                        localtime_r(&now, &timeinfo);
+                        DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
+                        printTime();
                     }
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.
