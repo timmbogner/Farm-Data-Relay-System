@@ -33,6 +33,16 @@
 #else
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // WIFI_PASS
+
+// select DNS IP Address configuration
+#if defined(DNS_IPADDRESS)
+#define FDRS_DNS_IPADDRESS DNS_IPADDRESS
+#elif defined(GLOBAL_DNS_IPADDRESS)
+#define FDRS_DNS_IPADDRESS GLOBAL_DNS_IPADDRESS
+#else
+// ASSERT("NO DNS IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
+#endif // DNS_IPADDRESS
+
 #ifdef USE_ETHERNET
 static bool eth_connected = false;
 void WiFiEvent(WiFiEvent_t event)
@@ -88,6 +98,7 @@ void begin_wifi()
     delay(500);
   }
 #else
+  WiFi.dnsIP(IPAddress(FDRS_DNS_IPADDRESS));
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {

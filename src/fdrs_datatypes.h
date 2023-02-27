@@ -31,6 +31,7 @@ enum {
   cmd_ping,
   cmd_add,
   cmd_ack,
+  cmd_time,
 };
 
 enum

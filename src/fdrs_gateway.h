@@ -54,9 +54,13 @@ uint8_t data_count = 0;
 #include "fdrs_gateway_mqtt.h"
 #include "fdrs_gateway_serial.h"
 #include "fdrs_gateway_scheduler.h"
+#ifdef USE_WIFI
+  #include "fdrs_gateway_time.h"
+#endif
 #ifdef DEBUG_CONFIG
 #include "fdrs_checkConfig.h"
 #endif
+
 
 void sendFDRS()
 {
@@ -105,6 +109,7 @@ void beginFDRS()
   begin_wifi();
   DBG("Connected.");
   begin_mqtt();
+  begin_ntp();
 #endif
 #ifdef USE_ESPNOW
   begin_espnow();
@@ -118,6 +123,8 @@ void beginFDRS()
 
 #ifdef USE_WIFI
   client.publish(TOPIC_STATUS, "FDRS initialized");
+  scheduleFDRS(fetchNtpTime,1000*60*FDRS_TIME_FETCHNTP);
+  scheduleFDRS(printTime,1000*60*FDRS_TIME_PRINTTIME);
 #endif
 }
 
@@ -155,6 +162,7 @@ void loopFDRS()
   handleLoRa();
 #endif
 #ifdef USE_WIFI
+  updateTime();
   handleMQTT();
 #endif
   if (newData != event_clear)

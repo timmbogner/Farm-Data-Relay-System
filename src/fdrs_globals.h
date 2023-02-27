@@ -5,8 +5,9 @@
 // Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 
 
-#define GLOBAL_WIFI_SSID "Your SSID"
-#define GLOBAL_WIFI_PASS "Password"
+#define GLOBAL_WIFI_SSID        "Your SSID"
+#define GLOBAL_WIFI_PASS        "Password"
+#define GLOBAL_DNS_IPADDRESS    192,168,0,1
 
 #define GLOBAL_MQTT_ADDR "192.168.0.8"
 #define GLOBAL_MQTT_PORT 1883
@@ -14,6 +15,13 @@
 //#define GLOBAL_MQTT_AUTH   //uncomment to enable MQTT authentication  
 #define GLOBAL_MQTT_USER   "Your MQTT Username"
 #define GLOBAL_MQTT_PASS   "Your MQTT Password"
+
+// NTP Time Server
+#define GLOBAL_TIME_SERVER      "0.us.pool.ntp.org"
+#define GLOBAL_LOCAL_OFFSET     (-5)    // Time in hours between local time and UTC
+#define GLOBAL_TIME_FETCHNTP    15      // Time in minutes between fetching time from NTP server
+#define GLOBAL_TIME_PRINTTIME   10      // Time in minutes between printing local time
+
 // MQTT Topics
 #define TOPIC_DATA    "fdrs/data"
 #define TOPIC_STATUS  "fdrs/status"

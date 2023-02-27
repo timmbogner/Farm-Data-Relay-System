@@ -155,6 +155,15 @@ void printWifiDetails() {
 	//exit(0);
 #endif //WIFI_PASS
 
+#if defined(DNS_IPADDRESS)
+	DBG("DNS IP Address used from DNS_IPADDRESS            : " + String(IPAddress(FDRS_DNS_IPADDRESS)));
+#elif defined (GLOBAL_DNS_IPADDRESS)
+	DBG("DNS IP Address used from GLOBAL_DNS_IPADDRESS     : " + String(IPAddress(FDRS_DNS_IPADDRESS)));
+#else 
+	DBG("NO DNS IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //DNS_IPADDRESS
+
 	printSmallSectionHeader("MQTT BROKER CONFIG:");
 
 #if defined(MQTT_ADDR)
@@ -217,6 +226,27 @@ void printWifiDetails() {
 	DBG("NO MQTT topic defined! Please define TOPIC_COMMAND in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //TOPIC_COMMAND
+
+	printSmallSectionHeader("NTP TIME CONFIG:");
+
+#if defined(TIME_SERVER)
+	DBG("NTP Time Server address used from TIME_SERVER        		: " + String(FDRS_TIME_SERVER));
+#elif defined (GLOBAL_TIME_SERVER)
+	DBG("NTP Time Server used from GLOBAL_TIME_SERVER  				: " + String(FDRS_TIME_SERVER));
+#else 
+	DBG("NO NTP Time Server address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //TIME_SERVER
+
+#if defined(LOCAL_OFFSET)
+	DBG("Local time offset from UTC used from LOCAL_OFFSET         	: " + String(FDRS_LOCAL_OFFSET));
+#elif defined (GLOBAL_LOCAL_OFFSET)
+	DBG("Local time offset from UTC used from GLOBAL_LOCAL_OFFSET  	: " + String(FDRS_LOCAL_OFFSET));
+#else 
+	DBG("NO Local time offset from UTC defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //LOCAL_OFFSET
+
 
 	DBG(separatorLine);
 	DBG(separatorLine);

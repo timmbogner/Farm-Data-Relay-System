@@ -59,12 +59,19 @@
 // WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID   "Your SSID"  
 //#define WIFI_PASS   "Your Password"
+//#define DNS_IPADDRESS 192,168,0,1     // Valid DNS IP address in xxx,xxx,xxx,xxx format.  If not known, try 8,8,8,8
 
 //#define MQTT_ADDR   "192.168.0.8"
 //#define MQTT_PORT   1883 // Default MQTT port is 1883
 //#define MQTT_AUTH   //Enable MQTT authentication 
 //#define MQTT_USER   "Your MQTT Username"
 //#define MQTT_PASS   "Your MQTT Password"
+
+// NTP Time settings
+//#define TIME_SERVER       "0.us.pool.ntp.org"       // NTP time server to use. If FQDN at least one DNS server is required to resolve name
+//#define LOCAL_OFFSET      (-6)                     // Local time offset in hours from UTC - if unsure, check https://time.is
+//#define TIME_FETCHNTP     15      // Time in minutes between fetching time from NTP server
+//#define TIME_PRINTTIME    10      // Time in minutes between printing local time
 
 // Logging settings  --  Logging will occur when MQTT is disconnected
 //#define USE_SD_LOG        //Enable SD-card logging

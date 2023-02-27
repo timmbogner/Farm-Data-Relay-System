@@ -3,30 +3,30 @@
 //  GATEWAY CONFIGURATION
 
 //Addresses
-#define UNIT_MAC           0x02  // The address of this gateway
+#define UNIT_MAC           0x03  // The address of this gateway
 
-#define ESPNOW_NEIGHBOR_1  0x01  // Address of ESP-NOW neighbor #1
-#define ESPNOW_NEIGHBOR_2  0x04  // Address of ESP-NOW neighbor #2
-#define LORA_NEIGHBOR_1    0x00  // Address of LoRa neighbor #1
-#define LORA_NEIGHBOR_2    0x00  // Address of LoRa neighbor #2
+#define ESPNOW_NEIGHBOR_1  0x00  // Address of ESP-NOW neighbor #1
+#define ESPNOW_NEIGHBOR_2  0x00  // Address of ESP-NOW neighbor #2
+#define LORA_NEIGHBOR_1    0x01  // Address of LoRa neighbor #1
+#define LORA_NEIGHBOR_2    0x05  // Address of LoRa neighbor #2
 
 // Interfaces
-#define USE_ESPNOW  
+//#define USE_ESPNOW  
 //#define USE_LORA
-//#define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
+#define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
 //#define USE_ETHERNET
 
 // Actions
 // Options: sendESPNowNbr(1 or 2); sendESPNowPeers(); sendLoRaNbr(1 or 2); broadcastLoRa(); sendSerial(); sendMQTT();
-#define ESPNOWG_ACT    sendESPNowNbr(1);
-#define LORAG_ACT      
+#define ESPNOWG_ACT    
+#define LORAG_ACT      sendLoRaNbr(1);
 #define SERIAL_ACT     
 #define MQTT_ACT          
-#define INTERNAL_ACT   sendESPNowNbr(1);
-#define ESPNOW1_ACT    sendESPNowNbr(2); sendESPNowPeers();
-#define ESPNOW2_ACT    sendESPNowNbr(1);                
-#define LORA1_ACT      
-#define LORA2_ACT 
+#define INTERNAL_ACT   sendLoRaNbr(1);
+#define ESPNOW1_ACT    
+#define ESPNOW2_ACT                    
+#define LORA1_ACT      sendLoRaNbr(2); broadcastLoRa(); 
+#define LORA2_ACT      sendLoRaNbr(1);
 
 // LoRa Configuration
 #define RADIOLIB_MODULE SX1276
@@ -70,8 +70,8 @@
 // NTP Time settings
 //#define TIME_SERVER       "0.us.pool.ntp.org"       // NTP time server to use. If FQDN at least one DNS server is required to resolve name
 //#define LOCAL_OFFSET      (-6)                     // Local time offset in hours from UTC - if unsure, check https://time.is
-//#define TIME_FETCHNTP     15      // Time in minutes between fetching time from NTP server
-//#define TIME_PRINTTIME    10      // Time in minutes between printing local time
+#define TIME_FETCHNTP     5      // Time in minutes between fetching time from NTP server
+#define TIME_PRINTTIME    1      // Time in minutes between printing local time
 
 // Logging settings  --  Logging will occur when MQTT is disconnected
 //#define USE_SD_LOG        //Enable SD-card logging
