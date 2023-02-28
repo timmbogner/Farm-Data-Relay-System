@@ -4,7 +4,6 @@
 #endif
 #endif // USE_ETHERNET
 
-#ifdef USE_WIFI
 #include <WiFiUdp.h>
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -97,4 +96,3 @@ void begin_wifi()
   }
 #endif // USE_ETHERNET
 }
-#endif // USE_WIFI

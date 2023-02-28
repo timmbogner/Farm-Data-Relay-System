@@ -1,5 +1,4 @@
 
-
 #ifdef USE_SD_LOG
 #include <SPI.h>
 #include <SD.h>
@@ -7,28 +6,18 @@
 #ifdef USE_FS_LOG
 #include <LittleFS.h>
 #endif
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
 #include <time.h>
-#endif
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
+
+#define SD_MAX_FILESIZE 1024
+#define FS_MAX_FILESIZE 1024
+
+
 char logBuffer[512];
 uint16_t logBufferPos = 0; // datatype depends on size of sdBuffer
 uint32_t timeLOGBUF = 0;
 time_t last_mqtt_success = 0;
 time_t last_log_write = 0;
-void handleLogger()
-{
-  if ((millis() - timeLOGBUF) >= LOGBUF_DELAY)
-  {
-    timeLOGBUF = millis();
-    if (logBufferPos > 0)
-      releaseLogBuffer();
-  }
-}
 
-#endif
-
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
 void releaseLogBuffer()
 {
 #ifdef USE_SD_LOG
@@ -42,7 +31,7 @@ void releaseLogBuffer()
 #endif
 #ifdef USE_FS_LOG
   DBG("Releasing Log buffer to internal flash.");
-  File logfile = LittleFS.open(FS_FILENAME, "a");
+  File logfile = LittleFS.open(LOG_FILENAME, "a");
   if ((logfile.size() / 1024.0) < FS_MAX_FILESIZE)
   {
     logfile.print(logBuffer);
@@ -52,7 +41,48 @@ void releaseLogBuffer()
   memset(&(logBuffer[0]), 0, sizeof(logBuffer) / sizeof(char));
   logBufferPos = 0;
 }
-#endif // USE_XX_LOG
+
+void handleLogger()
+{
+  if ((millis() - timeLOGBUF) >= LOGBUF_DELAY)
+  {
+    timeLOGBUF = millis();
+    if (logBufferPos > 0)
+      releaseLogBuffer();
+  }
+}
+
+#ifndef USE_LORA
+// crc16_update used by both LoRa and filesystem
+
+// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
+
+/** @ingroup util_crc16
+    Processor-independent CRC-16 calculation.
+    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
+    Initial value: 0xFFFF
+    This CRC is normally used in disk-drive controllers.
+    @param uint16_t crc (0x0000..0xFFFF)
+    @param uint8_t a (0x00..0xFF)
+    @return calculated CRC (0x0000..0xFFFF)
+*/
+
+static uint16_t crc16_update(uint16_t crc, uint8_t a)
+{
+  int i;
+
+  crc ^= a;
+  for (i = 0; i < 8; ++i)
+  {
+    if (crc & 1)
+      crc = (crc >> 1) ^ 0xA001;
+    else
+      crc = (crc >> 1);
+  }
+
+  return crc;
+}
+#endif
 
 uint16_t stringCrc(const char input[])
 {
@@ -67,7 +97,6 @@ uint16_t stringCrc(const char input[])
 
 void sendLog()
 {
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
   DBG("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
@@ -88,12 +117,12 @@ void sendLog()
     logBufferPos += outgoingString.length();
   }
   time(&last_log_write);
-#endif // USE_xx_LOG
 }
 
+// Send loged values to MQTT so we depend upon network and MQTT
 void resendLog()
 {
-#ifdef USE_SD_LOG
+#if defined(USE_SD_LOG) && defined(USE_WIFI)
   DBG("Resending logged values from SD card.");
   File logfile = SD.open(LOG_FILENAME, FILE_READ);
   while (1)
@@ -119,9 +148,9 @@ void resendLog()
   }
   DBG(" Done");
 #endif
-#ifdef USE_FS_LOG
+#if defined(USE_FS_LOG) && defined(USE_WIFI)
   DBG("Resending logged values from internal flash.");
-  File logfile = LittleFS.open(FS_FILENAME, "r");
+  File logfile = LittleFS.open(LOG_FILENAME, "r");
   while (1)
   {
     String line = logfile.readStringUntil('\n');
@@ -146,7 +175,7 @@ void resendLog()
     else
     {
       logfile.close();
-      LittleFS.remove(FS_FILENAME); // if all values are sent
+      LittleFS.remove(LOG_FILENAME); // if all values are sent
       break;
     }
   }

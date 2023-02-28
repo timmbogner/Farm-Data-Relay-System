@@ -1,4 +1,3 @@
-#ifdef USE_LORA
 #include <RadioLib.h>
 
 #define GLOBAL_ACK_TIMEOUT 400 // LoRa ACK timeout in ms. (Minimum = 200)
@@ -84,6 +83,11 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
 #endif // CUSTOM_SPI
 
+#ifndef USE_ESPNOW   // mac_prefix used for both ESP-NOW and LoRa - avoid redefinition warnings
+  const uint8_t mac_prefix[] = {MAC_PREFIX};
+  const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
+#endif
+
 bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
@@ -118,12 +122,26 @@ uint8_t tx_buffer_position = 0;
 uint32_t tx_start_time;
 bool tx_time_set = false;
 
-#endif // USE_LORA
-
 // Function prototypes
 crcResult transmitLoRa(uint16_t *, DataReading *, uint8_t);
 crcResult transmitLoRa(uint16_t *, SystemPacket *, uint8_t);
 static uint16_t crc16_update(uint16_t, uint8_t);
+
+#if defined(ESP8266) || defined(ESP32)
+ICACHE_RAM_ATTR
+#endif
+void setFlag(void)
+{
+  // check if the interrupt is enabled
+  if (!enableInterrupt)
+  {
+    return;
+  }
+  // we sent or received  packet, set the flag
+  operationDone = true;
+}
+
+// crc16_update used by both LoRa and filesystem
 
 // CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
 
@@ -151,21 +169,6 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   }
 
   return crc;
-}
-#ifdef USE_LORA
-
-#if defined(ESP8266) || defined(ESP32)
-ICACHE_RAM_ATTR
-#endif
-void setFlag(void)
-{
-  // check if the interrupt is enabled
-  if (!enableInterrupt)
-  {
-    return;
-  }
-  // we sent or received  packet, set the flag
-  operationDone = true;
 }
 
 crcResult transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
@@ -242,7 +245,6 @@ crcResult transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
   }
   return crcReturned;
 }
-#endif // USE_LORA
 
 void printLoraPacket(uint8_t *p, int size)
 {
@@ -256,7 +258,6 @@ void printLoraPacket(uint8_t *p, int size)
   printf("\n");
 }
 
-#ifdef USE_LORA
 void begin_lora()
 {
 #ifdef CUSTOM_SPI
@@ -296,11 +297,9 @@ void begin_lora()
       ;
   }
 }
-#endif // USE_LORA
 
 crcResult getLoRa()
 {
-#ifdef USE_LORA
 
   int packetSize = radio.getPacketLength();
   if ((((packetSize - 6) % sizeof(DataReading) == 0) || ((packetSize - 6) % sizeof(SystemPacket) == 0)) && packetSize > 0)
@@ -460,14 +459,12 @@ crcResult getLoRa()
       return CRC_NULL;
     }
   }
-#endif // USE_LORA
   return CRC_NULL;
 }
 
 // Sends packet to any node that is paired to this gateway
 void broadcastLoRa()
 {
-#ifdef USE_LORA
   DBG("Sending to LoRa broadcast buffer");
 
   for (int i = 0; i < ln; i++)
@@ -475,14 +472,11 @@ void broadcastLoRa()
     LORABBuffer.buffer[LORABBuffer.len + i] = theData[i];
   }
   LORABBuffer.len += ln;
-
-#endif // USE_LORA
 }
 
 // Sends packet to neighbor gateways
 void sendLoRaNbr(uint8_t interface)
 {
-#ifdef USE_LORA
   DBG("Sending to LoRa neighbor buffer");
   switch (interface)
   {
@@ -505,9 +499,7 @@ void sendLoRaNbr(uint8_t interface)
     break;
   }
   }
-#endif // USE_LORA
 }
-#ifdef USE_LORA
 
 void asyncReleaseLoRa(bool first_run)
 {
@@ -593,6 +585,7 @@ void asyncReleaseLoRa(bool first_run)
     }
   }
 }
+
 void asyncReleaseLoRaFirst()
 {
   asyncReleaseLoRa(true);
@@ -636,4 +629,3 @@ crcResult handleLoRa()
   }
   return crcReturned;
 }
-#endif // USE_LORA

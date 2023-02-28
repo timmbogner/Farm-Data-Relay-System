@@ -36,10 +36,6 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   return crc;
 }
 
-#ifdef DEBUG_CONFIG
-// #include "fdrs_checkConfig.h"
-#endif
-
 SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
@@ -60,10 +56,19 @@ void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
 
-#include "fdrs_oled.h"
 #include "fdrs_debug.h"
-#include "fdrs_node_espnow.h"
-#include "fdrs_node_lora.h"
+#ifdef DEBUG_CONFIG
+// #include "fdrs_checkConfig.h"
+#endif
+#ifdef USE_OLED
+  #include "fdrs_oled.h"
+#endif
+#ifdef USE_ESPNOW
+  #include "fdrs_node_espnow.h"
+#endif
+#ifdef USE_LORA
+  #include "fdrs_node_lora.h"
+#endif
 
 void beginFDRS()
 {
@@ -139,7 +144,9 @@ void beginFDRS()
 #endif
   DBG(" ESP-NOW Initialized.");
 #endif // USE_ESPNOW
+#ifdef USE_LORA
   begin_lora();
+#endif
 #ifdef DEBUG_CONFIG
   // if (resetReason != ESP_RST_DEEPSLEEP) {
   // checkConfig();
@@ -259,7 +266,9 @@ void sleepFDRS(int sleep_time)
 
 void loopFDRS()
 {
+#ifdef USE_LORA
   handleLoRa();
+#endif
   handleIncoming();
   // // TO-DO:
   // if (is_added)
