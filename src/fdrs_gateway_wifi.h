@@ -85,6 +85,7 @@ void WiFiEvent(WiFiEvent_t event)
 #endif // USE_ETHERNET
 const char *ssid = FDRS_WIFI_SSID;
 const char *password = FDRS_WIFI_PASS;
+IPAddress dnsAddress;
 
 void begin_wifi()
 {
@@ -98,7 +99,7 @@ void begin_wifi()
     delay(500);
   }
 #else
-  WiFi.dnsIP(IPAddress(FDRS_DNS_IPADDRESS));
+  WiFi.dnsIP(dnsAddress.fromString(FDRS_DNS_IPADDRESS));
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {

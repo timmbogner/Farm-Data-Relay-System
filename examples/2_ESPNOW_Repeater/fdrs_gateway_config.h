@@ -59,7 +59,7 @@
 // WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID     "Your SSID"  
 //#define WIFI_PASS     "Your Password"
-//#define DNS_IPADDRESS 192,168,0,1     // Valid DNS IP address in xxx,xxx,xxx,xxx format.  If not known, try 8,8,8,8
+//#define DNS_IPADDRESS "192.168.0.1"     // Valid DNS IP address.  If not known, try "8.8.8.8"
 
 //#define MQTT_ADDR   "192.168.0.8"
 //#define MQTT_PORT   1883 // Default MQTT port is 1883
