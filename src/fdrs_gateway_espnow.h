@@ -18,11 +18,11 @@ esp_now_peer_info_t peerInfo;
 const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 const uint8_t mac_prefix[] = {MAC_PREFIX};
-const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
+uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
 
-const uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
-const uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
+uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
+uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
