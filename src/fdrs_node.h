@@ -182,6 +182,7 @@ bool sendFDRS()
   esp_now_ack_flag = CRC_NULL;
   while (esp_now_ack_flag == CRC_NULL)
   {
+    yield();
     delay(0);
   }
   if (esp_now_ack_flag == CRC_OK)
