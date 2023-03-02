@@ -99,6 +99,8 @@ uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 extern time_t now;
 extern struct tm timeinfo;                   // Structure containing time elements
 extern struct timeval tv;
+extern time_t netTimeOffset;          // One direction of LoRa Ping time in units of seconds (1/2 full ping time)
+extern time_t lastTimeSetEvent;
 
 
 // Function prototypes
@@ -428,6 +430,8 @@ crcResult getLoRa()
                         settimeofday(&tv,NULL);
                         localtime_r(&now, &timeinfo);
                         DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
+                        adjTimeforNetDelay(netTimeOffset);
+                        lastTimeSetEvent = millis();
                         printTime();
                     }
                     else
@@ -465,6 +469,8 @@ crcResult getLoRa()
                         settimeofday(&tv,NULL);
                         localtime_r(&now, &timeinfo);
                         DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
+                        adjTimeforNetDelay(netTimeOffset);
+                        lastTimeSetEvent = millis();
                         printTime();
                     }
                     else
@@ -521,7 +527,7 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
         handleLoRa();
         yield(); // do I need to yield or does it automatically?
         if (pingFlag)
-        {
+        {   
             DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
             pingFlag = false;
             return (millis() - ping_start);

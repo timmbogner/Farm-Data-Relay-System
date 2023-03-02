@@ -42,7 +42,7 @@ char strftime_buf[64];
 time_t localOffset = (FDRS_LOCAL_OFFSET * 60 * 60);  // UTC -> Local time in Seconds in Standard Time
 bool validTimeFlag = false;           // Indicate whether we have reliable time 
 uint NTPFetchFail = 0;                // consecutive NTP fetch failures
-time_t lastUpdate = 0;                // keep track of update time loop refresh
+time_t lastNTPFetchSuccess = 0;      // Last time that a successful NTP fetch was made
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(const char * address) {
@@ -67,24 +67,38 @@ void sendNTPpacket(const char * address) {
   FDRSNtp.endPacket();
 }
 
+bool validTime() {
+  if(now < 1677000000 || (millis() - lastNTPFetchSuccess > (24*60*60*1000))) {
+    if(validTimeFlag) {
+      DBG("Time no longer reliable.");
+      validTimeFlag = false;
+    }
+    return false;
+  }
+  else {
+    if(!validTimeFlag) {
+      validTimeFlag = true;
+    }
+    return true;
+  }
+}
+
 void updateTime() {
+  static time_t lastUpdate = 0;
   if(millis() - lastUpdate > 500) {
       time(&now);
       localtime_r(&now, &timeinfo);
       tv.tv_sec = now;
       tv.tv_usec = 0;
+      validTime();
       lastUpdate = millis();
-    }
+  }
 }
 
 void printTime() {
-  if(now < 1677000000) {
-    //DBG("Error in NTP Response.");
-    validTimeFlag = false;
-    DBG("Time no longer reliable.");
+  if(!validTime()) {
     return;
   }
-  validTimeFlag = true;
 
   // UTC Time
   // now -= localOffset;
@@ -142,6 +156,9 @@ void fetchNtpTime() {
       tv.tv_sec = now;
       settimeofday(&tv,NULL);
       localtime_r(&now, &timeinfo);
+      if(validTime()) {
+        lastNTPFetchSuccess = millis();
+      }
     }
     else {
       NTPFetchFail++;

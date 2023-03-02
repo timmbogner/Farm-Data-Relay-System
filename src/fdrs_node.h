@@ -59,6 +59,7 @@ uint32_t last_refresh;
 void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
+time_t netTimeOffset=UINT32_MAX;          // Offset network time by the 1/2 the amount of time a ping takes, if value not set then use max value
 
 #include "fdrs_oled.h"
 #include "fdrs_debug.h"
@@ -363,12 +364,16 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
 
 uint32_t pingFDRS(uint32_t timeout)
 {
+  uint32_t pingResponseMs = UINT32_MAX;
 #ifdef USE_ESPNOW
-  uint32_t pingResponseMs = pingFDRSEspNow(gatewayAddress, timeout);
-  return pingResponseMs;
+  pingResponseMs = pingFDRSEspNow(gatewayAddress, timeout);
 #endif
 #ifdef USE_LORA
-  uint32_t pingResponseMs = pingFDRSLoRa(&gtwyAddress, timeout);
-  return pingResponseMs;
+  pingResponseMs = pingFDRSLoRa(&gtwyAddress, timeout);
 #endif
+  if(pingResponseMs != UINT32_MAX) {
+    netTimeOffset = (pingResponseMs/2)/1000;
+    adjTimeforNetDelay(netTimeOffset);
+  }
+return pingResponseMs;
 }
