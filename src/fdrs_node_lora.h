@@ -144,8 +144,8 @@ crcResult handleLoRa()
             enableInterrupt = true;
         }
     }
-    return crcReturned;
 #endif // USE_LORA
+    return crcReturned;
 }
 
 void begin_lora()
@@ -282,8 +282,8 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
     }
     transmitLoRaMsgwAck++;
 #endif // LORA_ACK
-    return crcReturned;
 #endif // USE_LORA
+    return crcReturned;
 }
 
 // For now SystemPackets will not use ACK but will calculate CRC
@@ -327,8 +327,8 @@ crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
         while (true)
             ;
     }
-    return crcReturned;
 #endif // USE_LORA
+    return crcReturned;
 }
 
 // ****DO NOT CALL getLoRa() directly! *****   Call handleLoRa() instead!
@@ -506,8 +506,8 @@ crcResult getLoRa()
             return CRC_NULL;
         }
     }
-    return CRC_NULL;
 #endif // USE_LORA
+    return CRC_NULL;
 }
 
 // FDRS Sensor pings gateway and listens for a defined amount of time for a reply
@@ -534,8 +534,8 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
         }
     }
     DBG("No LoRa ping returned within " + String(timeout) + "ms.");
-    return UINT32_MAX;
 #endif // USE_LORA
+    return UINT32_MAX;
 }
 
 void printLoraPacket(uint8_t *p, int size)

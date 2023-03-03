@@ -4,6 +4,8 @@
 #else
 #define FDRS_LOCAL_OFFSET GLOBAL_LOCAL_OFFSET
 #endif // LOCAL_OFFSET
+#define DSTSTART  (timeinfo.tm_mon == 10 && timeinfo.tm_wday == 0 && timeinfo.tm_mday < 8 && timeinfo.tm_hour == 2)
+#define DSTEND    (timeinfo.tm_mon == 2 && timeinfo.tm_wday == 0 && timeinfo.tm_mday > 7 && timeinfo.tm_mday < 15 && timeinfo.tm_hour == 2)
 
 time_t now;                           // Current time - number of seconds since Jan 1 1970 (epoch)
 struct tm timeinfo;                   // Structure containing time elements
@@ -12,6 +14,7 @@ char strftime_buf[64];
 time_t localOffset = (FDRS_LOCAL_OFFSET * 60 * 60);  // UTC -> Local time in Seconds in Standard Time
 bool validTimeFlag = false;           // Indicate whether we have reliable time
 time_t lastTimeSetEvent = 0; 
+bool isDST;
 
 bool validTime() {
   if(now < 1677000000 || (millis() - lastTimeSetEvent > (24*60*60*1000))) {
@@ -29,6 +32,22 @@ bool validTime() {
   }
 }
 
+void checkDST() {
+  // DST -> STD - add one hour (3600 seconds)
+  if(validTimeFlag && isDST && (DSTEND || timeinfo.tm_isdst == 0)) {
+    isDST = false;
+    now += 3600;
+    DBG("Time change from DST -> STD");
+  }
+  // STD -> DST - subtract one hour (3600 seconds)
+  else if(validTimeFlag && !isDST && (DSTSTART || timeinfo.tm_isdst == 1)) {
+    isDST = true;
+    now -= 3600;
+    DBG("Time change from STD -> DST");
+  }
+  return;
+}
+
 void updateTime() {
   static time_t lastUpdate = 0;
   if(millis() - lastUpdate > 500) {
@@ -37,6 +56,7 @@ void updateTime() {
       tv.tv_sec = now;
       tv.tv_usec = 0;
       validTime();
+      checkDST();
       lastUpdate = millis();
     }
 }
