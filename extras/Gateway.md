@@ -2,6 +2,21 @@
 
 The FDRS Gateway listens for packets over ESP-NOW, UART, LoRa, and/or MQTT, then retransmits the packets over these interfaces using rules defined in the "Routing" section of the configuration file.
 
+A basic FDRS gateway's sketch file (.ino) will look like this:
+
+``` cpp
+#include "fdrs_gateway_config.h"
+#include <fdrs_gateway.h>
+
+void setup() {
+  beginFDRS();
+}
+
+void loop() {
+  loopFDRS();
+}
+```
+
 ## Addresses
 #### ```#define UNIT_MAC 0xNN```
 The ESP-NOW and LoRa address of the gateway. This is the address that nodes and other gateways will use to pass data to this device.
@@ -64,7 +79,7 @@ Sends the data directly to the ESP-NOW gateway address provided. There is no LoR
 #
 ## LoRa Configuration
 #### ```#define RADIOLIB_MODULE cccc```
-The name of the RadioLib module you're using. Tested modules: SX1276, SX1278, SX1262
+The name of the RadioLib module being used. Tested modules: SX1276, SX1278, SX1262.
 #### ```#define LORA_SS n```
 LoRa chip select pin.
 #### ```#define LORA_RST n```
@@ -78,7 +93,8 @@ Enable this if using the SX126x series of LoRa chips.
 #
 **LoRa radio parameters are generally configured in the 'src/fdrs_globals.h' file.** The following values may be set in the gateway configuration file if the user wishes to override the global value:
 
-The actual allowed values may vary by chip. Check your datasheet and/or RadioLib documentation.
+The actual allowed values may vary by chip. Check the datasheet and/or RadioLib documentation.
+#
 #### ```#define LORA_FREQUENCY n```
 LoRa frequency in MHz. Allowed values range from 137.0 MHz to 1020.0 MHz.
 #### ```#define LORA_SF n```
@@ -102,9 +118,9 @@ WiFi and MQTT parameters are generally configured in the 'src/fdrs_globals.h' fi
 #### ```#define WIFI_SSID "cccc"``` and ``` WIFI_PASS "cccc"  ```
 WiFi credentials
 #### ```#define MQTT_ADDR "n.n.n.n"``` or ```MQTT_ADDR "cccc"```
-The address of your MQTT server, either the IP address or domain name.
+The address of the MQTT server, either the IP address or domain name.
 #### ```#define MQTT_PORT n ```
-The port of your MQTT server.
+The port of the MQTT server.
 #### ```#define MQTT_AUTH ```
 Enable this if using MQTT authentication 
 #### ```#define MQTT_USER "cccc"``` and ```MQTT_PASS "cccc"```
@@ -121,15 +137,53 @@ OLED reset pin. Use '-1' if not present or known.
 #
 ### Miscellaneous
 #### ```#define FDRS_DEBUG```
-Enables debugging messages to be sent over the serial port.
+Enables debugging messages to be sent over the serial port and OLED display.
 #### ```#define RXD2 (pin)``` and ```TXD2 (pin)```
 Configures a second, data-only UART interface on ESP32. The ESP8266 serial interface is not configurable, and thus these options don't apply.
 
 #### ```#define USE_LR```
 Enables ESP-NOW Long-Range mode. Requires ESP32.
+## Neighbors
+*To-do: Describe neighbors and how to use them to make repeaters.*
 
+## User-Defined Functions
+This feature allows the user to send data from the gateway itself. For example: the battery level or ambient temperature at the gateway.
 
+Calling ```scheduleFDRS(function, interval);``` after initializing FDRS will schedule ```function();``` to be called every ```interval``` milliseconds.
 
+Within this function, the user may utilize the same ```loadFDRS()``` and ```sendFDRS()``` commands used by sensors. After the data is sent, it triggers ```INTERNAL_ACT``` where it can be routed to the front-end.
+
+#### ```loadFDRS(float data, uint8_t type, uint16_t id);```
+Loads some data into the current packet. 'data' is a float, 'type' is the data type, and 'id' is the DataReading id.
+#### ```sendFDRS();```
+Sends the current packet using actions defined by ```INTERNAL_ACT```. Does not return any value.
+
+**Example:**
+``` cpp
+#define GTWY_READING_ID 42
+#define INTERVAL_SECONDS
+
+#include "fdrs_gateway_config.h"
+#include <fdrs_gateway.h>
+#include <your_bms.h>
+
+void sendReading() {
+  float v = bms.readVoltage();
+  loadFDRS(v, VOLTAGE_T, GTWY_READING_ID);
+  sendFDRS();
+}
+
+void setup() {
+  beginFDRS();
+  scheduleFDRS(sendReading, INTERVAL_SECONDS * 1000);
+}
+
+void loop() {
+  loopFDRS();
+}
+```
+
+#
 ![Basic](Basic_Setup.png)
 
 ![Advanced](Advanced_Setup.png)
