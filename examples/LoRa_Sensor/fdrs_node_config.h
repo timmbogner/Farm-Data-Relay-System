@@ -12,7 +12,6 @@
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
 #define FDRS_DEBUG
-#define DEBUG_CONFIG // Displays full config info on startup
 
 // LoRa Configuration
 #define RADIOLIB_MODULE SX1276 //Tested on SX1276

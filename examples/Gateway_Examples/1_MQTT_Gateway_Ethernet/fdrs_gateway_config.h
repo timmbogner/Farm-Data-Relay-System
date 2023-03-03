@@ -16,7 +16,7 @@
 //#define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
 #define USE_ETHERNET
 
-// Actions
+// Routing
 // Options: sendESPNowNbr(1 or 2); sendESPNowPeers(); sendLoRaNbr(1 or 2); broadcastLoRa(); sendSerial(); sendMQTT();
 #define ESPNOWG_ACT    sendMQTT();
 #define LORAG_ACT      
@@ -66,10 +66,5 @@
 //#define MQTT_USER   "Your MQTT Username"
 //#define MQTT_PASS   "Your MQTT Password"
 
-// Logging settings  --  Logging will occur when MQTT is disconnected
-//#define USE_SD_LOG        //Enable SD-card logging
-//#define USE_FS_LOG        //Enable filesystem (flash) logging
-#define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
-#define SD_SS        0      //SD card CS pin (Use different pins for LoRa and SD)
-#define LOG_FILENAME "fdrs_log.csv"
+
 
