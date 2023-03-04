@@ -149,7 +149,7 @@ Enables ESP-NOW Long-Range mode. Requires ESP32.
 ## User-Defined Functions
 This feature allows the user to send data from the gateway itself. For example: the battery level or ambient temperature at the gateway.
 
-Calling ```scheduleFDRS(function, interval);``` after initializing FDRS will schedule ```function();``` to be called every ```interval``` milliseconds.
+Calling ```scheduleFDRS(function, interval);``` after initializing FDRS will schedule ```function()``` to be called every ```interval``` milliseconds.
 
 Within this function, the user may utilize the same ```loadFDRS()``` and ```sendFDRS()``` commands used by sensors. After the data is sent, it triggers ```INTERNAL_ACT``` where it can be routed to the front-end.
 
@@ -161,7 +161,7 @@ Sends the current packet using actions defined by ```INTERNAL_ACT```. Does not r
 **Example:**
 ``` cpp
 #define GTWY_READING_ID 42
-#define INTERVAL_SECONDS
+#define INTERVAL_SECONDS 60
 
 #include "fdrs_gateway_config.h"
 #include <fdrs_gateway.h>

@@ -36,6 +36,9 @@ Always add this to ```loop()``` to handle the controller's listening capabilitie
 ### Sensor
 Sensors load a packet with data, then send the packet to the gateway that they are addressed to.
 ``` cpp
+#include "fdrs_node_config.h"
+#include <fdrs_node.h>
+
 void setup() {
   beginFDRS();  // Start the system
   pingFDRS(2000); // Send ping and wait 2000ms for response
@@ -51,6 +54,9 @@ void loop() {
 Controllers register with the gateway they are addressed to, then receive data from it. 
 
 ``` cpp
+#include "fdrs_node_config.h"
+#include <fdrs_node.h>
+
 void fdrs_recv_cb(DataReading theData) {
   DBG("ID: " + String(theData.id));
   DBG("Type: " + String(theData.t));
