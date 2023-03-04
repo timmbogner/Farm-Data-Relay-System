@@ -3,7 +3,7 @@
 //  DETAILED NODES' CONFIGURATION CHECK
 //
 //  Make sure #define DEBUG_CONFIG is not uncommented in your node's config
-// (fdrs_sensor_config.h or fdrs_gateway_config.h). Otherwise check will be ignored.
+// (fdrs_node_config.h or fdrs_gateway_config.h). Otherwise check will be ignored.
 //  When the node powers up, it's full config will be printed to the serial console once.
 //  Be sure to add further checks as new configuration possibilities are added to FDRS.
 //
@@ -19,7 +19,8 @@ const char* headerAndFooter = "=================================================
 // helper function for obfuscating passwords
 String obfuscatePassword(String password) {
 	char obfuscatedPass[password.length()];
-	std::fill(obfuscatedPass, obfuscatedPass + password.length(), '*');
+	// TO DO: The following line is disabled due to AVR incompatibility.
+	// std::fill(obfuscatedPass, obfuscatedPass + password.length(), '*'); 
 	return String(obfuscatedPass);
 }
 
@@ -62,8 +63,8 @@ void printLoggingInformation() {
 #else
 	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
 #endif
-#ifdef SD_FILENAME
-	DBG("log filename          : " + SD_FILENAME);
+#ifdef LOG_FILENAME
+	DBG("log filename          : " + LOG_FILENAME);
 #else
 	DBG("log filename          : NOT SPECIFIED - check config!");
 #endif
@@ -78,8 +79,8 @@ void printLoggingInformation() {
 #else
 	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
 #endif
-#ifdef FS_FILENAME
-	DBG("log filename          : " + FS_FILENAME);
+#ifdef LOG_FILENAME
+	DBG("log filename          : " + LOG_FILENAME);
 #else
 	DBG("log filename          : NOT SPECIFIED - check config!");
 #endif
@@ -138,19 +139,19 @@ void printWifiDetails() {
 
 #if defined(WIFI_SSID)
 	DBG("WiFi SSID used from WIFI_SSID            : " + String(FDRS_WIFI_SSID));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi SSID used from GLOBAL_SSID          : " + String(FDRS_WIFI_SSID));
+#elif defined (GLOBAL_WIFI_SSID)
+	DBG("WiFi SSID used from GLOBAL_WIFI_SSID          : " + String(FDRS_WIFI_SSID));
 #else 
-	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO WiFi SSID defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //WIFI_SSID
 
 #if defined(WIFI_PASS)
 	DBG("WiFi password used from WIFI_PASS        : " + obfuscatePassword(FDRS_WIFI_PASS));
-#elif defined (GLOBAL_SSID)
-	DBG("WiFi password used from GLOBAL_PASS      : " + obfuscatePassword(FDRS_WIFI_PASS));
+#elif defined (GLOBAL_WIFI_SSID)
+	DBG("WiFi password used from GLOBAL_WIFI_PASS      : " + obfuscatePassword(FDRS_WIFI_PASS));
 #else 
-	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //WIFI_PASS
 
@@ -161,7 +162,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_MQTT_ADDR)
 	DBG("MQTT address used from GLOBAL_MQTT_ADDR  : " + String(FDRS_MQTT_ADDR));
 #else 
-	DBG("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO MQTT address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //MQTT_ADDR
 
@@ -181,7 +182,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_MQTT_USER)
 	DBG("MQTT username used from GLOBAL_MQTT_USER : " + String(FDRS_MQTT_USER));
 #else 
-	DBG("NO MQTT username defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO MQTT username defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //MQTT_USER
 
@@ -190,7 +191,7 @@ void printWifiDetails() {
 #elif defined (GLOBAL_MQTT_PASS)
 	DBG("MQTT password used from GLOBAL_MQTT_PASS : " + obfuscatePassword(FDRS_MQTT_PASS));
 #else 
-	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO MQTT password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //MQTT_PASS
 
@@ -199,21 +200,21 @@ void printWifiDetails() {
 #if defined(TOPIC_DATA)
 	DBG("MQTT topic (TOPIC_DATA)                  : " + String(TOPIC_DATA));
 #else 
-	DBG("NO MQTT topic defined! Please define TOPIC_DATA in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO MQTT topic defined! Please define TOPIC_DATA in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //TOPIC_DATA
 
 #if defined(TOPIC_STATUS)
 	DBG("MQTT topic (TOPIC_STATUS)                : " + String(TOPIC_STATUS));
 #else 
-	DBG("NO MQTT topic defined! Please define TOPIC_STATUS in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO MQTT topic defined! Please define TOPIC_STATUS in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //TOPIC_STATUS
 
 #if defined(TOPIC_COMMAND)
 	DBG("MQTT topic (TOPIC_COMMAND)               : " + String(TOPIC_COMMAND));
 #else 
-	DBG("NO MQTT topic defined! Please define TOPIC_COMMAND in fdrs_globals.h (recommended) or in fdrs_sensor_config.h / fdrs_gateway_config.h");
+	DBG("NO MQTT topic defined! Please define TOPIC_COMMAND in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //TOPIC_COMMAND
 
@@ -228,32 +229,32 @@ void printLoraDetails() {
 #ifdef USE_LORA
 	printSmallSectionHeader("LoRa Details:");
 	
-#if defined(LORA_BAND)
-	DBG("LoRa Band used from LORA_BAND                 : " + String(FDRS_BAND));
-#elif defined (GLOBAL_LORA_BAND)
-	DBG("LoRa Band used from GLOBAL_LORA_BAND          : " + String(FDRS_BAND));
+#if defined(FDRS_LORA_FREQUENCY)
+	DBG("LoRa frequency used from FDRS_LORA_FREQUENCY                 : " + String(FDRS_LORA_FREQUENCY));
+#elif defined (GLOBAL_FDRS_LORA_FREQUENCY)
+	DBG("LoRa frequency used from GLOBAL_FDRS_LORA_FREQUENCY          : " + String(FDRS_LORA_FREQUENCY));
 #else 
-	DBG("NO LORA_BAND defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO FDRS_LORA_FREQUENCY defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 	//exit(0);
-#endif //LORA-BAND
+#endif //LORA-FREQUENCY
 
 #if defined(LORA_SF)
-	DBG("LoRa SF used from LORA_SF                     : " + String(FDRS_SF));
+	DBG("LoRa SF used from LORA_SF                     : " + String(FDRS_LORA_SF));
 #elif defined (GLOBAL_LORA_SF)
-	DBG("LoRa SF used from GLOBAL_LORA_SF              : " + String(FDRS_SF));
+	DBG("LoRa SF used from GLOBAL_LORA_SF              : " + String(FDRS_LORA_SF));
 #else 
-//	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA_SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+//	ASSERT("NO LORA-SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
+	DBG("NO LORA_SF defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 	//exit(0);
 #endif //LORA_SF
 
 #if defined(LORA_TXPWR)
-	DBG("LoRa TXPWR used from LORA_TXPWR               : " + String(FDRS_TXPWR));
+	DBG("LoRa TXPWR used from LORA_TXPWR               : " + String(FDRS_LORA_TXPWR));
 #elif defined (GLOBAL_LORA_TXPWR)
-	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR        : " + String(FDRS_TXPWR));
+	DBG("LoRa TXPWR used from GLOBAL_LORA_TXPWR        : " + String(FDRS_LORA_TXPWR));
 #else 
-//	ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
-	DBG("NO LORA_TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+//	ASSERT("NO LORA-TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
+	DBG("NO LORA_TXPWR defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 	//exit(0);
 #endif //LORA_TXPWR
 
@@ -270,7 +271,7 @@ void printLoraDetails() {
 #if defined(LORA_ACK_TIMEOUT)
 	DBG("Timeout for Lora acknowledment (LORA_ACK)     : " + String(LORA_ACK_TIMEOUT));
 #else
-	DBG("NO LORA_ACK_TIMEOUT defined! Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA_ACK_TIMEOUT defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // LORA_ACK_TIMEOUT
 
 #if defined(LORA_RETRIES)
@@ -285,7 +286,7 @@ void printLoraDetails() {
 	} // LORA_RETRIES RANGE CHECK
 
 #else
-	DBG("NO LORA_RETRIES defined! Defaulting to 0. Please define in fdrs_globals.h (recommended) or in fdrs_sensor_config.h");
+	DBG("NO LORA_RETRIES defined! Defaulting to 0. Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // LORA_RETRIES
 
 

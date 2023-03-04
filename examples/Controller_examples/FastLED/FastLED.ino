@@ -28,7 +28,7 @@
 #define NUM_LEDS 24  // Number of physical LEDs.
 
 #include <FastLED.h>
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
 CRGB rgb_color = CRGB::Black;

@@ -2,6 +2,50 @@
 // If you are missing any data type, please open an issue at:
 // https://github.com/timmbogner/Farm-Data-Relay-System/issues
  
+typedef struct FDRSPeer {
+  uint8_t mac[6];
+  uint32_t last_seen = 0;
+
+} FDRSPeer;
+
+typedef struct __attribute__((packed)) DataReading {
+  float d;
+  uint16_t id;
+  uint8_t t;
+
+} DataReading;
+
+typedef struct __attribute__((packed)) SystemPacket {
+  uint8_t cmd;
+  uint32_t param;
+} SystemPacket;
+
+enum crcResult {
+  CRC_NULL,
+  CRC_OK,
+  CRC_BAD,
+} returnCRC;
+
+enum {
+  cmd_clear,
+  cmd_ping,
+  cmd_add,
+  cmd_ack,
+};
+
+enum
+{
+  event_clear,
+  event_espnowg,
+  event_espnow1,
+  event_espnow2,
+  event_serial,
+  event_mqtt,
+  event_lorag,
+  event_lora1,
+  event_lora2,
+  event_internal
+};
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 
@@ -35,5 +79,9 @@
 #define PM1_T           27 // 1 Particles
 #define PM2_5_T         28 // 2.5 Particles
 #define PM10_T          29 // 10 Particles
+#define POWER_T         30 // Power
+#define POWER2_T        31 // Power #2
+#define ENERGY_T        32 // Energy
+#define ENERGY2_T       33 // Energy #2
 
 #endif //FDRS_DATA_TYPES

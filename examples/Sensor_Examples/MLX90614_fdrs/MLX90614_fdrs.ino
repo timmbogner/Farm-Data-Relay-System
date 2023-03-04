@@ -2,9 +2,9 @@
 //
 //  MLX90614 INFRARED TEMPERATURE SENSOR MODULE
 //
-//  Developed by Timm Bogner (bogner1@gmail.com) for Sola Gratia Farm in Urbana, Illinois, USA.
+//  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <Adafruit_MLX90614.h>
 #include <fdrs_node.h>
 

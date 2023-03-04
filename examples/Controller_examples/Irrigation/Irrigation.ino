@@ -5,7 +5,7 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //
 //
-#include "fdrs_sensor_config.h"
+#include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
 #define 
