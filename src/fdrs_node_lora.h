@@ -86,7 +86,7 @@ volatile bool operationDone = false;  // flag to indicate that a packet was sent
 unsigned long receivedLoRaMsg = 0; // Number of total LoRa packets destined for us and of valid size
 unsigned long ackOkLoRaMsg = 0;    // Number of total LoRa packets with valid CRC
 
-uint16_t LoRaAddress = ((UniqueID8[6] << 8) | UniqueID8[7]);
+uint16_t LoRaAddress;
 
 unsigned long transmitLoRaMsgwAck = 0; // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;           // Number of total LoRa packets with valid CRC
