@@ -1,7 +1,6 @@
-#ifdef USE_LORA
+
 #include <ArduinoUniqueID.h>
 #include <RadioLib.h>
-#endif
 
 // Internal Globals
 // Default values: overridden by settings in config, if present
@@ -10,7 +9,6 @@
 #define GLOBAL_LORA_RETRIES 2  // LoRa ACK automatic retries [0 - 3]
 #define GLOBAL_LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
-#ifdef USE_LORA
 // select LoRa band configuration
 #if defined(LORA_FREQUENCY)
 #define FDRS_LORA_FREQUENCY LORA_FREQUENCY
@@ -111,11 +109,9 @@ void setFlag(void)
     }
     operationDone = true; // we sent or received  packet, set the flag
 }
-#endif // USE_LORA
 
 crcResult handleLoRa()
 {
-#ifdef USE_LORA
     crcResult crcReturned = CRC_NULL;
     if (operationDone)
     { // the interrupt was triggered
@@ -138,14 +134,11 @@ crcResult handleLoRa()
             enableInterrupt = true;
         }
     }
-#endif // USE_LORA
     return crcReturned;
 }
 
 void begin_lora()
 {
-
-#ifdef USE_LORA
 #ifdef CUSTOM_SPI
 #ifdef ESP32
     LORA_SPI.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
@@ -187,7 +180,6 @@ void begin_lora()
         while (true)
             ;
     }
-#endif // USE_LORA
 }
 
 // Transmits Lora data by calling RadioLib library function
@@ -195,7 +187,6 @@ void begin_lora()
 
 crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
 {
-#ifdef USE_LORA
     crcResult crcReturned = CRC_NULL;
     uint8_t pkt[6 + (len * sizeof(DataReading))];
     uint16_t calcCRC = 0x0000;
@@ -280,7 +271,6 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
     }
     transmitLoRaMsgwAck++;
 #endif // LORA_ACK
-#endif // USE_LORA
     return crcReturned;
 }
 
@@ -288,7 +278,6 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
 // Returns CRC_NULL ask SystemPackets do not use ACKS at current time
 crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
 {
-#ifdef USE_LORA
     crcResult crcReturned = CRC_NULL;
     uint8_t pkt[6 + (len * sizeof(SystemPacket))];
     uint16_t calcCRC = 0x0000;
@@ -325,7 +314,6 @@ crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
         while (true)
             ;
     }
-#endif // USE_LORA
     return crcReturned;
 }
 
@@ -336,7 +324,6 @@ crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
 
 crcResult getLoRa()
 {
-#ifdef USE_LORA
     int packetSize = radio.getPacketLength();
     if ((((packetSize - 6) % sizeof(DataReading) == 0) || ((packetSize - 6) % sizeof(SystemPacket) == 0)) && packetSize > 0)
     { // packet size should be 6 bytes plus multiple of size of DataReading
@@ -484,7 +471,6 @@ crcResult getLoRa()
             return CRC_NULL;
         }
     }
-#endif // USE_LORA
     return CRC_NULL;
 }
 
@@ -493,7 +479,6 @@ crcResult getLoRa()
 // Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
 uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
 {
-#ifdef USE_LORA
     SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
 
     transmitLoRa(address, &sys_packet, 1);
@@ -512,7 +497,6 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
         }
     }
     DBG("No LoRa ping returned within " + String(timeout) + "ms.");
-#endif // USE_LORA
     return UINT32_MAX;
 }
 

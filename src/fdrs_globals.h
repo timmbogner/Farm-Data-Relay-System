@@ -17,7 +17,8 @@
 // MQTT Topics
 #define TOPIC_DATA    "fdrs/data"
 #define TOPIC_STATUS  "fdrs/status"
-#define TOPIC_COMMAND "fdrs/command" 
+#define TOPIC_COMMAND "fdrs/command"
+#define TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
 
 #define GLOBAL_LORA_FREQUENCY 915.0   // Carrier frequency in MHz. Allowed values range from 137.0 MHz to 1020.0 MHz (varies by chip).
 #define GLOBAL_LORA_SF 7     // LoRa link spreading factor. Allowed values range from 6 to 12.
