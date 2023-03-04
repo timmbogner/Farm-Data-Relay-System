@@ -17,13 +17,13 @@ If you are having fun with FDRS, **[please consider supporting me](https://www.b
 - [RadioLib](https://github.com/jgromes/RadioLib) for LoRa
 - [PubSubClient](https://github.com/knolleary/pubsubclient/) for MQTT
 
-Included:
+**Included:**
 - [ThingPulse OLED Library for ESP](https://github.com/ThingPulse/esp8266-oled-ssd1306)
 #
 **To install FDRS:**
-1. Download or clone this repository and copy it into your Arduino 'libraries' folder.
+1. Download or clone this repository and copy it into your Arduino **'libraries'** folder.
 
-2.  After installing, edit the 'src/fdrs_globals.h' file with your WiFi credentials and other global parameters.
+2.  After installing, edit the **'src/fdrs_globals.h'** file with your WiFi credentials and other global parameters.
 
 3.  The first sketch you'll want to try is the **1_UART_Gateway.ino** example. This device will listen for incoming ESP-NOW packets, then route them to the serial port (and vice versa). Next, flash the **ESPNOW_Sensor.ino** example to see how to send data to the gateway.
 
@@ -68,7 +68,7 @@ Many thanks go to the ever-instructional [**Andreas Spiess**](https://www.youtub
 
 Thanks to [**LilyGo**](https://www.lilygo.cc/) for sending me new [LoRa32 modules](https://www.lilygo.cc/products/lora32-v1-0-lora-868mhz-915mhz) when mine were damaged. Much of this project was [created](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/examples/Sensor_Examples/LilyGo_HiGrow_32) using [TTGO devices](https://www.lilygo.cc/products/t-higrow), and I highly recommend their [products](https://www.lilygo.cc/products/lilygo%C2%AE-ttgo-t-display-1-14-inch-lcd-esp32-control-board)!
 
-It is a great honor to have been [featured on **Hackaday**](https://hackaday.com/2022/07/02/farm-data-relay-system/) and [hackster.io!]
+It is a great honor to have been [featured on **Hackaday**](https://hackaday.com/2022/07/02/farm-data-relay-system/) and [hackster.io!](https://www.hackster.io/news/timm-bogner-s-farm-data-relay-system-uses-esp8266-esp32-nodes-and-gateways-for-sensor-networks-b87a75c69f46)
   
 I started this project with instructions from [**Random Nerd Tutorials**](https://randomnerdtutorials.com/). If you are a beginner and trying to learn more about microcontrollers, I highly reccomend starting there.
 
