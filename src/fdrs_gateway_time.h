@@ -45,7 +45,12 @@ time_t localOffset = (FDRS_LOCAL_OFFSET * 60 * 60);  // UTC -> Local time in Sec
 bool validTimeFlag = false;           // Indicate whether we have reliable time 
 uint NTPFetchFail = 0;                // consecutive NTP fetch failures
 time_t lastNTPFetchSuccess = 0;      // Last time that a successful NTP fetch was made
-bool isDST;
+bool isDST;                           // Keeps track of Daylight Savings Time vs Standard Time
+long slewSecs = 0;                  // When time is set this is the number of seconds the time changes
+
+// Function prototypes
+void loadFDRS(float, uint8_t, uint16_t);
+void sendFDRS();
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(const char * address) {
@@ -86,35 +91,6 @@ bool validTime() {
   }
 }
 
-void checkDST() {
-  // DST -> STD - add one hour (3600 seconds)
-  if(validTimeFlag && isDST && (DSTEND || timeinfo.tm_isdst == 0)) {
-    isDST = false;
-    now += 3600;
-    DBG("Time change from DST -> STD");
-  }
-  // STD -> DST - subtract one hour (3600 seconds)
-  else if(validTimeFlag && !isDST && (DSTSTART || timeinfo.tm_isdst == 1)) {
-    isDST = true;
-    now -= 3600;
-    DBG("Time change from STD -> DST");
-  }
-  return;
-}
-
-void updateTime() {
-  static time_t lastUpdate = 0;
-  if(millis() - lastUpdate > 500) {
-      time(&now);
-      localtime_r(&now, &timeinfo);
-      tv.tv_sec = now;
-      tv.tv_usec = 0;
-      validTime();
-      checkDST();
-      lastUpdate = millis();
-  }
-}
-
 void printTime() {
   if(!validTime()) {
     return;
@@ -135,10 +111,66 @@ void printTime() {
   DBG("The current local date/time is: " + String(strftime_buf));
 }
 
+void checkDST() {
+  // DST -> STD - add one hour (3600 seconds)
+  if(validTimeFlag && isDST && (DSTEND || timeinfo.tm_isdst == 0)) {
+    isDST = false;
+    now += 3600;
+    DBG("Time change from DST -> STD");
+  }
+  // STD -> DST - subtract one hour (3600 seconds)
+  else if(validTimeFlag && !isDST && (DSTSTART || timeinfo.tm_isdst == 1)) {
+    isDST = true;
+    now -= 3600;
+    DBG("Time change from STD -> DST");
+  }
+  return;
+}
+
+bool setTime(time_t previousTime) {
+  
+  // Adjust for local time
+  now += localOffset;
+  slewSecs = now - previousTime;
+  DBG("Time adjust " + String(slewSecs) + " secs");
+
+  // time(&now);
+  tv.tv_sec = now;
+  settimeofday(&tv,NULL);
+  localtime_r(&now, &timeinfo);
+  // Check for DST/STD time and adjust accordingly
+  checkDST();
+  // Uncomment below to send time and slew rate to the MQTT server
+  // loadFDRS(now, STATUS_T, 111);
+  // loadFDRS(slewSecs, STATUS_T, 111);
+  // sendFDRS();
+  if(validTime()) {
+    lastNTPFetchSuccess = millis();
+    printTime();
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+void updateTime() {
+  static time_t lastUpdate = 0;
+  if(millis() - lastUpdate > 500) {
+      time(&now);
+      localtime_r(&now, &timeinfo);
+      tv.tv_sec = now;
+      tv.tv_usec = 0;
+      validTime();
+      checkDST();
+      lastUpdate = millis();
+  }
+}
+
 void fetchNtpTime() {
-  //DBG("GetTime Function");
+  time_t previousTime = 0;
+
   if(WiFi.status() == WL_CONNECTED) {
-    //DBG("Calling .begin function");
     FDRSNtp.begin(localPort);
 
     sendNTPpacket(timeServer); // send an NTP packet to a time server
@@ -169,18 +201,9 @@ void fetchNtpTime() {
       const unsigned long seventyYears = 2208988800UL;
       // subtract seventy years:
       // now is epoch format - seconds since Jan 1 1970
+      previousTime = now;
       now = secsSince1900 - seventyYears;
-      // Adjust for local time
-      now += localOffset;
-      // time(&now);
-      tv.tv_sec = now;
-      settimeofday(&tv,NULL);
-      localtime_r(&now, &timeinfo);
-      // Check for DST/STD time and adjust accordingly
-      checkDST();
-      if(validTime()) {
-        lastNTPFetchSuccess = millis();
-      }
+      setTime(previousTime);
     }
     else {
       NTPFetchFail++;
