@@ -59,6 +59,14 @@
 // WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID   "Your SSID"  
 //#define WIFI_PASS   "Your Password"
+//#define DNS1_IPADDRESS      "192.168.0.1"    // Required for NTP even if not using static IP defined below
+
+// Use Static IP Address for WiFi connections
+// #define USE_STATIC_IPADDRESS     
+// #define HOST_IPADDRESS      "192.168.0.100"
+// #define GW_IPADDRESS        "192.168.0.1"
+// #define SUBNET_ADDRESS      "255.255.255.0"
+// #define DNS2_IPADDRESS      "192.168.0.2"    // Optional. Only DNS1 is required to be able to use NTP
 
 #define MQTT_ADDR   "192.168.2.3"
 //#define MQTT_PORT   1883 // Default MQTT port is 1883

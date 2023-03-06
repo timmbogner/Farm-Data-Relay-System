@@ -32,6 +32,48 @@
 #else
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // WIFI_PASS
+
+// select Host IP Address
+#if defined(HOST_IPADDRESS)
+#define FDRS_HOST_IPADDRESS HOST_IPADDRESS
+#elif defined(GLOBAL_HOST_IPADDRESS)
+#define FDRS_HOST_IPADDRESS GLOBAL_HOST_IPADDRESS
+#else
+#endif // HOST_IPADDRESS
+
+// select Gateway IP Address
+#if defined(GW_IPADDRESS)
+#define FDRS_GW_IPADDRESS GW_IPADDRESS
+#elif defined(GLOBAL_GW_IPADDRESS)
+#define FDRS_GW_IPADDRESS GLOBAL_GW_IPADDRESS
+#else
+#endif // GW_IPADDRESS
+
+// select Subnet Address
+#if defined(SUBNET_ADDRESS)
+#define FDRS_SUBNET_ADDRESS GW_IPADDRESS
+#elif defined(GLOBAL_SUBNET_ADDRESS)
+#define FDRS_SUBNET_ADDRESS GLOBAL_SUBNET_ADDRESS
+#else
+#endif // SUBNET_ADDRESS
+
+// select DNS1 IP Address configuration
+#if defined(DNS1_IPADDRESS)
+#define FDRS_DNS1_IPADDRESS DNS1_IPADDRESS
+#elif defined(GLOBAL_DNS1_IPADDRESS)
+#define FDRS_DNS1_IPADDRESS GLOBAL_DNS1_IPADDRESS
+#else
+// ASSERT("NO DNS1 IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_gateway_config.h");
+#endif // DNS1_IPADDRESS
+
+// select DNS2 IP Address configuration
+#if defined(DNS2_IPADDRESS)
+#define FDRS_DNS2_IPADDRESS DNS2_IPADDRESS
+#elif defined(GLOBAL_DNS2_IPADDRESS)
+#define FDRS_DNS2_IPADDRESS GLOBAL_DNS2_IPADDRESS
+#else
+#endif // DNS2_IPADDRESS
+
 #ifdef USE_ETHERNET
 static bool eth_connected = false;
 void WiFiEvent(WiFiEvent_t event)
@@ -74,6 +116,10 @@ void WiFiEvent(WiFiEvent_t event)
 #endif // USE_ETHERNET
 const char *ssid = FDRS_WIFI_SSID;
 const char *password = FDRS_WIFI_PASS;
+#ifdef USE_STATIC_IPADDRESS
+  IPAddress hostIpAddress, gatewayAddress, subnetAddress, dns2Address;
+#endif
+IPAddress dns1Address;
 
 void begin_wifi()
 {
@@ -87,6 +133,11 @@ void begin_wifi()
     delay(500);
   }
 #else
+#ifdef USE_STATIC_IPADDRESS
+  WiFi.config(hostIpAddress.fromString(FDRS_HOST_IPADDRESS), gatewayAddress.fromString(FDRS_GW_IPADDRESS), subnetAddress.fromString(FDRS_SUBNET_ADDRESS), dns1Address.fromString(FDRS_DNS1_IPADDRESS), dns2Address.fromString(FDRS_DNS2_IPADDRESS));
+#else
+  WiFi.dnsIP(dns1Address.fromString(FDRS_DNS1_IPADDRESS));
+#endif
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
