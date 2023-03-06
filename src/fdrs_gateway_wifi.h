@@ -117,9 +117,21 @@ void WiFiEvent(WiFiEvent_t event)
 const char *ssid = FDRS_WIFI_SSID;
 const char *password = FDRS_WIFI_PASS;
 #ifdef USE_STATIC_IPADDRESS
-  IPAddress hostIpAddress, gatewayAddress, subnetAddress, dns2Address;
+  uint8_t hostIpAddress[4], gatewayAddress[4], subnetAddress[4], dns2Address[4]; 
 #endif
-IPAddress dns1Address;
+uint8_t dns1Address[4];
+
+// Convert IP Addresses from strings to byte arrays of 4 bytes
+void stringToByteArray(const char* str, char sep, byte* bytes, int maxBytes, int base) {
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = strtoul(str, NULL, base);  // Convert byte
+        str = strchr(str, sep);               // Find next separator
+        if (str == NULL || *str == '\0') {
+            break;                            // No more separators, exit
+        }
+        str++;                                // Point to next character after separator
+    }
+}
 
 void begin_wifi()
 {
@@ -134,9 +146,13 @@ void begin_wifi()
   }
 #else
 #ifdef USE_STATIC_IPADDRESS
-  WiFi.config(hostIpAddress.fromString(FDRS_HOST_IPADDRESS), gatewayAddress.fromString(FDRS_GW_IPADDRESS), subnetAddress.fromString(FDRS_SUBNET_ADDRESS), dns1Address.fromString(FDRS_DNS1_IPADDRESS), dns2Address.fromString(FDRS_DNS2_IPADDRESS));
-#else
-  WiFi.dnsIP(dns1Address.fromString(FDRS_DNS1_IPADDRESS));
+  // Convert from String to byte array
+  stringToByteArray(FDRS_HOST_IPADDRESS, '.', hostIpAddress, 4, 10);
+  stringToByteArray(FDRS_GW_IPADDRESS, '.', gatewayAddress, 4, 10);
+  stringToByteArray(FDRS_SUBNET_ADDRESS, '.', subnetAddress, 4, 10);
+  stringToByteArray(FDRS_DNS1_IPADDRESS, '.', dns1Address, 4, 10);
+  stringToByteArray(FDRS_DNS2_IPADDRESS, '.', dns2Address, 4, 10);
+  WiFi.config(hostIpAddress, gatewayAddress, subnetAddress, dns1Address, dns2Address);
 #endif
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
