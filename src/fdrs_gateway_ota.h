@@ -31,7 +31,9 @@ void begin_OTA() {
       DBG("\nEnd");
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+#ifndef USE_OLED  // Displaying on OLED slows down the download process
       DBG("Progress: " + String(progress / (total / 100)) + "%");
+#endif
     });
     ArduinoOTA.onError([](ota_error_t error) {
       DBG("Error[" + String(error) + "]");
