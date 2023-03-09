@@ -76,12 +76,13 @@ const uint8_t lora_size = 256 / sizeof(DataReading);
 
 #ifdef CUSTOM_SPI
 #ifdef ESP32
-SPIClass LORA_SPI(HSPI);
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
-#endif // ESP32
+SPIClass SPI1(HSPI);
+#endif  // ESP32
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI1);
 #else
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
-#endif // CUSTOM_SPI
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
+#endif  // CUSTOM_SPI
+
 
 #ifndef USE_ESPNOW   // mac_prefix used for both ESP-NOW and LoRa - avoid redefinition warnings
   const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -262,10 +263,16 @@ void begin_lora()
 {
 #ifdef CUSTOM_SPI
 #ifdef ESP32
-  LORA_SPI.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
-#endif // ESP32
-#else
-#endif // CUSTOM_SPI
+  SPI1.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
+#endif  // ESP32
+#ifdef ARDUINO_ARCH_RP2040
+  SPI1.setRX(LORA_SPI_MISO);
+  SPI1.setTX(LORA_SPI_MOSI);
+  SPI1.setSCK(LORA_SPI_SCK);
+  SPI1.begin(false);
+#endif  //ARDUINO_ARCH_RP2040
+#endif  // CUSTOM_SPI
+
 #ifdef USE_SX126X
   int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR);
 #else
@@ -506,6 +513,7 @@ void sendLoRaNbr(uint8_t interface)
 
 void asyncReleaseLoRa(bool first_run)
 {
+  delay(3);
   if (first_run)
   {
     TxStatus = TxLoRa1;
@@ -603,6 +611,7 @@ crcResult handleLoRa()
     operationDone = false;
     if (transmitFlag) // the previous operation was transmission
     {
+      radio.finishTransmit();
       if (TxStatus != TxIdle)
       {
         asyncReleaseLoRa(false);

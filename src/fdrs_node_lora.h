@@ -71,12 +71,13 @@
 
 #ifdef CUSTOM_SPI
 #ifdef ESP32
-SPIClass LORA_SPI(HSPI);
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1, LORA_SPI);
-#endif // ESP32
+SPIClass SPI1(HSPI);
+#endif  // ESP32
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI1);
 #else
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, -1);
-#endif // CUSTOM_SPI
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
+#endif  // CUSTOM_SPI
+
 
 bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
@@ -117,8 +118,9 @@ crcResult handleLoRa()
         // DBG("Interrupt Triggered.");
         enableInterrupt = false;
         operationDone = false;
-        if (transmitFlag)
-        {                         // the previous operation was transmission,
+        if (transmitFlag)  // the previous operation was transmission,
+        {   
+            radio.finishTransmit();                      
             radio.startReceive(); // return to listen mode
             enableInterrupt = true;
             transmitFlag = false;
@@ -140,16 +142,22 @@ void begin_lora()
 {
 #ifdef CUSTOM_SPI
 #ifdef ESP32
-    LORA_SPI.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
-#endif // ESP32
-#else
-#endif // CUSTOM_SPI
+  SPI1.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
+#endif  // ESP32
+#ifdef ARDUINO_ARCH_RP2040
+  SPI1.setRX(LORA_SPI_MISO);
+  SPI1.setTX(LORA_SPI_MOSI);
+  SPI1.setSCK(LORA_SPI_SCK);
+  SPI1.begin(false);
+#endif  //ARDUINO_ARCH_RP2040
+#endif  // CUSTOM_SPI
 
 #ifdef USE_SX126X
-  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR);
+  int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 1.6, false);
 #else
   int state = radio.begin(FDRS_LORA_FREQUENCY, FDRS_LORA_BANDWIDTH, FDRS_LORA_SF, FDRS_LORA_CR, FDRS_LORA_SYNCWORD, FDRS_LORA_TXPWR, 8, 0);
 #endif
+
     if (state == RADIOLIB_ERR_NONE)
     {
         DBG("RadioLib initialization successful!");
@@ -218,7 +226,7 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
             DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
         }
         // printLoraPacket(pkt,sizeof(pkt));
-        int state = radio.transmit(pkt, sizeof(pkt));
+        int state = radio.startTransmit(pkt, sizeof(pkt));
         transmitFlag = true;
         if (state == RADIOLIB_ERR_NONE)
         {
@@ -257,7 +265,7 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
 #else  // Send and do not wait for ACK reply
     DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX));
     // printLoraPacket(pkt,sizeof(pkt));
-    int state = radio.transmit(pkt, sizeof(pkt));
+    int state = radio.startTransmit(pkt, sizeof(pkt));
     transmitFlag = true;
     if (state == RADIOLIB_ERR_NONE)
     {
@@ -454,7 +462,7 @@ crcResult getLoRa()
         }
         else
         {
-            DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
+            // DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
             // printLoraPacket(packet,sizeof(packet));
             return CRC_NULL;
         }

@@ -86,6 +86,8 @@ LoRa chip select pin.
 LoRa reset pin.
 #### ```#define LORA_DIO n```
 LoRa DIO pin. This refers to DIO1 on SX127x chips and DIO1 on SX126x chips.
+#### ```#define LORA_BUSY n```
+For SX126x chips: LoRa BUSY pin. For SX127x: DIO1 pin, or "RADIOLIB_NC" to leave it blank. 
 #### ```#define LORA_TXPWR n```
 LoRa TX power in dBm.
 #### ```#define USE_SX126X```
