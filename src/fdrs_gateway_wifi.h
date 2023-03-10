@@ -4,7 +4,9 @@
 #elif defined(ESP32)
 #include <WiFi.h>
 #include <esp_wifi.h>
-#endif
+#elif defined(ARDUINO_ARCH_RP2040)
+#include <WiFi.h>
+#endif  
 #ifdef USE_ETHERNET
 #include <ETH.h>
 #endif
