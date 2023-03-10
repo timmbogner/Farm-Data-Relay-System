@@ -34,7 +34,11 @@
 #ifndef INTERNAL_ACT
 #define INTERNAL_ACT
 #endif
-
+#ifdef USE_ETHERNET
+#ifndef USE_WIFI
+#define USE_WIFI
+#endif
+#endif // USE_ETHERNET
 
 SystemPacket theCmd;
 DataReading theData[256];

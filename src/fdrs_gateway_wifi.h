@@ -1,9 +1,3 @@
-#ifdef USE_ETHERNET
-#ifndef USE_WIFI
-#define USE_WIFI
-#endif
-#endif // USE_ETHERNET
-
 #include <WiFiUdp.h>
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
