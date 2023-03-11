@@ -226,7 +226,7 @@ crcResult transmitLoRa(uint16_t *destMAC, DataReading *packet, uint8_t len)
             DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to gateway 0x" + String(*destMAC, HEX) + ". Retries remaining: " + String(retries - 1));
         }
         // printLoraPacket(pkt,sizeof(pkt));
-        int state = radio.startTransmit(pkt, sizeof(pkt));
+        int state = radio.transmit(pkt, sizeof(pkt));
         transmitFlag = true;
         if (state == RADIOLIB_ERR_NONE)
         {
@@ -310,7 +310,7 @@ crcResult transmitLoRa(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
     // Packet is constructed now transmit the packet
     DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to destination 0x" + String(*destMAC, HEX));
     // printLoraPacket(pkt,sizeof(pkt));
-    int state = radio.startTransmit(pkt, sizeof(pkt));
+    int state = radio.transmit(pkt, sizeof(pkt));
     transmitFlag = true;
     if (state == RADIOLIB_ERR_NONE)
     {
