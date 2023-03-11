@@ -121,7 +121,6 @@ enum
 
 uint8_t tx_buffer_position = 0;
 uint32_t tx_start_time;
-bool tx_time_set = false;
 
 // Function prototypes
 crcResult transmitLoRa(uint16_t *, DataReading *, uint8_t);
@@ -517,7 +516,6 @@ void asyncReleaseLoRa(bool first_run)
   if (first_run)
   {
     TxStatus = TxLoRa1;
-    tx_time_set = true;
     tx_start_time = millis();
   }
   switch (TxStatus)
@@ -583,11 +581,12 @@ void asyncReleaseLoRa(bool first_run)
         {
           transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
         TxFin:
+        if (LORABBuffer.len + LORA1Buffer.len +LORA2Buffer.len > 0)
+            DBG("LoRa airtime: " + String(millis() - tx_start_time) + "ms");
+          radio.startReceive();
           LORABBuffer.len = 0;
           LORA1Buffer.len = 0;
           LORA2Buffer.len = 0;
-          tx_time_set = false;
-
           tx_buffer_position = 0;
           TxStatus = TxIdle;
         }
@@ -619,11 +618,7 @@ crcResult handleLoRa()
       }
       else
       {
-        if (tx_time_set)
-        {
-          DBG("LoRa airtime: " + String(millis() - tx_start_time) + "ms");
-          tx_time_set = false;
-        }
+
         radio.startReceive(); // return to listen mode
         enableInterrupt = true;
         transmitFlag = false;
