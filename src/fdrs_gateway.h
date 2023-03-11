@@ -56,6 +56,8 @@ void timeFDRSLoRa(uint8_t *);
 static uint16_t crc16_update(uint16_t, uint8_t);
 void sendESPNowNbr(uint8_t);
 void sendESPNowPeers();
+void sendESPNow(uint8_t);
+
 void sendMQTT();
 void sendLog();
 void resendLog();
@@ -228,6 +230,7 @@ void loopFDRS()
 #ifndef USE_ESPNOW
   void sendESPNowNbr(uint8_t interface) {}
   void sendESPNowPeers() {}
+  void sendESPNow(uint8_t address) {}
 #endif
 #ifndef USE_WIFI
   void sendMQTT() {}
