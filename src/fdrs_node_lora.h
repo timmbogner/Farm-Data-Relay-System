@@ -423,11 +423,14 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-                        time_t previousTime = now;
                         now = receiveData[0].param;
-                        setTime(previousTime);
-                        DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
+                        tv.tv_sec = now;
+                        settimeofday(&tv,NULL);
+                        localtime_r(&now, &timeinfo);
+                        DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
                         adjTimeforNetDelay(netTimeOffset);
+                        lastTimeSetEvent = millis();
+                        printTime();
                     }
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.
@@ -459,11 +462,14 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-                        time_t previousTime = now;
                         now = receiveData[0].param;
-                        setTime(previousTime);
-                        DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
+                        tv.tv_sec = now;
+                        settimeofday(&tv,NULL);
+                        localtime_r(&now, &timeinfo);
+                        DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
                         adjTimeforNetDelay(netTimeOffset);
+                        lastTimeSetEvent = millis();
+                        printTime();
                     }
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.

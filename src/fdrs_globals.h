@@ -6,6 +6,7 @@
 
 #define GLOBAL_WIFI_SSID        "Your SSID"
 #define GLOBAL_WIFI_PASS        "Password"
+#define GLOBAL_DNS_IPADDRESS    "8.8.8.8"   // Default to Google Primary DNS
 
 #define GLOBAL_MQTT_ADDR "192.168.0.8"
 #define GLOBAL_MQTT_PORT 1883

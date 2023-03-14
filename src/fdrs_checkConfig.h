@@ -155,6 +155,15 @@ void printWifiDetails() {
 	//exit(0);
 #endif //WIFI_PASS
 
+#if defined(DNS_IPADDRESS)
+	DBG("DNS IP Address used from DNS_IPADDRESS            : " + String(FDRS_DNS_IPADDRESS));
+#elif defined (GLOBAL_DNS_IPADDRESS)
+	DBG("DNS IP Address used from GLOBAL_DNS_IPADDRESS     : " + String(FDRS_DNS_IPADDRESS));
+#else 
+	DBG("NO DNS IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //DNS_IPADDRESS
+
 	printSmallSectionHeader("MQTT BROKER CONFIG:");
 
 #if defined(MQTT_ADDR)
