@@ -1,124 +1,161 @@
-# FDRS User Node
-A node is a device that sends and receives data from a nearby gateway. A node can be a sensor, controller, or both.
+# FDRS Node
+A node is a device that sends and receives data from a nearby gateway. A node can be a **sensor**, **controller**, ***or both***.
+## Addresses
+#### ```#define READING_ID  n```
+The unique ID that the node will use when sending sensor values. Can be any integer 0 - 65535. Nodes are not necessarily tied to this parameter. They can be subscribed to up to 256 different IDs or send using several different IDs.
+#### ```#define GTWY_MAC  0xnn```
+The ```UNIT_MAC``` of the gateway that this device will be paired with.
 
-*NOTE: Controller node functionality is currently restricted to the *ESP-NOW protocol*. LoRa gateways can still transport data bi-directionally, but you will need to use ESP-NOW to register a controller node with a gateway.*
-
-# Commands
-### ``` beginFDRS();```
+## Usage
+#### ```beginFDRS();```
 Initializes FDRS, powers up the sensor array, and begins ESP-NOW and/or LoRa.
-## Sensor Commands
-### ```loadFDRS(float d, uint8_t t);```
-Loads some data into the current packet. 'd' is a float and 't' is a byte used to represent the sensor type. Type definitions can be found below. Please feel free to contact me if you'd like to add a new sensor type.
-### ```bool sendFDRS();```
-Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been recieved successfully by the gateway.
-### ``` sleepFDRS(int sleep_time)```
-If available and enabled, the device enters deep-sleep. If ```#DEEP_SLEEP``` is disabled, the device will use a delay instead. ```sleep_time``` is entered in seconds.
-## Controller Commands
-### ```addFDRS(int timeout, void callback);```
-Adds the device to the gateway's peer registry. This enables the device to receive transmissions from the gateway. ```timeout``` is in milliseconds. ```callback``` should be the name of the function that will recieve all incoming transmissions. The ESP-NOW Controller example demonstrates functionality.
-### ```subscribeFDRS(uint16_t sub_id)``` 
-Sets the device to listen for a specific DataReading id. When a DataReading with id ```sub_id``` is received, the callback function will be called and given the full DataReading as a parameter.
-### ```unsubscribeFDRS(uint16_t sub_id)``` 
-Removes ```sub_id``` from subscription list.
+#### ```uint32_t pingFDRS(timeout);```
+Sends a ping request to the device's paired gateway with a timeout in ms. Returns the ping time in ms as well as displaying it on the debugging console.
 
-## Basic usage:
+## Sensor API
+#### ```loadFDRS(float data, uint8_t type, uint16_t id);```
+Loads some data into the current packet. 'data' is a float, 'type' is the data type (see below), and 'id' is the DataReading id.
+#### ```loadFDRS((float data, uint8_t type);```
+Same as above, but the 'id' is preset to the node's ```READING_ID```. 
+#### ```bool sendFDRS();```
+Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been recieved successfully by the gateway.
+#### ```sleepFDRS(seconds)```
+Time to sleep in seconds. If ```DEEP_SLEEP``` is enabled, the device will enter sleep. Otherwise it will use a simple ```delay()```.
+
+## Controller API
+#### ```addFDRS(void callback);```
+Initializes controller functionality by selecting the function to be called when incoming commands are recieved. If using LoRa, the controller will automatically recieve any packets sent with broadcastLoRa(), provided they were sent by the paired gateway. ESP-NOW requires the device to register with its gateway before it will recieve incoming commands. This is done automatically, and the ESP-NOW node will continue recieving data until the paired gateway is reset. A maximum of 16 ESP-NOW controllers can recieve data from a single gateway. There is no limit to how many LoRa controllers can listen to the same gateway.
+#### ```subscribeFDRS(uint16_t sub_id);``` 
+Sets the device to listen for a specific DataReading id. When a DataReading with id ```sub_id``` is received, the callback function will be called and given the full DataReading as a parameter.
+#### ```unsubscribeFDRS(uint16_t sub_id);``` 
+Removes ```sub_id``` from subscription list.
+#### ```loopFDRS();``` 
+Always add this to ```loop()``` to handle the controller's listening capabilities.
+
+## Basic Examples:
 ### Sensor
-Sensor nodes load a packet with data, then send the packet to the gateway that they are addressed to.
-```
+Sensors load a packet with data, then send the packet to the gateway that they are addressed to.
+``` cpp
+#include "fdrs_node_config.h"
+#include <fdrs_node.h>
+
 void setup() {
-  beginFDRS();
+  beginFDRS();  // Start the system
+  pingFDRS(2000); // Send ping and wait 2000ms for response
 }
 void loop() {
-  loadFDRS(21.0, TEMP_T);
-  sendFDRS();
-  sleepFDRS(10);  //Sleep time in seconds
+  loadFDRS(21.0, TEMP_T); // Load a temperature of 21.0 into the queued packet
+  sendFDRS();        // Send the queued packet
+  sleepFDRS(60); // Sleep for 60 seconds
 }
 ```
 
 ### Controller
-Controller nodes register with the gateway they are addressed to, then receive data from it. 
+Controllers register with the gateway they are addressed to, then receive data from it. 
 
-```
+``` cpp
+#include "fdrs_node_config.h"
+#include <fdrs_node.h>
+
 void fdrs_recv_cb(DataReading theData) {
-  //Quickly handle incoming data
   DBG("ID: " + String(theData.id));
   DBG("Type: " + String(theData.t));
   DBG("Data: " + String(theData.d));
 }
 
 void setup() {
-  beginFDRS();
-  //pingFDRS(1000);
-  addFDRS(1000, fdrs_recv_cb);
-  subscribeFDRS(READING_ID);
+  beginFDRS();       // Start the system
+  addFDRS(fdrs_recv_cb);  // Call fdrs_recv_cb() when data arrives.
+  subscribeFDRS(READING_ID);  // Subscribe to DataReadings with ID matching READING_ID
 }
 void loop() {
+  loopFDRS();  // Listen for data
 }
 ```
 
 ## Configuration
 
-### ```#define READING_ID  n```
-The identifier of this individual device. Should be a 16 bit integer value (0 - 65535). Controllers are not necessarily tied to this parameter, and can be subscribed to up to 256 different IDs. Sensors will likely be treated similarly in the future, allowing the user to send sensor readings under multiple IDs.
-### ```#define GTWY_MAC  0xnn```
-The UNIT_MAC of the gateway that this device will communicate with.
-### ```#define FDRS_DEBUG```
-This definition enables debug messages to be sent over the serial port. If disabled, no serial debug interface will be initialized. 
-### ```#define DEBUG_CONFIG```
-This displays a readout of the device's configuration on start-up.
-
-Thanks to [@gulpman](https://github.com/gulpman) for this feature!
-### ```#define USE_ESPNOW```
+#### ```#define USE_ESPNOW```
 Enables/disables ESP-NOW.
-### ```#define USE_LORA```
+#### ```#define USE_LORA```
 Enables/disables LoRa.
-### ```#define LORA_ACK```
+#### ```#define LORA_ACK```
 Enables LoRa packet acknowledgement. The device will use CRC to ensure that the data arrived at its destination correctly. If disabled, ```sendFDRS()``` will always return true when sending LoRa packets.
 
-Thanks to [@aviateur17](https://github.com/aviateur17) for this feature!
-### ```#define DEEP_SLEEP```
+Thanks to [aviateur17](https://github.com/aviateur17) for this feature!
+#### ```#define FDRS_DEBUG```
+This definition enables debug messages to be sent over the serial port. If disabled, no serial debug interface will be initialized. 
+#### ```#define DEEP_SLEEP```
 If enabled, device will enter deep-sleep when the sleepFDRS() command is used. If using ESP8266, be sure that you connect the WAKE pin (GPIO 16) to RST or your device will not wake up. 
-### ```#define POWER_CTRL (pin)```
+#### ```#define POWER_CTRL n```
 If defined, power control will bring a GPIO pin high when FDRS is initialized. This is useful for powering sensors while running on battery.
-
-## Callback function
-The callback function is executed when data arrives with an ID that the controller is subscribed to, interrupting all other tasks. Inside of this function, the user has access to the incoming DataReading.
-
-This function should **ONLY** contain the code needed to save the data to a more permanent location. *Interpretation or display of the data should occur outside of the callback function*. Some light serial debug messages are okay.
-
-Intermediate users may also like to know that if the controller is subscribed to multiple IDs, the callback may be called multiple times before returning to the loop().
-
+#
+## LoRa Configuration
+#### ```#define RADIOLIB_MODULE cccc```
+The name of the RadioLib module being used. Tested modules: SX1276, SX1278, SX1262.
+#### ```#define LORA_SS n```
+LoRa chip select pin.
+#### ```#define LORA_RST n```
+LoRa reset pin.
+#### ```#define LORA_DIO n```
+LoRa DIO pin. This refers to DIO1 on SX127x chips and DIO1 on SX126x chips.
+#### ```#define LORA_BUSY n```
+For SX126x chips: LoRa BUSY pin. For SX127x: DIO1 pin, or "RADIOLIB_NC" to leave it blank. 
+#### ```#define LORA_TXPWR n```
+LoRa TX power in dBm.
+#### ```#define USE_SX126X```
+Enable this if using the SX126x series of LoRa chips.
+#
+### SSD1306 OLED Display
+Built on the [ThingPulse OLED SSD1306 Library](https://github.com/ThingPulse/esp8266-oled-ssd1306)
+##### ```#define OLED_HEADER "cccc"```
+The message to be displayed at the top of the screen.
+#### ```#define OLED_SDA n``` and ```OLED_SCL n```
+OLED I²C pins.
+#### ```#define OLED_RST n```
+OLED reset pin. Use '-1' if not present or known.
+#
+## Callback Function
+The callback function is executed when data arrives with an ID that the controller is subscribed to. Inside of this function, the user has access to the incoming DataReading. If multiple readings are recieved, the function will be called for each of them. While you should always be brief in interrupt callbacks (ISRs), it's okay to do more in this one.
 ## Type Definitions 
 For the moment, my thought is to reserve the first two bits of the type. I might use them in the future to indicate the data size or type (bool, char,  int, float, etc?). This leaves us with 64 possible type definitions. If you have more types to add, please get in touch!
 ```
-#define STATUS_T        0  // Status 
-#define TEMP_T          1  // Temperature 
-#define TEMP2_T         2  // Temperature #2
-#define HUMIDITY_T      3  // Relative Humidity 
-#define PRESSURE_T      4  // Atmospheric Pressure 
-#define LIGHT_T         5  // Light (lux) 
-#define SOIL_T          6  // Soil Moisture 
-#define SOIL2_T         7  // Soil Moisture #2 
-#define SOILR_T         8 // Soil Resistance 
-#define SOILR2_T        9 // Soil Resistance #2 
-#define OXYGEN_T        10 // Oxygen 
-#define CO2_T           11 // Carbon Dioxide
-#define WINDSPD_T       12 // Wind Speed
-#define WINDHDG_T       13 // Wind Direction
-#define RAINFALL_T      14 // Rainfall
-#define MOTION_T        15 // Motion
-#define VOLTAGE_T       16 // Voltage
-#define VOLTAGE2_T      17 // Voltage #2
-#define CURRENT_T       18 // Current
-#define CURRENT2_T      19 // Current #2
-#define IT_T            20 // Iterations
-#define LATITUDE_T      21 // GPS Latitude
-#define LONGITUDE_T     22 // GPS Longitude
-#define ALTITUDE_T      23 // GPS Altitude
-#define HDOP_T          24 // GPS HDOP
-#define LEVEL_T         25 // Fluid Level
+#define STATUS_T        0  // Status 
+#define TEMP_T          1  // Temperature 
+#define TEMP2_T         2  // Temperature #2
+#define HUMIDITY_T      3  // Relative Humidity 
+#define PRESSURE_T      4  // Atmospheric Pressure 
+#define LIGHT_T         5  // Light (lux) 
+#define SOIL_T          6  // Soil Moisture 
+#define SOIL2_T         7  // Soil Moisture #2 
+#define SOILR_T         8 // Soil Resistance 
+#define SOILR2_T        9 // Soil Resistance #2 
+#define OXYGEN_T        10 // Oxygen 
+#define CO2_T           11 // Carbon Dioxide
+#define WINDSPD_T       12 // Wind Speed
+#define WINDHDG_T       13 // Wind Direction
+#define RAINFALL_T      14 // Rainfall
+#define MOTION_T        15 // Motion
+#define VOLTAGE_T       16 // Voltage
+#define VOLTAGE2_T      17 // Voltage #2
+#define CURRENT_T       18 // Current
+#define CURRENT2_T      19 // Current #2
+#define IT_T            20 // Iterations
+#define LATITUDE_T      21 // GPS Latitude
+#define LONGITUDE_T     22 // GPS Longitude
+#define ALTITUDE_T      23 // GPS Altitude
+#define HDOP_T          24 // GPS HDOP
+#define LEVEL_T         25 // Fluid Level
+#define UV_T            26 // UV
+#define PM1_T           27 // 1 Particles
+#define PM2_5_T         28 // 2.5 Particles
+#define PM10_T          29 // 10 Particles
+#define POWER_T         30 // Power
+#define POWER2_T        31 // Power #2
+#define ENERGY_T        32 // Energy
+#define ENERGY2_T       33 // Energy #2
 ```
-## Under the hood
+## Under the Hood
 ```
 typedef struct __attribute__((packed)) DataReading {
   float d;

@@ -36,10 +36,6 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   return crc;
 }
 
-#ifdef DEBUG_CONFIG
-// #include "fdrs_checkConfig.h"
-#endif
-
 SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
@@ -61,11 +57,19 @@ uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
 time_t netTimeOffset=UINT32_MAX;          // Offset network time by the 1/2 the amount of time a ping takes, if value not set then use max value
 
-#include "fdrs_oled.h"
 #include "fdrs_debug.h"
-#include "fdrs_node_espnow.h"
-#include "fdrs_node_time.h"
-#include "fdrs_node_lora.h"
+#ifdef DEBUG_CONFIG
+// #include "fdrs_checkConfig.h"
+#endif
+#ifdef USE_OLED
+  #include "fdrs_oled.h"
+#endif
+#ifdef USE_ESPNOW
+  #include "fdrs_node_espnow.h"
+#endif
+#ifdef USE_LORA
+  #include "fdrs_node_lora.h"
+#endif
 
 void beginFDRS()
 {
@@ -141,7 +145,9 @@ void beginFDRS()
 #endif
   DBG(" ESP-NOW Initialized.");
 #endif // USE_ESPNOW
+#ifdef USE_LORA
   begin_lora();
+#endif
 #ifdef DEBUG_CONFIG
   // if (resetReason != ESP_RST_DEEPSLEEP) {
   // checkConfig();
@@ -184,6 +190,7 @@ bool sendFDRS()
   esp_now_ack_flag = CRC_NULL;
   while (esp_now_ack_flag == CRC_NULL)
   {
+    yield();
     delay(0);
   }
   if (esp_now_ack_flag == CRC_OK)
@@ -262,7 +269,9 @@ void sleepFDRS(int sleep_time)
 void loopFDRS()
 {
   updateTime();
+#ifdef USE_LORA
   handleLoRa();
+#endif
   handleIncoming();
   // // TO-DO:
   // if (is_added)

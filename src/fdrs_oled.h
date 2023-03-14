@@ -1,5 +1,5 @@
 
-#ifdef USE_OLED
+
 #include <ESP8266_and_ESP32_OLED_driver_for_SSD1306_displays/src/SSD1306Wire.h>
 
 String debug_buffer[5] = {"", "", "", "", ""};
@@ -69,4 +69,3 @@ void init_oled(){
 
 
   }
-#endif

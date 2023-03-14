@@ -9,7 +9,7 @@
 #include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
-#define SERIAL1_RX 34 // TX pin of GPS sensor
+#define SERIAL1_RX 13 // TX pin of GPS sensor
 #define SERIAL1_TX 12 // RX pin of GPS sensor
 #define MAX_NMEA_LENGTH 82 //maximum allowed length of a NMEA 0183 sentences.
 
@@ -47,6 +47,7 @@ void loop() {
     // negative values mean "S" or "W", positive values mean "N" and "E"
     float latitude = convertGpsCoordinates(atof(gpsLatitude), gpsLatitudeOrientation);
     float longitude = convertGpsCoordinates(atof(gpsLongitude), gpsLongitudeOrientation);
+
     float altitude = atof(gpsAltitude);
       
 /*
@@ -59,9 +60,11 @@ void loop() {
     loadFDRS(latitude, LATITUDE_T);
     loadFDRS(longitude, LONGITUDE_T);
     loadFDRS(altitude, ALTITUDE_T);
-    
-    
-    sendFDRS();
+    if(sendFDRS()){
+      DBG("Big Success!");
+    } else {
+      DBG("Nope, not so much.");
+    }
     sleepFDRS(10);  //Sleep time in seconds
   }
 
@@ -162,7 +165,7 @@ float convertGpsCoordinates(float degreesMinutes, char* orientation) {
   double gpsMinutes = fmod((double)degreesMinutes, 100.0);
   uint8_t gpsDegrees = degreesMinutes / 100;
   double decimalDegrees = gpsDegrees + ( gpsMinutes / 60 );
-  if (orientation == "W" || orientation == "S") {
+  if (strcmp(orientation, "W") == 0 || strcmp(orientation, "S") == 0) { 
     decimalDegrees = 0 - decimalDegrees;
   }
   return decimalDegrees;

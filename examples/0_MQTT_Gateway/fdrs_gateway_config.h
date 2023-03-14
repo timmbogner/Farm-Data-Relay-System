@@ -16,7 +16,7 @@
 #define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
 //#define USE_ETHERNET
 
-// Actions
+// Routing
 // Options: sendESPNowNbr(1 or 2); sendESPNowPeers(); sendLoRaNbr(1 or 2); broadcastLoRa(); sendSerial(); sendMQTT();
 #define ESPNOWG_ACT    
 #define LORAG_ACT      
@@ -33,8 +33,10 @@
 #define LORA_SS    18
 #define LORA_RST   14
 #define LORA_DIO   26
-#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
+#define LORA_BUSY  33
 //#define USE_SX126X
+
+#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
 //#define CUSTOM_SPI
 #define LORA_SPI_SCK  5
