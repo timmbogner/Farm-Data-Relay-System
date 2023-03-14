@@ -92,6 +92,12 @@ For SX126x chips: LoRa BUSY pin. For SX127x: DIO1 pin, or "RADIOLIB_NC" to leave
 LoRa TX power in dBm.
 #### ```#define USE_SX126X```
 Enable this if using the SX126x series of LoRa chips.
+
+#### ```#define CUSTOM_SPI```
+Enable this to define non-default SPI pins.
+#### ```#define LORA_SPI_SCK n```, ```LORA_SPI_MISO n```, ```LORA_SPI_MOSI n```
+Custom SPI pin definitions.
+
 #
 **LoRa radio parameters are generally configured in the 'src/fdrs_globals.h' file.** The following values may be set in the gateway configuration file if the user wishes to override the global value:
 
@@ -109,11 +115,6 @@ LoRa coding rate denominator. Allowed values range from 5 to 8.
 LoRa sync word. Can be used to distinguish different networks. Note that 0x34 is reserved for LoRaWAN.
 #### ```#define LORA_INTERVAL n```
 Interval between LoRa buffer releases. Must be longer than transmission time-on-air.
-
-#### ```#define CUSTOM_SPI```
-Enable this to define non-default SPI pins.
-#### ```#define LORA_SPI_SCK n```, ```LORA_SPI_MISO n```, ```LORA_SPI_MOSI n```
-Custom SPI pin definitions.
 
 ## WiFi and MQTT Configuration
 WiFi and MQTT parameters are generally configured in the 'src/fdrs_globals.h' file. The following values may be set in the gateway configuration file if the user wishes to override the global value:
