@@ -1,18 +1,15 @@
 #if defined(ESP8266)
-#include <ESP8266WiFi.h>
-#include <espnow.h>
+    #include <ESP8266WiFi.h>
+    #include <espnow.h>
 #elif defined(ESP32)
-#include <esp_now.h>
-#include <WiFi.h>
-#include <esp_wifi.h>
+    #include <esp_now.h>
+    #include <WiFi.h>
+    #include <esp_wifi.h>
 #endif
 
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
-
-
-#ifdef USE_ESPNOW
 bool pingFlag = false;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -90,5 +87,3 @@ uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
     DBG("No ESP-NOW ping returned within " + String(timeout) + "ms.");
     return UINT32_MAX;
 }
-
-#endif // USE_ESPNOW
