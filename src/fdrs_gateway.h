@@ -84,6 +84,19 @@ void releaseLogBuffer();
 #if defined(USE_FS_LOG) || defined(USE_SD_LOG)
   #include "fdrs_gateway_filesystem.h"
 #endif
+#ifdef USE_ESPNOW
+  #include "fdrs_gateway_espnow.h"
+#endif
+#ifdef USE_LORA
+  #include "fdrs_gateway_lora.h"
+#endif
+#ifdef USE_WIFI
+  #include "fdrs_gateway_wifi.h"
+  #include "fdrs_gateway_mqtt.h"
+#endif
+#if defined(USE_FS_LOG) || defined(USE_SD_LOG)
+  #include "fdrs_gateway_filesystem.h"
+#endif
 #ifdef DEBUG_CONFIG
   #include "fdrs_checkConfig.h"
 #endif

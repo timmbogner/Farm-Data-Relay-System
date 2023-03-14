@@ -74,11 +74,3 @@
 //#define LOCAL_OFFSET      (-6)                     // Local time offset in hours from UTC - if unsure, check https://time.is
 //#define TIME_FETCHNTP     15      // Time in minutes between fetching time from NTP server
 //#define TIME_PRINTTIME    10      // Time in minutes between printing local time
-
-// Logging settings  --  Logging will occur when MQTT is disconnected
-//#define USE_SD_LOG        //Enable SD-card logging
-//#define USE_FS_LOG        //Enable filesystem (flash) logging
-#define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
-#define SD_SS        0      //SD card CS pin (Use different pins for LoRa and SD)
-#define LOG_FILENAME "fdrs_log.csv"
-
