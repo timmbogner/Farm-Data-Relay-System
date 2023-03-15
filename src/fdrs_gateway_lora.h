@@ -259,15 +259,20 @@ crcResult transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
 
 // These need to be removed 
 #ifdef USE_LORA
-void timeFDRSLoRa(uint8_t *address) {
-  SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
+void sendTimeLoRa(uint8_t *address) {
+
   uint16_t LoRaAddress;
 
   // DBG("Sending time " + String(now) + " to LoRa address 0x" + String(*address, HEX) + String(*(address + 1), HEX));
   LoRaAddress = ((int16_t) *address << 8) + *(address + 1);
   DBG("Sending time " + String(now) + " to LoRa address 0x" + String(LoRaAddress, HEX));
 
+  SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
   transmitLoRa(&LoRaAddress, &spTimeLoRa, 1);
+  // add LoRa neighbor 1
+  // transmitLoRa(&LoRaAddress, &spTimeLoRa, 1);
+  // add LoRa neighbor 2
+  // transmitLoRa(&LoRaAddress, &spTimeLoRa, 1);
 
 }
 // These need to be removed 

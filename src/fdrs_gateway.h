@@ -64,20 +64,26 @@ uint8_t data_count = 0;
 
 void sendFDRS()
 {
-  for (int i = 0; i < data_count; i++)
-  {
-    theData[i].id = fdrsData[i].id;
-    theData[i].t = fdrsData[i].t;
-    theData[i].d = fdrsData[i].d;
+  if(data_count > 0) {
+    for (int i = 0; i < data_count; i++)
+    {
+      theData[i].id = fdrsData[i].id;
+      theData[i].t = fdrsData[i].t;
+      theData[i].d = fdrsData[i].d;
+    }
+    ln = data_count;
+    data_count = 0;
+    newData = event_internal;
+    DBG("Entered internal data.");
   }
-  ln = data_count;
-  data_count = 0;
-  newData = event_internal;
-  DBG("Entered internal data.");
 }
 
 void loadFDRS(float d, uint8_t t, uint16_t id)
 {
+  // guard against buffer overflow
+  if(data_count > 253) {
+    sendFDRS();
+  }
   DBG("Id: " + String(id) + " - Type: " + String(t) + " - Data loaded: " + String(d));
   DataReading dr;
   dr.id = id;
