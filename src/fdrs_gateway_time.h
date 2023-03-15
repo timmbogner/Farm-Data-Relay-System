@@ -29,8 +29,6 @@
 #else
 #define FDRS_TIME_PRINTTIME GLOBAL_TIME_PRINTTIME
 #endif // TIME_PRINTTIME
-#define DSTSTART  (timeinfo.tm_mon == 10 && timeinfo.tm_wday == 0 && timeinfo.tm_mday < 8 && timeinfo.tm_hour == 2)
-#define DSTEND    (timeinfo.tm_mon == 2 && timeinfo.tm_wday == 0 && timeinfo.tm_mday > 7 && timeinfo.tm_mday < 15 && timeinfo.tm_hour == 2)
 
 WiFiUDP FDRSNtp;
 unsigned int localPort = 8888;        // local port to listen for UDP packets
@@ -45,12 +43,6 @@ time_t localOffset = (FDRS_LOCAL_OFFSET * 60 * 60);  // UTC -> Local time in Sec
 bool validTimeFlag = false;           // Indicate whether we have reliable time 
 uint NTPFetchFail = 0;                // consecutive NTP fetch failures
 time_t lastNTPFetchSuccess = 0;      // Last time that a successful NTP fetch was made
-bool isDST;                           // Keeps track of Daylight Savings Time vs Standard Time
-long slewSecs = 0;                  // When time is set this is the number of seconds the time changes
-
-// Function prototypes
-void loadFDRS(float, uint8_t, uint16_t);
-void sendFDRS();
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(const char * address) {
@@ -88,6 +80,18 @@ bool validTime() {
       validTimeFlag = true;
     }
     return true;
+  }
+}
+
+void updateTime() {
+  static time_t lastUpdate = 0;
+  if(millis() - lastUpdate > 500) {
+      time(&now);
+      localtime_r(&now, &timeinfo);
+      tv.tv_sec = now;
+      tv.tv_usec = 0;
+      validTime();
+      lastUpdate = millis();
   }
 }
 
@@ -187,9 +191,9 @@ void updateTime() {
 }
 
 void fetchNtpTime() {
-  time_t previousTime = 0;
-
+  //DBG("GetTime Function");
   if(WiFi.status() == WL_CONNECTED) {
+    //DBG("Calling .begin function");
     FDRSNtp.begin(localPort);
 
     sendNTPpacket(timeServer); // send an NTP packet to a time server
@@ -220,9 +224,16 @@ void fetchNtpTime() {
       const unsigned long seventyYears = 2208988800UL;
       // subtract seventy years:
       // now is epoch format - seconds since Jan 1 1970
-      previousTime = now;
       now = secsSince1900 - seventyYears;
-      setTime(previousTime);
+      // Adjust for local time
+      now += localOffset;
+      // time(&now);
+      tv.tv_sec = now;
+      settimeofday(&tv,NULL);
+      localtime_r(&now, &timeinfo);
+      if(validTime()) {
+        lastNTPFetchSuccess = millis();
+      }
     }
     else {
       NTPFetchFail++;

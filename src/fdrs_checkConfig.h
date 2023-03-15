@@ -79,8 +79,8 @@ void printLoggingInformation() {
 #else
 	DBG("log buffer delay in ms: NOT SPECIFIED - check config!");
 #endif
-#ifdef FS_FILENAME
-	DBG("log filename          : " + FS_FILENAME);
+#ifdef LOG_FILENAME
+	DBG("log filename          : " + LOG_FILENAME);
 #else
 	DBG("log filename          : NOT SPECIFIED - check config!");
 #endif
@@ -154,6 +154,15 @@ void printWifiDetails() {
 	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //WIFI_PASS
+
+#if defined(DNS_IPADDRESS)
+	DBG("DNS IP Address used from DNS_IPADDRESS            : " + String(FDRS_DNS_IPADDRESS));
+#elif defined (GLOBAL_DNS_IPADDRESS)
+	DBG("DNS IP Address used from GLOBAL_DNS_IPADDRESS     : " + String(FDRS_DNS_IPADDRESS));
+#else 
+	DBG("NO DNS IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
+	//exit(0);
+#endif //DNS_IPADDRESS
 
 	printSmallSectionHeader("MQTT BROKER CONFIG:");
 

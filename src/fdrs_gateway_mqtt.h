@@ -1,4 +1,3 @@
-#ifdef USE_WIFI
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
@@ -41,11 +40,17 @@
 #define FDRS_MQTT_AUTH
 #endif // MQTT_AUTH
 
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 const char *mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
+#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
+    extern time_t last_log_write;
+    extern time_t last_mqtt_success;
+#endif
+
 
 #ifdef FDRS_MQTT_AUTH
 const char *mqtt_user = FDRS_MQTT_USER;
@@ -152,7 +157,9 @@ void mqtt_publish(const char *payload)
     if (!client.publish(TOPIC_DATA, payload))
     {
         DBG(" Error on sending MQTT");
+#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
         sendLog();
+#endif
     }
     else
     {
@@ -166,11 +173,9 @@ void mqtt_publish(const char *payload)
 #endif
     }
 }
-#endif // USE_WIFI
 
 void sendMQTT()
 {
-#ifdef USE_WIFI
     DBG("Sending MQTT.");
     DynamicJsonDocument doc(24576);
     for (int i = 0; i < ln; i++)
@@ -183,5 +188,4 @@ void sendMQTT()
     String outgoingString;
     serializeJson(doc, outgoingString);
     mqtt_publish((char *)outgoingString.c_str());
-#endif // USE_WIFI
 }

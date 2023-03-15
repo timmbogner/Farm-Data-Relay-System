@@ -16,7 +16,7 @@
 #define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
 //#define USE_ETHERNET
 
-// Actions
+// Routing
 // Options: sendESPNowNbr(1 or 2); sendESPNowPeers(); sendLoRaNbr(1 or 2); broadcastLoRa(); sendSerial(); sendMQTT();
 #define ESPNOWG_ACT    
 #define LORAG_ACT      
@@ -33,8 +33,10 @@
 #define LORA_SS    18
 #define LORA_RST   14
 #define LORA_DIO   26
-#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
+#define LORA_BUSY  33
 //#define USE_SX126X
+
+#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
 //#define CUSTOM_SPI
 #define LORA_SPI_SCK  5
@@ -59,6 +61,7 @@
 // WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID   "Your SSID"  
 //#define WIFI_PASS   "Your Password"
+//#define DNS_IPADDRESS "192.168.0.1"     // Valid DNS IP address.  If not known, try "8.8.8.8"
 
 //#define MQTT_ADDR   "192.168.0.8"
 //#define MQTT_PORT   1883 // Default MQTT port is 1883
@@ -72,11 +75,4 @@
 //#define TIME_FETCHNTP         15                      // Time in minutes between fetching time from NTP server
 //#define TIME_PRINTTIME        10                      // Time in minutes between printing local time
 //#define TIME_SEND_INTERVAL_MS (1000 * 60 * 60)        // Frequency that time is sent to repeaters and nodes
-
-// Logging settings  --  Logging will occur when MQTT is disconnected
-//#define USE_SD_LOG        //Enable SD-card logging
-//#define USE_FS_LOG        //Enable filesystem (flash) logging
-#define LOGBUF_DELAY 10000  // Log Buffer Delay - in milliseconds
-#define SD_SS        0      //SD card CS pin (Use different pins for LoRa and SD)
-#define LOG_FILENAME "fdrs_log.csv"
 

@@ -15,7 +15,7 @@ const uint8_t espnow_size = 250 / sizeof(DataReading);
 esp_now_peer_info_t peerInfo;
 #endif
 
-uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 const uint8_t mac_prefix[] = {MAC_PREFIX};
 uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
@@ -25,7 +25,7 @@ uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
 uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 extern time_t now;
 
-#ifdef USE_ESPNOW
+
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
@@ -63,11 +63,9 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   }
   newData = event_espnowg;
 }
-#endif // USE_ESPNOW
 
 void begin_espnow()
 {
-#ifdef USE_ESPNOW
   DBG("Initializing ESP-NOW!");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -111,10 +109,7 @@ void begin_espnow()
   }
 #endif // ESP8266
   DBG(" ESP-NOW Initialized.");
-#endif // USE_ESPNOW
 }
-
-#ifdef USE_ESPNOW
 
 // Returns an expired entry in peer_list, -1 if full.
 int find_espnow_peer()

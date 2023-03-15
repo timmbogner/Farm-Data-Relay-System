@@ -1,17 +1,12 @@
-#ifdef USE_ETHERNET
-#ifndef USE_WIFI
-#define USE_WIFI
-#endif
-#endif // USE_ETHERNET
-
-#ifdef USE_WIFI
 #include <WiFiUdp.h>
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #elif defined(ESP32)
 #include <WiFi.h>
 #include <esp_wifi.h>
-#endif
+#elif defined(ARDUINO_ARCH_RP2040)
+#include <WiFi.h>
+#endif  
 #ifdef USE_ETHERNET
 #include <ETH.h>
 #endif
@@ -33,6 +28,15 @@
 #else
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // WIFI_PASS
+
+// select DNS IP Address configuration
+#if defined(DNS_IPADDRESS)
+#define FDRS_DNS_IPADDRESS DNS_IPADDRESS
+#elif defined(GLOBAL_DNS_IPADDRESS)
+#define FDRS_DNS_IPADDRESS GLOBAL_DNS_IPADDRESS
+#else
+// ASSERT("NO DNS IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
+#endif // DNS_IPADDRESS
 
 #ifdef USE_ETHERNET
 static bool eth_connected = false;
@@ -76,6 +80,7 @@ void WiFiEvent(WiFiEvent_t event)
 #endif // USE_ETHERNET
 const char *ssid = FDRS_WIFI_SSID;
 const char *password = FDRS_WIFI_PASS;
+IPAddress dnsAddress;
 
 void begin_wifi()
 {
@@ -89,6 +94,7 @@ void begin_wifi()
     delay(500);
   }
 #else
+  WiFi.dnsIP(dnsAddress.fromString(FDRS_DNS_IPADDRESS));
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -98,4 +104,3 @@ void begin_wifi()
   }
 #endif // USE_ETHERNET
 }
-#endif // USE_WIFI
