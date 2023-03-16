@@ -80,6 +80,7 @@ void setup() {
 
 void loop()
 {
+  loopFDRS();
   if (newData) {
     newData = false;
     updateScreen();

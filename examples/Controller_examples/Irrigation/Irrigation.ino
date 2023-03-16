@@ -164,6 +164,7 @@ void setup() {
 }
 
 void loop() {
+  loopFDRS();
   if (newData) {
     newData = false;
     updateCoils();
