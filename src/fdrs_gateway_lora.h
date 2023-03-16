@@ -582,8 +582,7 @@ void asyncReleaseLoRa(bool first_run)
           transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
         TxFin:
         if (LORABBuffer.len + LORA1Buffer.len +LORA2Buffer.len > 0)
-            DBG("LoRa airtime: " + String(millis() - tx_start_time) + "ms");
-          radio.startReceive();
+          //radio.startReceive();
           LORABBuffer.len = 0;
           LORA1Buffer.len = 0;
           LORA2Buffer.len = 0;
@@ -618,7 +617,7 @@ crcResult handleLoRa()
       }
       else
       {
-
+        DBG("LoRa airtime: " + String(millis() - tx_start_time) + "ms");
         radio.startReceive(); // return to listen mode
         enableInterrupt = true;
         transmitFlag = false;
