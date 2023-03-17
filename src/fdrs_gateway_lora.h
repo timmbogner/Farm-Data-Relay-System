@@ -658,3 +658,16 @@ crcResult handleLoRa()
   }
   return crcReturned;
 }
+
+void sendTimeLoRa() {
+
+  DBG("Sending time via LoRa");
+  SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
+  transmitLoRa(&loraBroadcast, &spTimeLoRa, 1);
+  spTimeLoRa.param = now;
+  // add LoRa neighbor 1
+  transmitLoRa(&LoRa1, &spTimeLoRa, 1);
+  spTimeLoRa.param = now;
+  // add LoRa neighbor 2
+  transmitLoRa(&LoRa2, &spTimeLoRa, 1);
+}

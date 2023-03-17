@@ -352,7 +352,7 @@ crcResult getLoRa()
         sourceMAC = (packet[2] << 8) | packet[3];
         packetCRC = ((packet[packetSize - 2] << 8) | packet[packetSize - 1]);
         // DBG("Source Address: 0x" + String(packet[2], HEX) + String(packet[3], HEX) + " Destination Address: 0x" + String(packet[0], HEX) + String(packet[1], HEX));
-        if ((destMAC == LoRaAddress) || (destMAC == 0xFFFF))
+        if ((destMAC == LoRaAddress) || (destMAC == 0xFFFF && sourceMAC == gtwyAddress))
         { // Check if addressed to this device or broadcast
             // printLoraPacket(packet,sizeof(packet));
             if (receivedLoRaMsg != 0)
@@ -423,14 +423,11 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+                        time_t previousTime = now;
                         now = receiveData[0].param;
-                        tv.tv_sec = now;
-                        settimeofday(&tv,NULL);
-                        localtime_r(&now, &timeinfo);
-                        DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
+                        setTime(previousTime);
+                        DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
                         adjTimeforNetDelay(netTimeOffset);
-                        lastTimeSetEvent = millis();
-                        printTime();
                     }
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.
@@ -462,14 +459,11 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+                        time_t previousTime = now;
                         now = receiveData[0].param;
-                        tv.tv_sec = now;
-                        settimeofday(&tv,NULL);
-                        localtime_r(&now, &timeinfo);
-                        DBG("We have received the time of " + String(now) + " from 0x" + String(sourceMAC, HEX));
+                        setTime(previousTime);
+                        DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
                         adjTimeforNetDelay(netTimeOffset);
-                        lastTimeSetEvent = millis();
-                        printTime();
                     }
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.
@@ -488,7 +482,7 @@ crcResult getLoRa()
         }
         else
         {
-            // DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
+            DBG("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
             // printLoraPacket(packet,sizeof(packet));
             return CRC_NULL;
         }

@@ -11,6 +11,7 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
 bool pingFlag = false;
+extern time_t now;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -55,6 +56,11 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
             is_added = true;
             gtwy_timeout = command.param;
             break;
+        case cmd_time:
+            time_t previousTime = now;
+            now = command.param;
+            setTime(previousTime);    
+            break;
         }
     }
     else
@@ -80,7 +86,7 @@ uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
         yield(); // do I need to yield or does it automatically?
         if (pingFlag)
         {
-            DBG("ESP-NOW Ping Reply in " + String(millis() - ping_start) + "ms from " + String(address[0], HEX) + ":" + String(address[1], HEX) + ":" + String(address[2], HEX) + ":" + String(address[3], HEX) + ":" + String(address[4], HEX) + ":" + String(address[5], HEX));
+            DBG("ESP-NOW Ping Reply in " + String(millis() - ping_start) + "ms from 0x" + String(address[5], HEX));
             return (millis() - ping_start);
         }
     }

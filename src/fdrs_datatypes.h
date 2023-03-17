@@ -26,7 +26,7 @@ enum crcResult {
   CRC_BAD,
 } returnCRC;
 
-enum {
+enum cmd_t {
   cmd_clear,
   cmd_ping,
   cmd_add,

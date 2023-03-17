@@ -40,17 +40,11 @@
 #define FDRS_MQTT_AUTH
 #endif // MQTT_AUTH
 
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 const char *mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-    extern time_t last_log_write;
-    extern time_t last_mqtt_success;
-#endif
-
 
 #ifdef FDRS_MQTT_AUTH
 const char *mqtt_user = FDRS_MQTT_USER;
@@ -185,7 +179,7 @@ void sendMQTT()
         doc[i]["data"] = theData[i].d;
         doc[i]["time"] = time(nullptr);
     }
-    String outgoingString;
-    serializeJson(doc, outgoingString);
-    mqtt_publish((char *)outgoingString.c_str());
+    char mqtt_payload[measureJson(doc) + 1];
+    serializeJson(doc, mqtt_payload, sizeof(mqtt_payload));
+    mqtt_publish(mqtt_payload);
 }

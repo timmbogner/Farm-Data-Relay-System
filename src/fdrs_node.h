@@ -189,10 +189,16 @@ bool sendFDRS()
 #ifdef USE_ESPNOW
   esp_now_send(gatewayAddress, (uint8_t *)&fdrsData, data_count * sizeof(DataReading));
   esp_now_ack_flag = CRC_NULL;
-  while (esp_now_ack_flag == CRC_NULL)
+  time_t start = millis();
+  int count = 0;
+  while (esp_now_ack_flag == CRC_NULL && count < 20)
   {
-    yield();
+    if(millis() - start > 50) {
+      count++;
+      start = millis();
+    }
     delay(0);
+    // yield(); // This causes ESP8266 to panic
   }
   if (esp_now_ack_flag == CRC_OK)
   {
@@ -328,7 +334,7 @@ bool addFDRS(void (*new_cb_ptr)(DataReading))
 #ifdef USE_ESPNOW
   SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
   esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  DBG("ESP-NOW peer registration request submitted to 0x" + String(gatewayAddress[5], HEX));
   uint32_t add_start = millis();
   is_added = false;
   while ((millis() - add_start) <= 1000) // 1000ms timeout
@@ -336,7 +342,7 @@ bool addFDRS(void (*new_cb_ptr)(DataReading))
     yield();
     if (is_added)
     {
-      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout/1000) + " secs");
       last_refresh = millis();
       return true;
     }
@@ -353,7 +359,7 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
 #ifdef USE_ESPNOW
   SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
   esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  DBG("ESP-NOW peer registration request submitted to 0x" + String(gatewayAddress[5], HEX));
   uint32_t add_start = millis();
   is_added = false;
   while ((millis() - add_start) <= timeout)
@@ -361,7 +367,7 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
     yield();
     if (is_added)
     {
-      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout/1000) + " sec");
       last_refresh = millis();
       return true;
     }

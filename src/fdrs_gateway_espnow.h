@@ -195,8 +195,6 @@ void add_espnow_peer()
   }
 }
 
-#endif // USE_ESPNOW
-
 // Lower level function meant to be called by other functions 
 // Sends SystemPacket via ESP-NOW
 esp_err_t sendESPNow(uint8_t *dest, SystemPacket *data) {
@@ -297,12 +295,10 @@ esp_err_t sendESPNow(uint8_t *dest, DataReading *data) {
     }
   }
 #endif // ESP32
-    int i = 0;
-    while(ln > 0) {
+    for(int i = 0; i < ln; ) {
       if(ln > espnow_size) {
         sendResult = esp_now_send(dest, (uint8_t *)&data[i], espnow_size * sizeof(DataReading));
         if(sendResult == ESP_OK) {
-          ln -= espnow_size;
           i += espnow_size;
         }
         else {
@@ -368,4 +364,11 @@ esp_err_t sendESPNowTempPeer(uint8_t *dest) {
   result = sendESPNow(dest, theData);
   esp_now_del_peer(dest);
   return result;
+}
+
+void recvTimeEspNow() {
+  time_t previousTime = now;
+  now = theCmd.param;
+  setTime(previousTime); 
+  DBG("Received time via ESP-NOW from 0x" + String(incMAC[5],HEX));
 }
