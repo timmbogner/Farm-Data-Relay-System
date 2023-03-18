@@ -70,14 +70,13 @@
 #endif // LORA_SYNCWORD
 
 #ifdef CUSTOM_SPI
-#ifdef ESP32
-SPIClass SPI1(HSPI);
-#endif  // ESP32
+#ifdef ARDUINO_ARCH_RP2040
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI1);
+#endif  // RP2040
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI);
 #else
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
 #endif  // CUSTOM_SPI
-
 
 bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
@@ -142,7 +141,7 @@ void begin_lora()
 {
 #ifdef CUSTOM_SPI
 #ifdef ESP32
-  SPI1.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
+  SPI.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
 #endif  // ESP32
 #ifdef ARDUINO_ARCH_RP2040
   SPI1.setRX(LORA_SPI_MISO);
