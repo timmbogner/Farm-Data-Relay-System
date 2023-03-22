@@ -85,8 +85,8 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
 
 
 #ifndef USE_ESPNOW   // mac_prefix used for both ESP-NOW and LoRa - avoid redefinition warnings
-  const uint8_t mac_prefix[] = {MAC_PREFIX};
-  const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
+const uint8_t mac_prefix[] = {MAC_PREFIX};
+const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 #endif
 
 bool pingFlag = false;
@@ -188,10 +188,10 @@ crcResult transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
     // printf("CRC: %02X : %d\n",calcCRC, i);
     calcCRC = crc16_update(calcCRC, pkt[i]);
   }
-  if (*destMac == 0xFFFF)
-  {
-    calcCRC = crc16_update(calcCRC, 0xA1);
-  }
+  //if (*destMac == 0xFFFF)
+  //{
+  calcCRC = crc16_update(calcCRC, 0xA1);
+  //}
   pkt[(len * sizeof(DataReading) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(DataReading) + 5)] = (calcCRC & 0x00FF);
   DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
@@ -415,7 +415,7 @@ crcResult getLoRa()
           return CRC_OK;
         }
         else if (packetCRC == crc16_update(calcCRC, 0xA1))
-        {                                                  // Sender does not want ACK and CRC is valid
+        { // Sender does not want ACK and CRC is valid
           memcpy(receiveData, &packet[4], packetSize - 6); // Split off data portion of packet (N bytes)
           if (ln == 1 && receiveData[0].cmd == cmd_ack)
           {
@@ -489,24 +489,24 @@ void sendLoRaNbr(uint8_t interface)
   DBG("Sending to LoRa neighbor buffer");
   switch (interface)
   {
-  case 1:
-  {
-    for (int i = 0; i < ln; i++)
-    {
-      LORA1Buffer.buffer[LORA1Buffer.len + i] = theData[i];
-    }
-    LORA1Buffer.len += ln;
-    break;
-  }
-  case 2:
-  {
-    for (int i = 0; i < ln; i++)
-    {
-      LORA2Buffer.buffer[LORA2Buffer.len + i] = theData[i];
-    }
-    LORA2Buffer.len += ln;
-    break;
-  }
+    case 1:
+      {
+        for (int i = 0; i < ln; i++)
+        {
+          LORA1Buffer.buffer[LORA1Buffer.len + i] = theData[i];
+        }
+        LORA1Buffer.len += ln;
+        break;
+      }
+    case 2:
+      {
+        for (int i = 0; i < ln; i++)
+        {
+          LORA2Buffer.buffer[LORA2Buffer.len + i] = theData[i];
+        }
+        LORA2Buffer.len += ln;
+        break;
+      }
   }
 }
 
@@ -515,74 +515,58 @@ void asyncReleaseLoRa(bool first_run)
   delay(3);
   if (first_run)
   {
-    TxStatus = TxLoRa1;
+    if (LORA1Buffer.len > 0) {
+      TxStatus = TxLoRa1;
+    } else if (LORA2Buffer.len > 0) {
+      TxStatus = TxLoRa2;
+    } else if (LORABBuffer.len > 0) {
+      TxStatus = TxLoRaB;
+    } else {
+      goto TxFin;
+    }
     tx_start_time = millis();
   }
   switch (TxStatus)
   {
-  case TxLoRa1:
-    if (LORA1Buffer.len == 0)
-    {
-      TxStatus = TxLoRa2;
-      goto TxL2;
-    }
-    else
-    {
-      if (LORA1Buffer.len - tx_buffer_position > lora_size)
-      {
+    case TxLoRa1:
+      if (LORA1Buffer.len - tx_buffer_position > lora_size) {
         transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], lora_size);
         tx_buffer_position += lora_size;
-      }
-      else
-      {
+      } else {
         transmitLoRa(&LoRa1, &LORA1Buffer.buffer[tx_buffer_position], LORA1Buffer.len - tx_buffer_position);
         tx_buffer_position = 0;
-        TxStatus = TxLoRa2;
+        if (LORA2Buffer.len > 0) {
+          TxStatus = TxLoRa2;
+        } else if ((LORABBuffer.len > 0)) {
+          TxStatus = TxLoRaB;
+        } else {
+          goto TxFin;
+        }
       }
       break;
     case TxLoRa2:
-    TxL2:
-      if (LORA2Buffer.len == 0)
-      {
-        TxStatus = TxLoRaB;
-        goto TxLB;
-      }
-      else
-      {
-        if (LORA2Buffer.len - tx_buffer_position > lora_size)
-        {
-          transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], lora_size);
-          tx_buffer_position += lora_size;
-        }
-        else
-        {
-          transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], LORA2Buffer.len - tx_buffer_position);
-          tx_buffer_position = 0;
+      if (LORA2Buffer.len - tx_buffer_position > lora_size) {
+        transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], lora_size);
+        tx_buffer_position += lora_size;
+      } else {
+        transmitLoRa(&LoRa2, &LORA2Buffer.buffer[tx_buffer_position], LORA2Buffer.len - tx_buffer_position);
+        tx_buffer_position = 0;
+        if (LORABBuffer.len > 0) {
           TxStatus = TxLoRaB;
+        } else {
+          goto TxFin;
         }
       }
       break;
+
     case TxLoRaB:
-    TxLB:
-      // DBG(LORABBuffer.len);
-      if (LORABBuffer.len == 0)
-      {
-        TxStatus = TxIdle;
-        goto TxFin;
-      }
-      else
-      {
-        if (LORABBuffer.len - tx_buffer_position > lora_size)
-        {
-          transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], lora_size);
-          tx_buffer_position += lora_size;
-        }
-        else
-        {
-          transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
-        TxFin:
-        if (LORABBuffer.len + LORA1Buffer.len +LORA2Buffer.len > 0)
-          //radio.startReceive();
+      if (LORABBuffer.len - tx_buffer_position > lora_size) {
+        transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], lora_size);
+        tx_buffer_position += lora_size;
+      } else {
+        transmitLoRa(&loraBroadcast, &LORABBuffer.buffer[tx_buffer_position], LORABBuffer.len - tx_buffer_position);
+TxFin:
+        if (LORABBuffer.len + LORA1Buffer.len + LORA2Buffer.len > 0) {
           LORABBuffer.len = 0;
           LORA1Buffer.len = 0;
           LORA2Buffer.len = 0;
@@ -591,9 +575,9 @@ void asyncReleaseLoRa(bool first_run)
         }
       }
       break;
-    }
   }
 }
+
 
 void asyncReleaseLoRaFirst()
 {
@@ -605,6 +589,10 @@ crcResult handleLoRa()
   crcResult crcReturned = CRC_NULL;
   if (operationDone) // the interrupt was triggered
   {
+    // DBG("Interrupt triggered");
+    // DBG("TxFlag: " + String(transmitFlag));
+    // DBG("TxStatus: " + String(TxStatus));
+
     enableInterrupt = false;
     operationDone = false;
     if (transmitFlag) // the previous operation was transmission
