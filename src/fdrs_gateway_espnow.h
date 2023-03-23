@@ -325,6 +325,15 @@ esp_err_t sendESPNow(uint8_t *dest, DataReading *data) {
     return sendResult;
 }
 
+// Legacy Action used in previous versions - not to be removed
+esp_err_t sendESPNow(uint8_t address) {
+  esp_err_t result;
+  uint8_t temp_peer[] = {MAC_PREFIX, address};
+  result = sendESPNowTempPeer(temp_peer);
+  return result;
+}
+
+// Action used in current version - not to be removed
 esp_err_t sendESPNowNbr(uint8_t interface) {
   esp_err_t result;
 
@@ -351,6 +360,7 @@ esp_err_t sendESPNowNbr(uint8_t interface) {
   return result;
 }
 
+// Action used in current version - not to be removed
 esp_err_t sendESPNowPeers() {
   esp_err_t result;
   DBG("Sending to ESP-NOW peers.");
