@@ -45,13 +45,6 @@
 #define FDRS_TIME_SERVER GLOBAL_TIME_SERVER
 #endif // TIME_SERVER
 
-// select Local Offset from UTC configuration
-#if defined(LOCAL_OFFSET)
-#define FDRS_LOCAL_OFFSET LOCAL_OFFSET
-#else
-#define FDRS_LOCAL_OFFSET GLOBAL_LOCAL_OFFSET
-#endif // LOCAL_OFFSET
-
 // select Time, in minutes, between NTP time server queries configuration
 #if defined(TIME_FETCHNTP)
 #define FDRS_TIME_FETCHNTP TIME_FETCHNTP
@@ -65,7 +58,6 @@ unsigned int localPort = 8888;        // local port to listen for UDP packets
 const char timeServer[] = FDRS_TIME_SERVER; // NTP server
 const int NTP_PACKET_SIZE = 48;       // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer[NTP_PACKET_SIZE];   //buffer to hold incoming and outgoing packets
-time_t localOffset = (FDRS_LOCAL_OFFSET * 60 * 60);  // UTC -> Local time in Seconds in Standard Time
 uint NTPFetchFail = 0;                // consecutive NTP fetch failures
 extern time_t now;
 
@@ -194,9 +186,7 @@ void fetchNtpTime() {
       // subtract seventy years:
       // now is epoch format - seconds since Jan 1 1970
       now = secsSince1900 - seventyYears;
-      // Adjust for local time
-      now += localOffset;
-      setTime(now);
+      setTime(now); // time in UTC
     }
     else {
       NTPFetchFail++;

@@ -6,11 +6,25 @@
 #else
 #define FDRS_TIME_PRINTTIME GLOBAL_TIME_PRINTTIME
 #endif // TIME_PRINTTIME
-#define DSTSTART    (timeinfo.tm_mon == 2 && timeinfo.tm_wday == 0 && timeinfo.tm_mday > 7 && timeinfo.tm_mday < 15 && timeinfo.tm_hour == 2)
-#define DSTEND  (timeinfo.tm_mon == 10 && timeinfo.tm_wday == 0 && timeinfo.tm_mday < 8 && timeinfo.tm_hour == 2)
 
+// select Local Standard time Offset from UTC configuration
+#if defined(STD_OFFSET)
+#define FDRS_STD_OFFSET STD_OFFSET
+#else
+#define FDRS_STD_OFFSET GLOBAL_STD_OFFSET
+#endif // STD_OFFSET
 
-time_t now;                           // Current time - number of seconds since Jan 1 1970 (epoch)
+// select Local savings time Offset from UTC configuration
+#if defined(DST_OFFSET)
+#define FDRS_DST_OFFSET DST_OFFSET
+#else
+#define FDRS_DST_OFFSET GLOBAL_DST_OFFSET
+#endif // DST_OFFSET
+
+#define USDSTSTART    (timeinfo.tm_mon == 2; timeinfo.tm_wday == 0 && timeinfo.tm_mday > 7 && timeinfo.tm_mday < 15 && timeinfo.tm_hour == 2)
+#define USDSTEND  (timeinfo.tm_mon == 10 && timeinfo.tm_wday == 0 && timeinfo.tm_mday < 8 && timeinfo.tm_hour == 2)
+
+time_t now;                           // Current time in UTC- number of seconds since Jan 1 1970 (epoch)
 struct tm timeinfo;                   // Structure containing time elements
 struct timeval tv;
 char strftime_buf[64];
@@ -20,12 +34,15 @@ bool isDST;                           // Keeps track of Daylight Savings Time vs
 long slewSecs = 0;                  // When time is set this is the number of seconds the time changes
 time_t lastUpdate = 0;
 time_t lastTimeSend = 0;
+double stdOffset = (FDRS_STD_OFFSET * 60 * 60);  // UTC -> Local time, in Seconds, offset from UTC in Standard Time
+double dstOffset = (FDRS_DST_OFFSET * 60 * 60); // DST offset from standard time (in seconds)
+time_t lastDstCheck = 0;
 
 void sendTimeLoRa();
 esp_err_t sendTimeESPNow();
 
 bool validTime() {
-  if(now < 1677000000 || (millis() - lastNTPFetchSuccess > (24*60*60*1000))) {
+  if(now < 1672000000 || (millis() - lastNTPFetchSuccess > (24*60*60*1000))) {
     if(validTimeFlag) {
       DBG("Time no longer reliable.");
       validTimeFlag = false;
@@ -41,39 +58,87 @@ bool validTime() {
 }
 
 void printTime() {
-  if(!validTime()) {
-    return;
+  if(validTime()) {
+
+    // UTC Time
+    // // print Unix time:
+    // //DBG("Unix time = " + String(now));
+    // localtime_r(&now, &timeinfo);
+    // strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+    // DBG("The current UTC date/time is: " + String(strftime_buf));
+
+    // Local time
+    time_t local = time(NULL) + (isDST?dstOffset:stdOffset);
+    localtime_r(&local, &timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+    DBG("The current local date/time is: " + String(strftime_buf) + (isDST?" DST":" STD"));
   }
-
-  // UTC Time
-  // now -= localOffset;
-  // // print Unix time:
-  // //DBG("Unix time = " + String(now));
-  // localtime_r(&now, &timeinfo);
-  // strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-  // DBG("The current UTC date/time is: " + String(strftime_buf));
-  // now += localOffset;
-
-  // Local time
-  localtime_r(&now, &timeinfo);
-  strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-  DBG("The current local date/time is: " + String(strftime_buf));
 }
 
 void checkDST() {
-  // DST -> STD - subtract one hour (3600 seconds)
-  if(validTimeFlag && isDST && (DSTEND || timeinfo.tm_isdst == 1)) {
-    isDST = false;
-    now -= 3600;
-    localtime_r(&now, &timeinfo); // write to timeinfo struct
-    DBG("Time change from DST -> STD");
-  }
-  // STD -> DST - add one hour (3600 seconds)
-  else if(validTimeFlag && !isDST && (DSTSTART || timeinfo.tm_isdst == 0)) {
-    isDST = true;
-    now += 3600;
-    localtime_r(&now, &timeinfo); // write to timeinfo struct
-    DBG("Time change from STD -> DST");
+  if(validTime() && (time(NULL) - lastDstCheck > 5)) {
+    lastDstCheck = time(NULL);
+    int dstFlag = -1;
+    localtime_r(&now, &timeinfo);
+    if(timeinfo.tm_mon == 2) {
+      struct tm dstBegin;
+      dstBegin.tm_year = timeinfo.tm_year;
+      dstBegin.tm_mon = 2;
+      dstBegin.tm_mday = 8;
+      dstBegin.tm_hour = 2;
+      dstBegin.tm_min = 0;
+      dstBegin.tm_sec = 0;
+      mktime(&dstBegin); // calculate tm_dow
+      dstBegin.tm_mday = dstBegin.tm_mday + ((7 - dstBegin.tm_wday) % 7);
+      // mktime(&dstBegin); // recalculate tm_dow
+      // strftime(buf, sizeof(buf), "%c", &dstBegin);
+      // DBG("DST Begins: " + String(buf) + " local");
+      time_t tdstBegin = mktime(&dstBegin) - stdOffset;
+      if(tdstBegin != -1 && (time(NULL) - tdstBegin >= 0) && isDST == false) { // STD -> DST
+        dstFlag = 1;
+      }
+      else if(tdstBegin != -1 && (time(NULL) - tdstBegin < 0) && isDST == true) { // DST -> STD
+        dstFlag = 0;
+      }
+    }
+    else if(timeinfo.tm_mon == 10) {
+      struct tm dstEnd;
+      dstEnd.tm_year = timeinfo.tm_year;
+      dstEnd.tm_mon = 10;
+      dstEnd.tm_mday = 1;
+      dstEnd.tm_hour = 2;
+      dstEnd.tm_min = 0;
+      dstEnd.tm_sec = 0;
+      mktime(&dstEnd); // calculate tm_dow
+      dstEnd.tm_mday = dstEnd.tm_mday + ((7 - dstEnd.tm_wday) % 7);
+      // mktime(&dstEnd); // recalculate tm_dow
+      // strftime(buf, sizeof(buf), "%c", &dstEnd);
+      // DBG("DST Ends: " + String(buf)  + " local");
+      time_t tdstEnd = mktime(&dstEnd) - dstOffset;
+      if(tdstEnd != -1 && (time(NULL) - tdstEnd >= 0) && isDST == true) { // DST -> STD
+        dstFlag = 0;
+      }
+      else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
+        dstFlag = 1;
+      }
+    }
+    else if((timeinfo.tm_mon == 11 || timeinfo.tm_mon == 0 || timeinfo.tm_mon == 1) && isDST == true) {
+      dstFlag = 0;
+    }
+    else if(timeinfo.tm_mon >= 3 && timeinfo.tm_mon <= 9 && isDST == false) {
+      dstFlag = 1;
+    }
+    if(dstFlag == 1) {
+      isDST = true;
+      DBG("Time change from STD -> DST");
+    }
+    else if(dstFlag == 0) {
+      isDST = false;
+      // Since we are potentially moving back an hour we need to prevent flip flopping back and forth
+      // 2AM -> 1AM, wait 70 minutes -> 2:10AM then start DST checks again.
+      lastDstCheck += (70 * 60); // skip checks for another 70 minutes
+      DBG("Time change from DST -> STD");
+    }
   }
   return;
 }
@@ -99,7 +164,6 @@ bool setTime(time_t previousTime) {
   // Do not call sendFDRS here.  It will not work for some reason.
   if(validTime()) {
     lastNTPFetchSuccess = millis();
-    printTime();
     return true;
   }
   else {
