@@ -30,7 +30,7 @@ void fdrs_recv_cb(DataReading theData) {
   DBG(String(theData.id));
   switch (theData.t) {
     case 0:  // Incoming command is to SET a value
-      
+
       switch (theData.id) {
         case CONTROL_1:
           status_1 = (int)theData.d;
@@ -52,7 +52,7 @@ void fdrs_recv_cb(DataReading theData) {
       break;
 
     case 1:  // Incoming command is to GET a value
-switch (theData.id) {
+      switch (theData.id) {
         case CONTROL_1:
           if (digitalRead(COIL_1) == HIGH) {
             loadFDRS(1, STATUS_T, CONTROL_1);
@@ -84,7 +84,6 @@ switch (theData.id) {
       }
       newStatus = true;
       break;
-
   }
 }
 
