@@ -8,8 +8,6 @@
 #include "fdrs_node_config.h"
 #include <fdrs_node.h>
 
-#define 
-
 #define CONTROL_1 101  //Address for controller 1
 #define CONTROL_2 102  //Address for controller 2
 #define CONTROL_3 103  //Address for controller 3
@@ -25,7 +23,7 @@ int status_2 = 0;
 int status_3 = 0;
 int status_4 = 0;
 
-bool newData = false;
+bool isData = false;
 bool newStatus = false;
 
 void fdrs_recv_cb(DataReading theData) {
@@ -36,19 +34,19 @@ void fdrs_recv_cb(DataReading theData) {
       switch (theData.id) {
         case CONTROL_1:
           status_1 = (int)theData.d;
-          newData = true;
+          isData = true;
           break;
         case CONTROL_2:
           status_2 = (int)theData.d;
-          newData = true;
+          isData = true;
           break;
         case CONTROL_3:
           status_3 = (int)theData.d;
-          newData = true;
+          isData = true;
           break;
         case CONTROL_4:
           status_4 = (int)theData.d;
-          newData = true;
+          isData = true;
           break;
       }
       break;
@@ -143,6 +141,7 @@ void updateCoils() {  //These are set up for relay module which are active-LOW. 
 
 void setup() {
   beginFDRS();
+  pingFDRS(1000);
   if (addFDRS(1000, fdrs_recv_cb)) {
     subscribeFDRS(CONTROL_1);
     subscribeFDRS(CONTROL_2);
@@ -164,9 +163,8 @@ void setup() {
 }
 
 void loop() {
-  loopFDRS();
-  if (newData) {
-    newData = false;
+  if (isData) {
+    isData = false;
     updateCoils();
     checkCoils();
   }
