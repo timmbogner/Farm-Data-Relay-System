@@ -162,6 +162,7 @@ void setup() {
 }
 
 void loop() {
+  loopFDRS();
   if (isData) {
     isData = false;
     updateCoils();
