@@ -72,6 +72,10 @@
 #define FDRS_LORA_INTERVAL GLOBAL_LORA_INTERVAL
 #endif // LORA_INTERVAL
 
+#ifndef LORA_BUSY
+#define LORA_BUSY RADIOLIB_NC
+#endif
+
 const uint8_t lora_size = 250 / sizeof(DataReading);
 
 #ifdef CUSTOM_SPI
