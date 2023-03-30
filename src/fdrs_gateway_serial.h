@@ -40,9 +40,7 @@ void getSerial() {
     else if(obj.containsKey("cmd")) { // SystemPacket
       cmd_t c = doc[0]["cmd"];
       if(c == cmd_time) {
-        time_t previousTime = now;
-        now = doc[0]["param"];
-        setTime(previousTime); 
+        setTime(doc[0]["param"]); 
         DBG("Incoming Serial: time");
       }
       else {

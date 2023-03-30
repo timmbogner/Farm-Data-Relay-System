@@ -21,8 +21,11 @@
 #define FDRS_DST_OFFSET GLOBAL_DST_OFFSET
 #endif // DST_OFFSET
 
-#define USDSTSTART    (timeinfo.tm_mon == 2; timeinfo.tm_wday == 0 && timeinfo.tm_mday > 7 && timeinfo.tm_mday < 15 && timeinfo.tm_hour == 2)
-#define USDSTEND  (timeinfo.tm_mon == 10 && timeinfo.tm_wday == 0 && timeinfo.tm_mday < 8 && timeinfo.tm_hour == 2)
+// US DST Start - 2nd Sunday in March - 02:00 local time
+// US DST End - 1st Sunday in November - 02:00 local time
+
+// EU DST Start - last Sunday in March - 01:00 UTC
+// EU DST End - last Sunday in October - 01:00 UTC
 
 time_t now;                           // Current time in UTC- number of seconds since Jan 1 1970 (epoch)
 struct tm timeinfo;                   // Structure containing time elements
@@ -71,7 +74,7 @@ void printTime() {
     time_t local = time(NULL) + (isDST?dstOffset:stdOffset);
     localtime_r(&local, &timeinfo);
     strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-    DBG("The current local date/time is: " + String(strftime_buf) + (isDST?" DST":" STD"));
+    DBG("Local date/time is: " + String(strftime_buf) + (isDST?" DST":" STD"));
   }
 }
 
@@ -84,16 +87,30 @@ void checkDST() {
       struct tm dstBegin;
       dstBegin.tm_year = timeinfo.tm_year;
       dstBegin.tm_mon = 2;
+#ifdef USDST
       dstBegin.tm_mday = 8;
       dstBegin.tm_hour = 2;
       dstBegin.tm_min = 0;
       dstBegin.tm_sec = 0;
-      mktime(&dstBegin); // calculate tm_dow
+      mktime(&dstBegin); // calculate tm_wday
       dstBegin.tm_mday = dstBegin.tm_mday + ((7 - dstBegin.tm_wday) % 7);
-      // mktime(&dstBegin); // recalculate tm_dow
+      // mktime(&dstBegin); // recalculate tm_wday
       // strftime(buf, sizeof(buf), "%c", &dstBegin);
       // DBG("DST Begins: " + String(buf) + " local");
       time_t tdstBegin = mktime(&dstBegin) - stdOffset;
+#endif // USDST
+#ifdef EUDST
+      dstBegin.tm_mday = 25;
+      dstBegin.tm_hour = 1;
+      dstBegin.tm_min = 0;
+      dstBegin.tm_sec = 0;
+      mktime(&dstBegin); // calculate tm_wday
+      dstBegin.tm_mday = dstBegin.tm_mday + ((7 - dstBegin.tm_wday) % 7);
+      // mktime(&dstBegin); // recalculate tm_wday
+      // strftime(buf, sizeof(buf), "%c", &dstBegin);
+      // DBG("DST Begins: " + String(buf) + " local");
+      time_t tdstBegin = mktime(&dstBegin);
+#endif // EUDST
       if(tdstBegin != -1 && (time(NULL) - tdstBegin >= 0) && isDST == false) { // STD -> DST
         dstFlag = 1;
       }
@@ -101,7 +118,36 @@ void checkDST() {
         dstFlag = 0;
       }
     }
+    else if(timeinfo.tm_mon == 9) {
+#ifdef EUDST
+      struct tm dstEnd;
+      dstEnd.tm_year = timeinfo.tm_year;
+      dstEnd.tm_mon = 9;
+      dstEnd.tm_mday = 25;
+      dstEnd.tm_hour = 1;
+      dstEnd.tm_min = 0;
+      dstEnd.tm_sec = 0;
+      mktime(&dstEnd); // calculate tm_dow
+      dstEnd.tm_mday = dstEnd.tm_mday + ((7 - dstEnd.tm_wday) % 7);
+      // mktime(&dstEnd); // recalculate tm_dow
+      // strftime(buf, sizeof(buf), "%c", &dstEnd);
+      // DBG("DST Ends: " + String(buf)  + " local");
+      time_t tdstEnd = mktime(&dstEnd);
+      if(tdstEnd != -1 && (time(NULL) - tdstEnd >= 0) && isDST == true) { // DST -> STD
+        dstFlag = 0;
+      }
+      else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
+        dstFlag = 1;
+      }
+#endif //EUDST
+#ifdef USDST
+      if(isDST == false) {
+        dstFlag = 1;
+      }
+#endif // USDST
+    }
     else if(timeinfo.tm_mon == 10) {
+#ifdef USDST
       struct tm dstEnd;
       dstEnd.tm_year = timeinfo.tm_year;
       dstEnd.tm_mon = 10;
@@ -121,11 +167,17 @@ void checkDST() {
       else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
         dstFlag = 1;
       }
+#endif //USDST
+#ifdef EUDST
+      if(isDST == true) {
+        dstFlag = 0;
+      }
+#endif // EUDST
     }
     else if((timeinfo.tm_mon == 11 || timeinfo.tm_mon == 0 || timeinfo.tm_mon == 1) && isDST == true) {
       dstFlag = 0;
     }
-    else if(timeinfo.tm_mon >= 3 && timeinfo.tm_mon <= 9 && isDST == false) {
+    else if(timeinfo.tm_mon >= 3 && timeinfo.tm_mon <= 8 && isDST == false) {
       dstFlag = 1;
     }
     if(dstFlag == 1) {
@@ -136,17 +188,19 @@ void checkDST() {
       isDST = false;
       // Since we are potentially moving back an hour we need to prevent flip flopping back and forth
       // 2AM -> 1AM, wait 70 minutes -> 2:10AM then start DST checks again.
-      lastDstCheck += (70 * 60); // skip checks for another 70 minutes
+      lastDstCheck += ((65-timeinfo.tm_min) * 60); // skip checks until after beginning of next hour
       DBG("Time change from DST -> STD");
     }
   }
   return;
 }
 
-bool setTime(time_t previousTime) {
+bool setTime(time_t currentTime) {
   slewSecs = 0;
+  time_t previousTime = now;
 
-  if(previousTime != 0) {
+  if(currentTime != 0) {
+    now = currentTime;
     slewSecs = now - previousTime;
     DBG("Time adjust " + String(slewSecs) + " secs");
   }

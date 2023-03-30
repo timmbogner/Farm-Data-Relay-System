@@ -377,8 +377,6 @@ esp_err_t sendESPNowTempPeer(uint8_t *dest) {
 }
 
 void recvTimeEspNow() {
-  time_t previousTime = now;
-  now = theCmd.param;
-  setTime(previousTime); 
+  setTime(theCmd.param); 
   DBG("Received time via ESP-NOW from 0x" + String(incMAC[5],HEX));
 }
