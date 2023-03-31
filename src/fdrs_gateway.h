@@ -168,8 +168,8 @@ void beginFDRS()
 #ifdef USE_WIFI
   client.publish(TOPIC_STATUS, "FDRS initialized");
   scheduleFDRS(fetchNtpTime,1000*60*FDRS_TIME_FETCHNTP);
-  scheduleFDRS(printTime,1000*60*FDRS_TIME_PRINTTIME);
 #endif
+scheduleFDRS(printTime,1000*60*FDRS_TIME_PRINTTIME);
 }
 
 void handleCommands()

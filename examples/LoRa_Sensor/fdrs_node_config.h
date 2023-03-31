@@ -28,3 +28,10 @@
 #define LORA_SPI_SCK 5
 #define LORA_SPI_MISO 19
 #define LORA_SPI_MOSI 27
+
+// Time settings
+#define USDST
+// #define EUDST
+#define STD_OFFSET      (-6)                // Local standard time offset in hours from UTC - if unsure, check https://time.is
+#define DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is
+#define TIME_PRINTTIME    10      // Time, in minutes, between printing local time to debug

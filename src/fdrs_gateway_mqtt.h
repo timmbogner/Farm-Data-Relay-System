@@ -40,6 +40,8 @@
 #define FDRS_MQTT_AUTH
 #endif // MQTT_AUTH
 
+#define MQTT_MAX_BUFF_SIZE 1024
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -139,6 +141,7 @@ void mqtt_callback(char *topic, byte *message, unsigned int length)
 void begin_mqtt()
 {
     client.setServer(mqtt_server, mqtt_port);
+    client.setBufferSize(MQTT_MAX_BUFF_SIZE);
     if (!client.connected())
     {
         reconnect_mqtt(5);

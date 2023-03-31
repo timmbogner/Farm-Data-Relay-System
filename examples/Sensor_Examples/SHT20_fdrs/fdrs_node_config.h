@@ -20,3 +20,10 @@
 
 #define LORA_TXPWR 17    // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 #define LORA_ACK        // Request LoRa acknowledgment.
+
+// Time settings
+#define USDST
+// #define EUDST
+#define STD_OFFSET      (-6)                // Local standard time offset in hours from UTC - if unsure, check https://time.is
+#define DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is
+#define TIME_PRINTTIME    10      // Time, in minutes, between printing local time to debug

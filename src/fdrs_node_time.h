@@ -1,5 +1,12 @@
 #include <sys/time.h>
 
+// select Time, in minutes, between time printed configuration
+#if defined(TIME_PRINTTIME)
+#define FDRS_TIME_PRINTTIME TIME_PRINTTIME
+#else
+#define FDRS_TIME_PRINTTIME GLOBAL_TIME_PRINTTIME
+#endif // TIME_PRINTTIME
+
 // select Local Standard time Offset from UTC configuration
 #if defined(STD_OFFSET)
 #define FDRS_STD_OFFSET STD_OFFSET
@@ -14,9 +21,11 @@
 #define FDRS_DST_OFFSET GLOBAL_DST_OFFSET
 #endif // DST_OFFSET
 
-#define DSTSTART    (timeinfo.tm_mon == 2 && timeinfo.tm_wday == 0 && timeinfo.tm_mday > 7 && timeinfo.tm_mday < 15 && timeinfo.tm_hour == 2)
-#define DSTEND  (timeinfo.tm_mon == 10 && timeinfo.tm_wday == 0 && timeinfo.tm_mday < 8 && timeinfo.tm_hour == 2)
+// US DST Start - 2nd Sunday in March - 02:00 local time
+// US DST End - 1st Sunday in November - 02:00 local time
 
+// EU DST Start - last Sunday in March - 01:00 UTC
+// EU DST End - last Sunday in October - 01:00 UTC
 
 time_t now;                           // Current time - number of seconds since Jan 1 1970 (epoch)
 struct tm timeinfo;                   // Structure containing time elements
@@ -28,7 +37,9 @@ bool isDST;
 time_t previousTime = 0;
 long slewSecs = 0;
 double stdOffset = (FDRS_STD_OFFSET * 60 * 60);  // UTC -> Local time, in Seconds, offset from UTC in Standard Time
-double dstOffset = (FDRS_DST_OFFSET * 60 * 60); // DST offset from standard time (in seconds)
+double dstOffset = (FDRS_DST_OFFSET * 60 * 60); // -1 hour for DST offset from standard time (in seconds)
+time_t lastUpdate = 0;
+time_t lastTimeSend = 0;
 time_t lastDstCheck = 0;
 
 // Function prototypes
@@ -71,14 +82,14 @@ void printTime() {
 
   // Local time
   time_t local = time(NULL) + (isDST?dstOffset:stdOffset);
-  localtime_r(&now, &timeinfo);
+  localtime_r(&local, &timeinfo);
   strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-  DBG("Local date/time: " + String(strftime_buf) + (isDST?" DST":" STD"));
+  DBG("Local date/time is: " + String(strftime_buf) + (isDST?" DST":" STD"));
 }
 
 // Checks for DST or STD and adjusts time if there is a change
 void checkDST() {
-    if(validTime() && (time(NULL) - lastDstCheck > 5)) {
+  if(validTime() && (time(NULL) - lastDstCheck > 5)) {
     lastDstCheck = time(NULL);
     int dstFlag = -1;
     localtime_r(&now, &timeinfo);
@@ -86,16 +97,30 @@ void checkDST() {
       struct tm dstBegin;
       dstBegin.tm_year = timeinfo.tm_year;
       dstBegin.tm_mon = 2;
+#ifdef USDST
       dstBegin.tm_mday = 8;
       dstBegin.tm_hour = 2;
       dstBegin.tm_min = 0;
       dstBegin.tm_sec = 0;
-      mktime(&dstBegin); // calculate tm_dow
+      mktime(&dstBegin); // calculate tm_wday
       dstBegin.tm_mday = dstBegin.tm_mday + ((7 - dstBegin.tm_wday) % 7);
-      // mktime(&dstBegin); // recalculate tm_dow
+      // mktime(&dstBegin); // recalculate tm_wday
       // strftime(buf, sizeof(buf), "%c", &dstBegin);
       // DBG("DST Begins: " + String(buf) + " local");
       time_t tdstBegin = mktime(&dstBegin) - stdOffset;
+#endif // USDST
+#ifdef EUDST
+      dstBegin.tm_mday = 25;
+      dstBegin.tm_hour = 1;
+      dstBegin.tm_min = 0;
+      dstBegin.tm_sec = 0;
+      mktime(&dstBegin); // calculate tm_wday
+      dstBegin.tm_mday = dstBegin.tm_mday + ((7 - dstBegin.tm_wday) % 7);
+      // mktime(&dstBegin); // recalculate tm_wday
+      // strftime(buf, sizeof(buf), "%c", &dstBegin);
+      // DBG("DST Begins: " + String(buf) + " local");
+      time_t tdstBegin = mktime(&dstBegin);
+#endif // EUDST
       if(tdstBegin != -1 && (time(NULL) - tdstBegin >= 0) && isDST == false) { // STD -> DST
         dstFlag = 1;
       }
@@ -103,7 +128,36 @@ void checkDST() {
         dstFlag = 0;
       }
     }
+    else if(timeinfo.tm_mon == 9) {
+#ifdef EUDST
+      struct tm dstEnd;
+      dstEnd.tm_year = timeinfo.tm_year;
+      dstEnd.tm_mon = 9;
+      dstEnd.tm_mday = 25;
+      dstEnd.tm_hour = 1;
+      dstEnd.tm_min = 0;
+      dstEnd.tm_sec = 0;
+      mktime(&dstEnd); // calculate tm_dow
+      dstEnd.tm_mday = dstEnd.tm_mday + ((7 - dstEnd.tm_wday) % 7);
+      // mktime(&dstEnd); // recalculate tm_dow
+      // strftime(buf, sizeof(buf), "%c", &dstEnd);
+      // DBG("DST Ends: " + String(buf)  + " local");
+      time_t tdstEnd = mktime(&dstEnd);
+      if(tdstEnd != -1 && (time(NULL) - tdstEnd >= 0) && isDST == true) { // DST -> STD
+        dstFlag = 0;
+      }
+      else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
+        dstFlag = 1;
+      }
+#endif //EUDST
+#ifdef USDST
+      if(isDST == false) {
+        dstFlag = 1;
+      }
+#endif // USDST
+    }
     else if(timeinfo.tm_mon == 10) {
+#ifdef USDST
       struct tm dstEnd;
       dstEnd.tm_year = timeinfo.tm_year;
       dstEnd.tm_mon = 10;
@@ -123,11 +177,17 @@ void checkDST() {
       else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
         dstFlag = 1;
       }
+#endif //USDST
+#ifdef EUDST
+      if(isDST == true) {
+        dstFlag = 0;
+      }
+#endif // EUDST
     }
     else if((timeinfo.tm_mon == 11 || timeinfo.tm_mon == 0 || timeinfo.tm_mon == 1) && isDST == true) {
       dstFlag = 0;
     }
-    else if(timeinfo.tm_mon >= 3 && timeinfo.tm_mon <= 9 && isDST == false) {
+    else if(timeinfo.tm_mon >= 3 && timeinfo.tm_mon <= 8 && isDST == false) {
       dstFlag = 1;
     }
     if(dstFlag == 1) {
@@ -138,7 +198,7 @@ void checkDST() {
       isDST = false;
       // Since we are potentially moving back an hour we need to prevent flip flopping back and forth
       // 2AM -> 1AM, wait 70 minutes -> 2:10AM then start DST checks again.
-      lastDstCheck += ((65-timeinfo.tm_min) * 60); // skip checks until after the next hour
+      lastDstCheck += ((65-timeinfo.tm_min) * 60); // skip checks until after beginning of next hour
       DBG("Time change from DST -> STD");
     }
   }
@@ -147,10 +207,12 @@ void checkDST() {
 
 // Sets the time and calculates time time difference, in seconds, of the time change
 // Returns true if time is valid otherwise false
-bool setTime(time_t previousTime) {
+bool setTime(time_t currentTime) {
   slewSecs = 0;
+  time_t previousTime = now;
 
-  if(previousTime != 0) {
+  if(currentTime != 0) {
+    now = currentTime;
     slewSecs = now - previousTime;
     DBG("Time adjust " + String(slewSecs) + " secs");
   }
@@ -168,7 +230,6 @@ bool setTime(time_t previousTime) {
   // DO NOT CALL sendFDRS here.  Will not work for some reason ?????????
   if(validTime()) {
     lastTimeSetEvent = millis();
-    printTime();
     return true;
   }
   else {
@@ -178,7 +239,6 @@ bool setTime(time_t previousTime) {
 
 // Periodically updates the time "now"  and time struct from the internal processor time clock
 void updateTime() {
-  static time_t lastUpdate = 0;
   if(millis() - lastUpdate > 500) {
       time(&now);
       localtime_r(&now, &timeinfo);

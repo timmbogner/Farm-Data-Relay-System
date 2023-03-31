@@ -186,7 +186,7 @@ void fetchNtpTime() {
       // subtract seventy years:
       // now is epoch format - seconds since Jan 1 1970
       now = secsSince1900 - seventyYears;
-      setTime(now); // time in UTC
+      setTime(now); // UTC time
     }
     else {
       NTPFetchFail++;

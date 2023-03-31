@@ -26,3 +26,10 @@
 #define OLED_SDA 4
 #define OLED_SCL 15
 #define OLED_RST 16
+
+// Time settings
+#define USDST
+// #define EUDST
+#define STD_OFFSET      (-6)                // Local standard time offset in hours from UTC - if unsure, check https://time.is
+#define DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is
+#define TIME_PRINTTIME    10      // Time, in minutes, between printing local time to debug

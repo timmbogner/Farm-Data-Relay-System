@@ -43,13 +43,13 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   memcpy(&incMAC, mac, sizeof(incMAC));
   if (len < sizeof(DataReading))
   {
-    DBG("Incoming ESP-NOW System Packet");
+    DBG("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
     memcpy(&theCmd, incomingData, sizeof(theCmd));
     memcpy(&incMAC, mac, sizeof(incMAC));
     return;
   }
   memcpy(&theData, incomingData, sizeof(theData));
-  DBG("Incoming ESP-NOW Data Reading");
+  DBG("Incoming ESP-NOW Data Reading from 0x" + String(incMAC[5], HEX));
   ln = len / sizeof(DataReading);
   if (memcmp(&incMAC, &ESPNOW1, 6) == 0)
   {
@@ -156,7 +156,7 @@ int getFDRSPeer(uint8_t *mac)
 
 void add_espnow_peer()
 {
-  DBG("Device requesting peer registration");
+  DBG("Device requesting peer registration: 0x" + String(incMAC[5], HEX));
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
@@ -187,7 +187,7 @@ void add_espnow_peer()
   }
   else
   {
-    DBG("Refreshing existing peer registration");
+    DBG("Refreshing existing peer registration for 0x" + String(incMAC[5], HEX));
     peer_list[peer_num].last_seen = millis();
 
     SystemPacket sys_packet = {.cmd = cmd_add, .param = PEER_TIMEOUT};
@@ -239,7 +239,7 @@ esp_err_t pingback_espnow()
   SystemPacket sys_packet = { .cmd = cmd_ping, .param = 1 };
   esp_err_t result;
   
-  DBG("ESP-NOW Ping back to sender");
+  DBG("ESP-NOW Ping back to sender 0x" + String(incMAC[5], HEX));
   result = sendESPNow(incMAC, &sys_packet);
   return result;
 }
@@ -341,14 +341,14 @@ esp_err_t sendESPNowNbr(uint8_t interface) {
   {
   case 1:
   { // These brackets are required!
-    DBG("Sending to ESP-NOW Neighbor #1");
+    DBG("Sending to ESP-NOW Neighbor #1: 0x" + String(ESPNOW_NEIGHBOR_1, HEX));
     result = sendESPNow(ESPNOW1, theData);
     esp_now_del_peer(ESPNOW1);
     break;
   }
   case 2:
   { // These brackets are required!
-    DBG("Sending to ESP-NOW Neighbor #1");
+    DBG("Sending to ESP-NOW Neighbor #2: 0x" + String(ESPNOW_NEIGHBOR_2, HEX));
     result = sendESPNow(ESPNOW2, theData);
     esp_now_del_peer(ESPNOW2);
     break;
@@ -370,7 +370,7 @@ esp_err_t sendESPNowPeers() {
 
 esp_err_t sendESPNowTempPeer(uint8_t *dest) {
   esp_err_t result;
-  DBG("Sending ESP-NOW temp peer.");
+  DBG("Sending ESP-NOW temp peer: 0x" + String(*dest, HEX));
   result = sendESPNow(dest, theData);
   esp_now_del_peer(dest);
   return result;
@@ -378,5 +378,5 @@ esp_err_t sendESPNowTempPeer(uint8_t *dest) {
 
 void recvTimeEspNow() {
   setTime(theCmd.param); 
-  DBG("Received time via ESP-NOW from 0x" + String(incMAC[5],HEX));
+  DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
 }

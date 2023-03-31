@@ -423,9 +423,7 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-                        time_t previousTime = now;
-                        now = receiveData[0].param;
-                        setTime(previousTime);
+                        setTime(receiveData[0].param);
                         DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
                         adjTimeforNetDelay(netTimeOffset);
                     }
@@ -459,9 +457,7 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-                        time_t previousTime = now;
-                        now = receiveData[0].param;
-                        setTime(previousTime);
+                        setTime(receiveData[0].param);
                         DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
                         adjTimeforNetDelay(netTimeOffset);
                     }

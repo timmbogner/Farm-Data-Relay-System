@@ -27,19 +27,19 @@
 // EU DST Start - last Sunday in March - 01:00 UTC
 // EU DST End - last Sunday in October - 01:00 UTC
 
-time_t now;                           // Current time in UTC- number of seconds since Jan 1 1970 (epoch)
+time_t now;                           // Current time in UTC - number of seconds since Jan 1 1970 (epoch)
 struct tm timeinfo;                   // Structure containing time elements
 struct timeval tv;
-char strftime_buf[64];
 bool validTimeFlag = false;           // Indicate whether we have reliable time 
 time_t lastNTPFetchSuccess = 0;      // Last time that a successful NTP fetch was made
 bool isDST;                           // Keeps track of Daylight Savings Time vs Standard Time
 long slewSecs = 0;                  // When time is set this is the number of seconds the time changes
+double stdOffset = (FDRS_STD_OFFSET * 60 * 60);  // UTC -> Local time, in Seconds, offset from UTC in Standard Time
+double dstOffset = (FDRS_DST_OFFSET * 60 * 60); // -1 hour for DST offset from standard time (in seconds)
 time_t lastUpdate = 0;
 time_t lastTimeSend = 0;
-double stdOffset = (FDRS_STD_OFFSET * 60 * 60);  // UTC -> Local time, in Seconds, offset from UTC in Standard Time
-double dstOffset = (FDRS_DST_OFFSET * 60 * 60); // DST offset from standard time (in seconds)
 time_t lastDstCheck = 0;
+
 
 void sendTimeLoRa();
 esp_err_t sendTimeESPNow();
@@ -62,6 +62,7 @@ bool validTime() {
 
 void printTime() {
   if(validTime()) {
+    char strftime_buf[64];
 
     // UTC Time
     // // print Unix time:

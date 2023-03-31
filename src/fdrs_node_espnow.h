@@ -57,9 +57,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
             gtwy_timeout = command.param;
             break;
         case cmd_time:
-            time_t previousTime = now;
-            now = command.param;
-            setTime(previousTime);    
+            setTime(command.param);    
             break;
         }
     }

@@ -56,6 +56,7 @@ void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
 time_t netTimeOffset=UINT32_MAX;          // Offset network time by the 1/2 the amount of time a ping takes, if value not set then use max value
+time_t lastPrintTime = 0;
 
 #include "fdrs_debug.h"
 #include "fdrs_node_time.h"
@@ -275,7 +276,13 @@ void sleepFDRS(int sleep_time)
 
 void loopFDRS()
 {
+#ifndef DEEP_SLEEP
   updateTime();
+  if(millis() - lastPrintTime > (TIME_PRINTTIME * 60 * 1000)) {
+    lastPrintTime = millis();
+    printTime();
+  } 
+#endif
 #ifdef USE_LORA
   handleLoRa();
 #endif
