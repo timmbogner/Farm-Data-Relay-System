@@ -280,6 +280,7 @@ esp_err_t sendESPNow(uint8_t *dest, DataReading *data) {
       DBG("Failed to add peer");
       return sendResult;
     }
+  }
 #endif
 #if defined(ESP32)
     esp_now_peer_info_t peerInfo;
@@ -325,14 +326,6 @@ esp_err_t sendESPNow(uint8_t *dest, DataReading *data) {
     return sendResult;
 }
 
-// Legacy Action used in previous versions - not to be removed
-esp_err_t sendESPNow(uint8_t address) {
-  esp_err_t result;
-  uint8_t temp_peer[] = {MAC_PREFIX, address};
-  result = sendESPNowTempPeer(temp_peer);
-  return result;
-}
-
 // Action used in current version - not to be removed
 esp_err_t sendESPNowNbr(uint8_t interface) {
   esp_err_t result;
@@ -375,6 +368,15 @@ esp_err_t sendESPNowTempPeer(uint8_t *dest) {
   esp_now_del_peer(dest);
   return result;
 }
+
+// Legacy Action used in previous versions - not to be removed
+esp_err_t sendESPNow(uint8_t address) {
+  esp_err_t result;
+  uint8_t temp_peer[] = {MAC_PREFIX, address};
+  result = sendESPNowTempPeer(temp_peer);
+  return result;
+}
+
 
 void recvTimeEspNow() {
   setTime(theCmd.param); 

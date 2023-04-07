@@ -47,6 +47,14 @@ enum
   event_lora2,
   event_internal
 };
+
+#ifdef ESP8266
+enum esp_err_t {
+  ESP_FAIL,
+  ESP_OK
+};
+#endif
+
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 
