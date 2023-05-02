@@ -185,6 +185,9 @@ void loopFDRS()
 #ifdef USE_WIFI
   handleMQTT();
 #endif
+#ifdef USE_OLED
+  drawPageOLED(true);
+#endif
   if (newData != event_clear)
   {
     switch (newData)
