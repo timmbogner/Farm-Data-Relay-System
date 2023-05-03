@@ -169,9 +169,9 @@ void begin_lora()
     }
     DBG("LoRa Initialized. Frequency: " + String(FDRS_LORA_FREQUENCY) + "  Bandwidth: " + String(FDRS_LORA_BANDWIDTH) + "  SF: " + String(FDRS_LORA_SF) + "  CR: " + String(FDRS_LORA_CR) + "  SyncWord: " + String(FDRS_LORA_SYNCWORD) + "  Tx Power: " + String(FDRS_LORA_TXPWR) + "dBm");
 #ifdef USE_SX126X
-    radio.setDio1Action(setFlag);
+    radio.setDio1Action(setFlag, RISING);
 #else
-    radio.setDio0Action(setFlag);
+    radio.setDio0Action(setFlag, RISING);
 #endif
     radio.setCRC(false);
     LoRaAddress = ((radio.randomByte() << 8) | radio.randomByte());
