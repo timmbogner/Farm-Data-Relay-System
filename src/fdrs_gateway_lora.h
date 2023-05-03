@@ -292,7 +292,7 @@ void begin_lora()
       ;
   }
 #ifdef USE_SX126X
-  radio.setDio1Action(setFlag, RISING);
+  radio.setDio1Action(setFlag);
 #else
   radio.setDio0Action(setFlag, RISING);
 #endif
