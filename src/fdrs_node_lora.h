@@ -494,7 +494,9 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
     while ((millis() - ping_start) <= timeout)
     {
         handleLoRa();
-        yield(); // do I need to yield or does it automatically?
+        #ifdef ESP8266  // yeild appears to be only needed by the ESP8266 MCUs
+            yield(); // do I need to yield or does it automatically?
+        #endif
         if (pingFlag)
         {
             DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
