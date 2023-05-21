@@ -48,6 +48,7 @@
 // OLED -- Displays console debugging messages on an SSD1306 I²C OLED
 ///#define USE_OLED    
 #define OLED_HEADER "FDRS"
+#define OLED_PAGE_SECS 30
 #define OLED_SDA 4
 #define OLED_SCL 15
 #define OLED_RST 16
