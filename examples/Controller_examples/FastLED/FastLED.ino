@@ -127,6 +127,7 @@ void setup() {
   subscribeFDRS(READING_ID);
 }
 void loop() {
+  loopFDRS();
   if (new_data) {
     new_data = false;
     if (hsv_mode) {
