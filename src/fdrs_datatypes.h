@@ -48,7 +48,7 @@ enum
   event_internal
 };
 
-#ifdef ESP8266
+#ifndef ESP32
 typedef int esp_err_t;
 #define ESP_FAIL 0
 #define ESP_OK 1
