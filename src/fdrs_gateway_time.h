@@ -281,6 +281,9 @@ bool setTime(time_t currentTime) {
   // Do not call sendFDRS here.  It will not work for some reason.
   if(validTime()) {
     lastNTPFetchSuccess = millis();
+    if(TIME_SEND_INTERVAL == 0) {
+      sendTime();
+    }
     return true;
   }
   else {
@@ -312,7 +315,7 @@ void updateTime() {
     checkDST();
     lastUpdate = millis();
   }
-  if(validTimeFlag && (millis() - lastTimeSend) > (1000 * 60 * TIME_SEND_INTERVAL)) {
+  if(validTimeFlag && (TIME_SEND_INTERVAL != 0) && (millis() - lastTimeSend) > (1000 * 60 * TIME_SEND_INTERVAL)) {
     sendTime();
     lastTimeSend = millis();
   }

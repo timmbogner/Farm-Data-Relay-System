@@ -87,4 +87,4 @@
 #define DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is
 #define TIME_FETCHNTP     15      // Time, in minutes, between fetching time from NTP server
 #define TIME_PRINTTIME    10      // Time, in minutes, between printing local time to debug
-#define TIME_SEND_INTERVAL 15    // Time, in minutes, between sending out time to remote devices
+#define TIME_SEND_INTERVAL 15    // Time, in minutes, between sending out time to remote devices, set to 0 to only send when time is received
