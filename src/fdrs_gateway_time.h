@@ -212,7 +212,9 @@ bool setTime(time_t currentTime) {
   // Check for DST/STD time and adjust accordingly
   checkDST();
   tv.tv_sec = now;
+  #if defined(ESP32) || defined(ESP8266) // settimeofday may only work with Espressif chips
   settimeofday(&tv,NULL); // set the RTC time
+  #endif
   // Uncomment below to send time and slew rate to the MQTT server
   // loadFDRS(now, TIME_T, 111);
   // loadFDRS(slewSecs, TIME_T, 111);

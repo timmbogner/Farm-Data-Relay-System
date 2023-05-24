@@ -223,7 +223,9 @@ bool setTime(time_t currentTime) {
   // Check for DST/STD time and adjust accordingly
   checkDST();
   tv.tv_sec = now;
+  #if defined(ESP32) || defined(ESP8266) // settimeofday may only work with Espressif chips
   settimeofday(&tv,NULL); // set the RTC time
+  #endif
   
   // loadFDRS(now, STATUS_T, READING_ID);
   // loadFDRS(slewSecs, STATUS_T, READING_ID);
