@@ -271,7 +271,7 @@ void sendTimeLoRa(uint8_t *address) {
 
   // DBG("Sending time " + String(now) + " to LoRa address 0x" + String(*address, HEX) + String(*(address + 1), HEX));
   LoRaAddress = ((int16_t) *address << 8) + *(address + 1);
-  DBG("Sending time " + String(now) + " to LoRa address 0x" + String(LoRaAddress, HEX));
+  DBG("Sending time to LoRa address 0x" + String(LoRaAddress, HEX));
 
   SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
   transmitLoRa(&LoRaAddress, &spTimeLoRa, 1);

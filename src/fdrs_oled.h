@@ -4,7 +4,7 @@
 #define DISPLAY_PAGES 4
 
 String debug_buffer[5] = {"", "", "", "", ""};
-SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL); // ADDRESS, SDA, SCL
+SSD1306Wire display(0x3c, I2C_SDA, I2C_SCL); // ADDRESS, SDA, SCL
 unsigned long displayEvent = 0;
 uint8_t displayPage = 0;
 
@@ -137,7 +137,7 @@ void init_oled(){
   digitalWrite(OLED_RST, LOW);
   delay(30);
   digitalWrite(OLED_RST, HIGH);
-  Wire.begin(OLED_SDA, OLED_SCL);
+  Wire.begin(I2C_SDA, I2C_SCL);
   display.init();
   display.flipScreenVertically();
   draw_OLED_header();

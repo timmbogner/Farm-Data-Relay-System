@@ -65,6 +65,9 @@ void resendLog();
 void releaseLogBuffer();
 void printFDRS(DataReading*, int);
 
+#ifdef USE_I2C
+  #include <Wire.h>
+#endif
 #ifdef USE_OLED
   #include "fdrs_oled.h"
 #endif
@@ -138,6 +141,12 @@ void beginFDRS()
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
+#endif
+#ifdef USE_I2C
+  Wire.begin(I2C_SDA, I2C_SCL);
+#endif
+#if defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
+  begin_rtc();
 #endif
 #ifdef USE_OLED
   init_oled();

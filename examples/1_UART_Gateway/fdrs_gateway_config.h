@@ -45,13 +45,22 @@
 
 #define FDRS_DEBUG     // Enable USB-Serial debugging
 
+// I2C - OLED or RTC
+#define USE_I2C
+#define I2C_SDA 21
+#define I2C_SCL 22
+
 // OLED -- Displays console debugging messages on an SSD1306 I²C OLED
 ///#define USE_OLED    
 #define OLED_HEADER "FDRS"
 #define OLED_PAGE_SECS 30
-#define OLED_SDA 4
-#define OLED_SCL 15
 #define OLED_RST 16
+
+// RTC - I2C
+// #define USE_RTC_DS3231
+// #define RTC_ADDR 0x57
+// #define USE_RTC_DS1307
+// #define RTC_ADDR 0x68
 
 // UART data interface pins (if available)
 #define RXD2 14
