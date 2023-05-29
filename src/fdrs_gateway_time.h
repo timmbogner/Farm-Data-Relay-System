@@ -250,6 +250,18 @@ void checkDST() {
   }
   return;
 }
+// Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
+void sendTime() {
+  if(validTime()) { // Only send time if it is valid
+  DBG("Sending out time");
+  // Only send via Serial interface if WiFi is enabled to prevent loops
+#ifdef USE_WIFI // do not remove this line
+    sendTimeSerial();
+#endif          // do not remove this line
+    sendTimeLoRa();
+    sendTimeESPNow();
+  }
+}
 
 bool setTime(time_t currentTime) {
   slewSecs = 0;
@@ -291,18 +303,7 @@ bool setTime(time_t currentTime) {
   }
 }
 
-// Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
-void sendTime() {
-  if(validTime()) { // Only send time if it is valid
-  DBG("Sending out time");
-  // Only send via Serial interface if WiFi is enabled to prevent loops
-#ifdef USE_WIFI // do not remove this line
-    sendTimeSerial();
-#endif          // do not remove this line
-    sendTimeLoRa();
-    sendTimeESPNow();
-  }
-}
+
 
 void updateTime() {
 
