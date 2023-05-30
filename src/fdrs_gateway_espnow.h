@@ -193,6 +193,10 @@ void add_espnow_peer()
     SystemPacket sys_packet = {.cmd = cmd_add, .param = PEER_TIMEOUT};
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
+  if(validTimeFlag){
+    SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+    esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  }
 }
 
 // Lower level function meant to be called by other functions 
