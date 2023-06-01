@@ -251,6 +251,19 @@ void checkDST() {
   return;
 }
 
+// Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
+void sendTime() {
+  if(validTime()) { // Only send time if it is valid
+  DBG("Sending out time");
+  // Only send via Serial interface if WiFi is enabled to prevent loops
+#ifdef USE_WIFI // do not remove this line
+    sendTimeSerial();
+#endif          // do not remove this line
+    sendTimeLoRa();
+    sendTimeESPNow();
+  }
+}
+
 bool setTime(time_t currentTime) {
   slewSecs = 0;
   time_t previousTime = now;
@@ -291,18 +304,6 @@ bool setTime(time_t currentTime) {
   }
 }
 
-// Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
-void sendTime() {
-  if(validTime()) { // Only send time if it is valid
-  DBG("Sending out time");
-  // Only send via Serial interface if WiFi is enabled to prevent loops
-#ifdef USE_WIFI // do not remove this line
-    sendTimeSerial();
-#endif          // do not remove this line
-    sendTimeLoRa();
-    sendTimeESPNow();
-  }
-}
 
 void updateTime() {
 
@@ -318,5 +319,16 @@ void updateTime() {
   if(validTimeFlag && (TIME_SEND_INTERVAL != 0) && (millis() - lastTimeSend) > (1000 * 60 * TIME_SEND_INTERVAL)) {
     sendTime();
     lastTimeSend = millis();
+  }
+}
+
+void adjTimeforNetDelay(time_t newOffset) {
+  static time_t previousOffset = 0;
+  updateTime();
+  // check to see if offset and current time are valid
+  if(newOffset < UINT32_MAX && validTimeFlag) {
+    now = now + newOffset - previousOffset;
+    previousOffset = newOffset;
+    DBG("Time adj by " + String(newOffset) + " secs");
   }
 }

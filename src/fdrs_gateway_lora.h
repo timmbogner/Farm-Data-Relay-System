@@ -100,11 +100,14 @@ volatile bool operationDone = false;  // flag to indicate that a packet was sent
 
 uint16_t LoRa1 = ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1); // Use 2 bytes for LoRa addressing instead of previous 3 bytes
 uint16_t LoRa2 = ((mac_prefix[4] << 8) | LORA_NEIGHBOR_2);
+uint16_t timeMasterLoRa = 0x0000;
 uint16_t loraGwAddress = ((selfAddress[4] << 8) | selfAddress[5]); // last 2 bytes of gateway address
 uint16_t loraBroadcast = 0xFFFF;
 unsigned long receivedLoRaMsg = 0; // Number of total LoRa packets destined for us and of valid size
 unsigned long ackOkLoRaMsg = 0;    // Number of total LoRa packets with valid CRC
 extern time_t now;
+time_t lastTimeMasterPing = 0;
+time_t netTimeOffset = UINT32_MAX;  // One direction of LoRa Ping time in units of seconds (1/2 full ping time)
 
 typedef struct DataBuffer
 {
@@ -432,6 +435,12 @@ crcResult getLoRa()
               transmitLoRa(&sourceMAC, &pingReply, 1);
             }
           }
+          else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+            timeMasterLoRa = sourceMAC;
+            setTime(receiveData[0].param);
+            DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
+            adjTimeforNetDelay(netTimeOffset);
+          }
           else
           { // data we have received is not yet programmed.  How we handle is future enhancement.
             DBG("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
@@ -460,6 +469,12 @@ crcResult getLoRa()
               SystemPacket pingReply = {.cmd = cmd_ping, .param = 1};
               transmitLoRa(&sourceMAC, &pingReply, 1);
             }
+          }
+          else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+            timeMasterLoRa = sourceMAC;
+            setTime(receiveData[0].param);
+            DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
+            adjTimeforNetDelay(netTimeOffset);
           }
           else
           { // data we have received is not yet programmed.  How we handle is future enhancement.
@@ -656,14 +671,59 @@ void sendTimeLoRa() {
   SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
   transmitLoRa(&loraBroadcast, &spTimeLoRa, 1);
   // Do not send to LoRa peers if their address is 0x..00
-  if((LoRa1 & 0x00FF) != 0x0000) {
+  if(((LoRa1 & 0x00FF) != 0x0000) && (LoRa1 != timeMasterLoRa)) {
   spTimeLoRa.param = now;
   // add LoRa neighbor 1
   transmitLoRa(&LoRa1, &spTimeLoRa, 1);
   }
-  if((LoRa2 & 0x00FF) != 0x0000) {
+  if(((LoRa2 & 0x00FF) != 0x0000) && (LoRa2 != timeMasterLoRa)) {
   spTimeLoRa.param = now;
   // add LoRa neighbor 2
   transmitLoRa(&LoRa2, &spTimeLoRa, 1);
   }
+}
+
+// FDRS Sensor pings gateway and listens for a defined amount of time for a reply
+// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
+// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
+uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
+{
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
+
+    transmitLoRa(address, &sys_packet, 1);
+    DBG("LoRa ping sent to address: 0x" + String(*address, HEX));
+    uint32_t ping_start = millis();
+    pingFlag = false;
+    while ((millis() - ping_start) <= timeout)
+    {
+        handleLoRa();
+        #ifdef ESP8266
+            yield();
+        #endif
+        if (pingFlag)
+        {   
+            DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
+            pingFlag = false;
+            return (millis() - ping_start);
+        }
+    }
+    DBG("No LoRa ping returned within " + String(timeout) + "ms.");
+    return UINT32_MAX;
+}
+
+// Pings the LoRa time master periodically to calculate the time delay in the LoRa radio link
+// Returns success or failure of the ping result
+bool pingLoRaTimeMaster() {
+  if(millis() - lastTimeMasterPing > (60000 + random(0,2000))) {
+    time_t pingTimeMs;
+    pingTimeMs = pingFDRSLoRa(&timeMasterLoRa,4000);
+    if(pingTimeMs != UINT32_MAX) {
+      netTimeOffset = pingTimeMs/2/1000;
+      adjTimeforNetDelay(netTimeOffset);
+      lastTimeMasterPing = millis();
+      return true;  
+    }
+    lastTimeMasterPing = millis();
+  }
+  return false;
 }

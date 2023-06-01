@@ -222,6 +222,10 @@ void loopFDRS()
   handleSerial();
 #ifdef USE_LORA
   handleLoRa();
+  // Ping LoRa time master to estimate time delay in radio link
+  if(timeMasterLoRa != 0x0000 && netTimeOffset == UINT32_MAX) {
+    pingLoRaTimeMaster();
+  }
 #endif
 #ifdef USE_WIFI
   handleMQTT();

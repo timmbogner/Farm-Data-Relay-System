@@ -153,7 +153,11 @@ void sendNTPpacket(const char * address) {
 
 void fetchNtpTime() {
   //DBG("GetTime Function");
-  if(WiFi.status() == WL_CONNECTED || eth_connected ) {
+#ifdef USE_ETHERNET
+  if(eth_connected) {
+#else
+  if(WiFi.status() == WL_CONNECTED) {
+#endif
     //DBG("Calling .begin function");
     FDRSNtp.begin(localPort);
 

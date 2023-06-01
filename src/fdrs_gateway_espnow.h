@@ -20,10 +20,12 @@ const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 const uint8_t mac_prefix[] = {MAC_PREFIX};
 uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
+uint8_t timeMasterEspNow[6];
 
 uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
 uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 extern time_t now;
+bool pingFlag = false;
 
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -46,6 +48,15 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
     DBG("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
     memcpy(&theCmd, incomingData, sizeof(theCmd));
     memcpy(&incMAC, mac, sizeof(incMAC));
+    switch (theCmd.cmd)
+        {
+        case cmd_ping:
+            pingFlag = true;
+            break;
+        case cmd_time:
+            setTime(theCmd.param);    
+            break;
+        }
     return;
   }
   memcpy(&theData, incomingData, sizeof(theData));
@@ -247,12 +258,16 @@ esp_err_t pingback_espnow()
 // Sends time to both neighbors and all peers
 esp_err_t sendTimeESPNow() {
   
-  esp_err_t result1, result2, result3;
+  esp_err_t result1 = ESP_OK, result2 = ESP_OK, result3 = ESP_OK;
   DBG("Sending time via ESP-NOW");
   SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
 
-  result1 = sendESPNow(ESPNOW1, &sys_packet);
-  result2 = sendESPNow(ESPNOW2, &sys_packet);
+  if(ESPNOW1 != timeMasterEspNow) {
+    result1 = sendESPNow(ESPNOW1, &sys_packet);
+  }
+  if(ESPNOW2 != timeMasterEspNow) {
+    result2 = sendESPNow(ESPNOW2, &sys_packet);
+  }
   result3 = sendESPNow(nullptr, &sys_packet);
 
   if(result1 != ESP_OK || result2 != ESP_OK || result3 != ESP_OK){
@@ -379,6 +394,30 @@ esp_err_t sendESPNow(uint8_t address) {
 
 
 void recvTimeEspNow() {
+  memcpy(timeMasterEspNow, incMAC, sizeof(timeMasterEspNow));
   setTime(theCmd.param); 
   DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
+}
+
+// FDRS node pings gateway and listens for a defined amount of time for a reply
+// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
+// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
+uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
+    
+    esp_now_send(address, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    DBG(" ESP-NOW ping sent.");
+    uint32_t ping_start = millis();
+    pingFlag = false;
+    while ((millis() - ping_start) <= timeout)
+    {
+        yield(); // do I need to yield or does it automatically?
+        if (pingFlag)
+        {
+            DBG("ESP-NOW Ping Reply in " + String(millis() - ping_start) + "ms from 0x" + String(address[5], HEX));
+            return (millis() - ping_start);
+        }
+    }
+    DBG("No ESP-NOW ping returned within " + String(timeout) + "ms.");
+    return UINT32_MAX;
 }
