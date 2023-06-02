@@ -305,6 +305,7 @@ bool setTime(time_t currentTime) {
 }
 
 
+
 void updateTime() {
 
   if(millis() - lastUpdate > 500) {
