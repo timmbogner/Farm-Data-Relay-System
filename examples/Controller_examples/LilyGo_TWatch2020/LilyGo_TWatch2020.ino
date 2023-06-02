@@ -1,7 +1,7 @@
 //  FARM DATA RELAY SYSTEM
 //
 //  LilyGo T-Watch 2020 (v1) Example
-//   This sketch retreives the time from a nearby FDRS gateway using ESP-NOW.
+//   This sketch retrieves the time from a nearby FDRS gateway using ESP-NOW.
 //  
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA
 //  FDRS Timekeeping was developed and contributed by Jeff Lehman (aviateur17)
