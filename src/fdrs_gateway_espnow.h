@@ -25,7 +25,6 @@ uint8_t timeMasterEspNow[6];
 uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
 uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 extern time_t now;
-bool pingFlag = false;
 
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32

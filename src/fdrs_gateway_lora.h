@@ -93,7 +93,6 @@ const uint8_t mac_prefix[] = {MAC_PREFIX};
 const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 #endif
 
-bool pingFlag = false;
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
