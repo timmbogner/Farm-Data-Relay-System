@@ -53,9 +53,9 @@
 #define OLED_SCL 15
 #define OLED_RST 16
 
-// UART data interface pins (if available)
-#define RXD2 14
-#define TXD2 15
+// UART data interface pins (ESP32 only)
+//#define RXD2 14
+//#define TXD2 15
 
 //#define USE_LR  // Use ESP-NOW LR mode (ESP32 only)
 
