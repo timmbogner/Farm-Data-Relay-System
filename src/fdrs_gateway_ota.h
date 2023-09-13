@@ -1,7 +1,9 @@
 #if defined(ESP32) || defined(ESP8266)
 #include <ArduinoOTA.h>
+#endif // defined(ESP32) || defined (ESP8266)
 
 void begin_OTA() {
+  #if defined(ESP32) || defined(ESP8266)
     // Port defaults to 3232
     // ArduinoOTA.setPort(3232);
 
@@ -45,10 +47,13 @@ void begin_OTA() {
     });
     
     ArduinoOTA.begin();
+#endif // defined(ESP32) || defined (ESP8266)
+
 }
 
 void handleOTA() {
-    ArduinoOTA.handle();
+  #if defined(ESP32) || defined(ESP8266)
+  ArduinoOTA.handle();
+  #endif // defined(ESP32) || defined (ESP8266)
 }
 
-#endif // defined(ESP32) || defined (ESP8266)
