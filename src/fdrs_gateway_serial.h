@@ -6,6 +6,7 @@
 #define UART_IF Serial
 #endif
 
+#if defined(ESP32) || defined(ESP8266)
 #if !defined RXD2 or !defined TXD2
     #warning Defining RXD2 and TXD2 using MCU defaults.
     #if CONFIG_IDF_TARGET_ESP32
@@ -20,6 +21,7 @@
     #else
         #error MCU not supported.
     #endif
+#endif
 #endif
 
 void getSerial() {
