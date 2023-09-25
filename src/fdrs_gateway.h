@@ -34,7 +34,11 @@
 #ifndef INTERNAL_ACT
 #define INTERNAL_ACT
 #endif
-
+#ifdef USE_ETHERNET
+#ifndef USE_WIFI
+#define USE_WIFI
+#endif
+#endif // USE_ETHERNET
 
 SystemPacket theCmd;
 DataReading theData[256];
@@ -52,6 +56,8 @@ void timeFDRSLoRa(uint8_t *);
 static uint16_t crc16_update(uint16_t, uint8_t);
 void sendESPNowNbr(uint8_t);
 void sendESPNowPeers();
+void sendESPNow(uint8_t);
+
 void sendMQTT();
 void sendLog();
 void resendLog();
@@ -182,6 +188,9 @@ void loopFDRS()
   handleMQTT();
   handleOTA();
 #endif
+#ifdef USE_OLED
+  drawPageOLED(true);
+#endif
   if (newData != event_clear)
   {
     switch (newData)
@@ -227,6 +236,7 @@ void loopFDRS()
 #ifndef USE_ESPNOW
   void sendESPNowNbr(uint8_t interface) {}
   void sendESPNowPeers() {}
+  void sendESPNow(uint8_t address) {}
 #endif
 #ifndef USE_WIFI
   void sendMQTT() {}

@@ -6,6 +6,23 @@
 #define UART_IF Serial
 #endif
 
+#if defined(ESP32)
+#if !defined RXD2 or !defined TXD2
+    #warning Defining RXD2 and TXD2 using MCU defaults.
+    #if CONFIG_IDF_TARGET_ESP32
+        #define RXD2 14
+        #define TXD2 15
+    #elif CONFIG_IDF_TARGET_ESP32S2 or CONFIG_IDF_TARGET_ESP32S3
+        #define RXD2 18
+        #define TXD2 17
+    #elif CONFIG_IDF_TARGET_ESP32C3
+        #define RXD2 2
+        #define TXD2 3
+    #else
+        #error MCU not supported.
+    #endif
+#endif
+#endif
 
 void getSerial() {
   String incomingString;

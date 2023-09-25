@@ -3,7 +3,8 @@
 // Global Configuration
 
 // Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
-
+#ifndef __FDRS_GLOBALS_h__
+#define __FDRS_GLOBALS_h__
 
 #define GLOBAL_WIFI_SSID "Your SSID"
 #define GLOBAL_WIFI_PASS "Password"
@@ -13,7 +14,7 @@
 #define GLOBAL_MQTT_ADDR "192.168.0.8"
 #define GLOBAL_MQTT_PORT 1883
 
-//#define GLOBAL_MQTT_AUTH   //uncomment to enable MQTT authentication  
+//#define GLOBAL_MQTT_AUTH   //uncomment to enable MQTT authentication
 #define GLOBAL_MQTT_USER   "Your MQTT Username"
 #define GLOBAL_MQTT_PASS   "Your MQTT Password"
 // MQTT Topics
@@ -30,3 +31,5 @@
 #define GLOBAL_LORA_INTERVAL 5000  // Interval between LoRa buffer releases. Must be longer than transmission time-on-air.
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // MAC address prefix. Can be used to distinguish different ESP-NOW networks.
+
+#endif

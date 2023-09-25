@@ -90,6 +90,22 @@ If enabled, device will enter deep-sleep when the sleepFDRS() command is used. I
 #### ```#define POWER_CTRL n```
 If defined, power control will bring a GPIO pin high when FDRS is initialized. This is useful for powering sensors while running on battery.
 #
+## LoRa Configuration
+#### ```#define RADIOLIB_MODULE cccc```
+The name of the RadioLib module being used. Tested modules: SX1276, SX1278, SX1262.
+#### ```#define LORA_SS n```
+LoRa chip select pin.
+#### ```#define LORA_RST n```
+LoRa reset pin.
+#### ```#define LORA_DIO n```
+LoRa DIO pin. This refers to DIO1 on SX127x chips and DIO1 on SX126x chips.
+#### ```#define LORA_BUSY n```
+For SX126x chips: LoRa BUSY pin. For SX127x: DIO1 pin, or "RADIOLIB_NC" to leave it blank. 
+#### ```#define LORA_TXPWR n```
+LoRa TX power in dBm.
+#### ```#define USE_SX126X```
+Enable this if using the SX126x series of LoRa chips.
+#
 ### SSD1306 OLED Display
 Built on the [ThingPulse OLED SSD1306 Library](https://github.com/ThingPulse/esp8266-oled-ssd1306)
 ##### ```#define OLED_HEADER "cccc"```

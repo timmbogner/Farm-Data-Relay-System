@@ -33,8 +33,10 @@
 #define LORA_SS    18
 #define LORA_RST   14
 #define LORA_DIO   26
-#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
+#define LORA_BUSY  33
 //#define USE_SX126X
+
+#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
 //#define CUSTOM_SPI
 #define LORA_SPI_SCK  5
@@ -46,13 +48,14 @@
 // OLED -- Displays console debugging messages on an SSD1306 I²C OLED
 ///#define USE_OLED    
 #define OLED_HEADER "FDRS"
+#define OLED_PAGE_SECS 30
 #define OLED_SDA 4
 #define OLED_SCL 15
 #define OLED_RST 16
 
-// UART data interface pins (if available)
-#define RXD2 14
-#define TXD2 15
+// UART data interface pins (ESP32 only)
+//#define RXD2 14
+//#define TXD2 15
 
 //#define USE_LR  // Use ESP-NOW LR mode (ESP32 only)
 

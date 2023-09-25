@@ -17,6 +17,7 @@ void setup() {
   pinMode(COIL_PIN, OUTPUT);
 }
 void loop() {
+  loopFDRS();
   if (status) digitalWrite(COIL_PIN, HIGH);
   else digitalWrite(COIL_PIN, LOW);
 }
