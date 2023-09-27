@@ -44,14 +44,12 @@ uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 crcResult crcReturned = CRC_NULL;
 
-uint32_t gtwy_timeout = 0;
 uint8_t incMAC[6];
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
 
 uint8_t data_count = 0;
 
-uint32_t last_refresh;
 void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
@@ -249,6 +247,7 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
   fdrsData[data_count] = dr;
   data_count++;
 }
+
 void sleepFDRS(int sleep_time)
 {
 #ifdef DEEP_SLEEP
@@ -265,20 +264,23 @@ void sleepFDRS(int sleep_time)
   delay(sleep_time * 1000);
 }
 
+
+
 void loopFDRS()
 {
 #ifdef USE_LORA
   handleLoRa();
 #endif
   handleIncoming();
-  // // TO-DO:
-  // if (is_added)
-  // {
-  //   if ((millis() - last_refresh) >= gtwy_timeout)
-  //   {
-  //     last_refresh = millis();
-  //   }
-  // }
+
+  if (is_added)
+  {
+    if ((millis() - last_refresh) >= gtwy_timeout)
+    {
+      refresh_registration();
+      last_refresh = millis();
+    }
+  }
 }
 
 bool subscribeFDRS(uint16_t sub_id)
@@ -319,55 +321,7 @@ bool unsubscribeFDRS(uint16_t sub_id)
   return false;
 }
 
-bool addFDRS(void (*new_cb_ptr)(DataReading))
-{
-  callback_ptr = new_cb_ptr;
-#ifdef USE_ESPNOW
-  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
-  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
-  uint32_t add_start = millis();
-  is_added = false;
-  while ((millis() - add_start) <= 1000) // 1000ms timeout
-  {
-    yield();
-    if (is_added)
-    {
-      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
-      last_refresh = millis();
-      return true;
-    }
-  }
-  DBG("No gateways accepted the request");
-  return false;
-#endif // USE_ESPNOW
-  return true;
-}
 
-bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
-{
-  callback_ptr = new_cb_ptr;
-#ifdef USE_ESPNOW
-  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
-  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
-  uint32_t add_start = millis();
-  is_added = false;
-  while ((millis() - add_start) <= timeout)
-  {
-    yield();
-    if (is_added)
-    {
-      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
-      last_refresh = millis();
-      return true;
-    }
-  }
-  DBG("No gateways accepted the request");
-  return false;
-#endif // USE_ESPNOW
-  return true;
-}
 
 uint32_t pingFDRS(uint32_t timeout)
 {

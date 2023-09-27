@@ -11,6 +11,8 @@ uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
 bool pingFlag = false;
+uint32_t last_refresh = 0;
+uint32_t gtwy_timeout = 300000;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -86,4 +88,78 @@ uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
     }
     DBG("No ESP-NOW ping returned within " + String(timeout) + "ms.");
     return UINT32_MAX;
+}
+
+bool refresh_registration()
+{
+#ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  uint32_t add_start = millis();
+  is_added = false;
+  while ((millis() - add_start) <= 1000) // 1000ms timeout
+  {
+    yield();
+    if (is_added)
+    {
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      last_refresh = millis();
+      return true;
+    }
+  }
+  DBG("No gateways accepted the request");
+  return false;
+#endif // USE_ESPNOW
+  return true;
+}
+
+bool addFDRS(void (*new_cb_ptr)(DataReading))
+{
+  callback_ptr = new_cb_ptr;
+#ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  uint32_t add_start = millis();
+  is_added = false;
+  while ((millis() - add_start) <= 1000) // 1000ms timeout
+  {
+    yield();
+    if (is_added)
+    {
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      last_refresh = millis();
+      return true;
+    }
+  }
+  DBG("No gateways accepted the request");
+  return false;
+#endif // USE_ESPNOW
+  return true;
+}
+
+bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
+{
+  callback_ptr = new_cb_ptr;
+#ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  uint32_t add_start = millis();
+  is_added = false;
+  while ((millis() - add_start) <= timeout)
+  {
+    yield();
+    if (is_added)
+    {
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      last_refresh = millis();
+      return true;
+    }
+  }
+  DBG("No gateways accepted the request");
+  return false;
+#endif // USE_ESPNOW
+  return true;
 }
