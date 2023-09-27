@@ -78,6 +78,7 @@ void releaseLogBuffer();
 #ifdef USE_WIFI
   #include "fdrs_gateway_wifi.h"
   #include "fdrs_gateway_mqtt.h"
+  #include "fdrs_gateway_ota.h"
 #endif
 #if defined(USE_FS_LOG) || defined(USE_SD_LOG)
   #include "fdrs_gateway_filesystem.h"
@@ -133,6 +134,7 @@ void beginFDRS()
   begin_wifi();
   DBG("Connected.");
   begin_mqtt();
+  begin_OTA();
 #endif
 #ifdef USE_ESPNOW
   begin_espnow();
@@ -184,6 +186,7 @@ void loopFDRS()
 #endif
 #ifdef USE_WIFI
   handleMQTT();
+  handleOTA();
 #endif
 #ifdef USE_OLED
   drawPageOLED(true);
