@@ -159,8 +159,8 @@ void add_espnow_peer()
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
-    // DBG("Device not yet registered, adding to peer list");
     int open_peer = find_espnow_peer();            // find open spot in peer_list
+    DBG("New device will be registered as " + String(open_peer));
     memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
     peer_list[open_peer].last_seen = millis();
 #if defined(ESP32)
