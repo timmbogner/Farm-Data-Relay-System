@@ -117,6 +117,12 @@ void printActivatedProtocols() {
 #if defined(USE_WIFI) && defined(USE_ESPNOW)
 	DBG("WARNING: You must not use USE_ESPNOW and USE_WIFI together! USE_WIFI is only needed for MQTT!");
 #endif
+
+#ifdef USE_STATIC_IPADDRESS
+	DBG("Using Static IP Address");
+#else
+	DBG("Using DHCP");
+#endif
 }
 
 
@@ -154,6 +160,51 @@ void printWifiDetails() {
 	DBG("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //WIFI_PASS
+
+#ifdef USE_STATIC_IPADDRESS
+#if defined(HOST_IPADDRESS)
+	DBG("Host IP Address used from HOST_IPADDRESS            : " + String(FDRS_HOST_IPADDRESS));
+#elif defined (GLOBAL_HOST_IPADDRESS)
+	DBG("Host IP Address used from GLOBAL_HOST_IPADDRESS     : " + String(FDRS_HOST_IPADDRESS));
+#else 
+	DBG("NO Host IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_gateway_config.h");
+	//exit(0);
+#endif // HOST_IPADDRESS
+
+#if defined(GW_IPADDRESS)
+	DBG("Gateway IP Address used from GW_IPADDRESS            : " + String(FDRS_GW_IPADDRESS));
+#elif defined (GLOBAL_GW_IPADDRESS)
+	DBG("Gateway IP Address used from GLOBAL_GW_IPADDRESS     : " + String(FDRS_GW_IPADDRESS));
+#else 
+	DBG("NO Gateway IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_gateway_config.h");
+	//exit(0);
+#endif // GW_IPADDRESS
+
+#if defined(SUBNET_ADDRESS)
+	DBG("Subnet Address used from SUBNET_ADDRESS            : " + String(FDRS_SUBNET_ADDRESS));
+#elif defined (GLOBAL_SUBNET_ADDRESS)
+	DBG("Subnet Address used from GLOBAL_SUBNET_ADDRESS     : " + String(FDRS_SUBNET_ADDRESS));
+#else 
+	DBG("NO Subnet Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_gateway_config.h");
+	//exit(0);
+#endif // SUBNET_ADDRESS
+
+#if defined(DNS2_IPADDRESS)
+	DBG("DNS2 IP Address used from DNS2_IPADDRESS            : " + String(FDRS_DNS2_IPADDRESS));
+#elif defined (GLOBAL_DNS2_IPADDRESS)
+	DBG("DNS2 IP Address used from GLOBAL_DNS2_IPADDRESS     : " + String(FDRS_DNS2_IPADDRESS));
+#endif // DNS2_IPADDRESS
+#endif // USE_STATIC_IPADDRESS
+
+#if defined(DNS1_IPADDRESS)
+	DBG("DNS1 IP Address used from DNS1_IPADDRESS            : " + String(FDRS_DNS1_IPADDRESS));
+#elif defined (GLOBAL_DNS1_IPADDRESS)
+	DBG("DNS1 IP Address used from GLOBAL_DNS1_IPADDRESS     : " + String(FDRS_DNS1_IPADDRESS));
+#else 
+	DBG("NO DNS1 IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_gateway_config.h");
+	//exit(0);
+#endif // DNS1_IPADDRESS
+
 
 	printSmallSectionHeader("MQTT BROKER CONFIG:");
 

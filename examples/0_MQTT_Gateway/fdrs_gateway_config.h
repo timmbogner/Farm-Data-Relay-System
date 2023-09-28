@@ -63,6 +63,14 @@
 //#define WIFI_SSID   "Your SSID"  
 //#define WIFI_PASS   "Your Password"
 
+// Use Static IP Address for WiFi connections
+// #define USE_STATIC_IPADDRESS     
+// #define HOST_IPADDRESS      "192.168.0.100"
+// #define GW_IPADDRESS        "192.168.0.1"
+// #define SUBNET_ADDRESS      "255.255.255.0"
+// #define DNS1_IPADDRESS      "192.168.0.1"    
+// #define DNS2_IPADDRESS      "192.168.0.2"    
+
 //#define MQTT_ADDR   "192.168.0.8"
 //#define MQTT_PORT   1883 // Default MQTT port is 1883
 //#define MQTT_AUTH   //Enable MQTT authentication 

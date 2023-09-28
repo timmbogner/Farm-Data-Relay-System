@@ -28,6 +28,48 @@
 #else
 // ASSERT("NO WiFi password defined! Please define in fdrs_globals.h (recommended) or in fdrs_node_config.h");
 #endif // WIFI_PASS
+
+// select Host IP Address
+#if defined(HOST_IPADDRESS)
+#define FDRS_HOST_IPADDRESS HOST_IPADDRESS
+#elif defined(GLOBAL_HOST_IPADDRESS)
+#define FDRS_HOST_IPADDRESS GLOBAL_HOST_IPADDRESS
+#else
+#endif // HOST_IPADDRESS
+
+// select Gateway IP Address
+#if defined(GW_IPADDRESS)
+#define FDRS_GW_IPADDRESS GW_IPADDRESS
+#elif defined(GLOBAL_GW_IPADDRESS)
+#define FDRS_GW_IPADDRESS GLOBAL_GW_IPADDRESS
+#else
+#endif // GW_IPADDRESS
+
+// select Subnet Address
+#if defined(SUBNET_ADDRESS)
+#define FDRS_SUBNET_ADDRESS SUBNET_ADDRESS
+#elif defined(GLOBAL_SUBNET_ADDRESS)
+#define FDRS_SUBNET_ADDRESS GLOBAL_SUBNET_ADDRESS
+#else
+#endif // SUBNET_ADDRESS
+
+// select DNS1 IP Address configuration
+#if defined(DNS1_IPADDRESS)
+#define FDRS_DNS1_IPADDRESS DNS1_IPADDRESS
+#elif defined(GLOBAL_DNS1_IPADDRESS)
+#define FDRS_DNS1_IPADDRESS GLOBAL_DNS1_IPADDRESS
+#else
+// ASSERT("NO DNS1 IP Address defined! Please define in fdrs_globals.h (recommended) or in fdrs_gateway_config.h");
+#endif // DNS1_IPADDRESS
+
+// select DNS2 IP Address configuration
+#if defined(DNS2_IPADDRESS)
+#define FDRS_DNS2_IPADDRESS DNS2_IPADDRESS
+#elif defined(GLOBAL_DNS2_IPADDRESS)
+#define FDRS_DNS2_IPADDRESS GLOBAL_DNS2_IPADDRESS
+#else
+#endif // DNS2_IPADDRESS
+
 #ifdef USE_ETHERNET
 static bool eth_connected = false;
 void WiFiEvent(WiFiEvent_t event)
@@ -70,6 +112,22 @@ void WiFiEvent(WiFiEvent_t event)
 #endif // USE_ETHERNET
 const char *ssid = FDRS_WIFI_SSID;
 const char *password = FDRS_WIFI_PASS;
+#ifdef USE_STATIC_IPADDRESS
+  uint8_t hostIpAddress[4], gatewayAddress[4], subnetAddress[4], dns2Address[4]; 
+#endif
+uint8_t dns1Address[4];
+
+// Convert IP Addresses from strings to byte arrays of 4 bytes
+void stringToByteArray(const char* str, char sep, byte* bytes, int maxBytes, int base) {
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = strtoul(str, NULL, base);  // Convert byte
+        str = strchr(str, sep);               // Find next separator
+        if (str == NULL || *str == '\0') {
+            break;                            // No more separators, exit
+        }
+        str++;                                // Point to next character after separator
+    }
+}
 
 void begin_wifi()
 {
@@ -83,6 +141,15 @@ void begin_wifi()
     delay(500);
   }
 #else
+#ifdef USE_STATIC_IPADDRESS
+  // Convert from String to byte array
+  stringToByteArray(FDRS_HOST_IPADDRESS, '.', hostIpAddress, 4, 10);
+  stringToByteArray(FDRS_GW_IPADDRESS, '.', gatewayAddress, 4, 10);
+  stringToByteArray(FDRS_SUBNET_ADDRESS, '.', subnetAddress, 4, 10);
+  stringToByteArray(FDRS_DNS1_IPADDRESS, '.', dns1Address, 4, 10);
+  stringToByteArray(FDRS_DNS2_IPADDRESS, '.', dns2Address, 4, 10);
+  WiFi.config(hostIpAddress, gatewayAddress, subnetAddress, dns1Address, dns2Address);
+#endif
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
