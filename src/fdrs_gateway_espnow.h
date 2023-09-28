@@ -14,7 +14,7 @@ const uint8_t espnow_size = 250 / sizeof(DataReading);
 #ifdef ESP32
 esp_now_peer_info_t peerInfo;
 #endif
-
+bool esp_now_sent_flag;
 const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 const uint8_t mac_prefix[] = {MAC_PREFIX};
@@ -29,12 +29,14 @@ uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
 {
+  esp_now_sent_flag = true;
 }
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 {
 #elif defined(ESP32)
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
+    esp_now_sent_flag = true;
 }
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
@@ -296,6 +298,8 @@ void sendESPNowNbr(uint8_t interface)
   }
 }
 
+
+
 void sendESPNowPeers()
 {
   DBG("Sending to ESP-NOW peers.");
@@ -311,8 +315,24 @@ void sendESPNowPeers()
     thePacket[j] = theData[i];
     j++;
   }
-  esp_now_send(0, (uint8_t *)&thePacket, j * sizeof(DataReading));
+  for (int i = 0; i < 16; i++)
+  {
+    if (peer_list[i].last_seen != 0 && (millis() - peer_list[i].last_seen) < PEER_TIMEOUT)
+    {
+      //uint32_t clktm = millis();
+      esp_now_sent_flag = false;
+      esp_now_send(peer_list[i].mac, (uint8_t *)&thePacket, j * sizeof(DataReading));
+      while (!esp_now_sent_flag) yield();
+      //DBG(millis() - clktm);
+    }
+  }
+
+
 }
+
+
+
+
 
 void sendESPNow(uint8_t address)
 {

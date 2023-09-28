@@ -271,15 +271,15 @@ void loopFDRS()
 #ifdef USE_LORA
   handleLoRa();
 #endif
+if (is_controller){
   handleIncoming();
-
-  if (is_added)
-  {
+#ifdef USE_ESPNOW
     if ((millis() - last_refresh) >= gtwy_timeout)
     {
       refresh_registration();
       last_refresh = millis();
     }
+#endif 
   }
 }
 
