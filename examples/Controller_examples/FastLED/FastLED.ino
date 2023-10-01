@@ -12,19 +12,18 @@
 //   4: Hue
 //   5: Saturation
 //   6: Brightness
-//
+//   7: Sleep time (minutes)
 //
 
-#define USE_PWM    //If using an RGB LED
+// #define USE_PWM    //If using an RGB LED
 // #define PIN_R  18   //ESP32 WeMos
 // #define PIN_G  19
 // #define PIN_B  23
+#define PIN_R 14  //8266 WeMos
+#define PIN_G 12
+#define PIN_B 13
 
-#define PIN_R  14  //8266 WeMos
-#define PIN_G  12
-#define PIN_B  13
-
-#define PIN_DATA 4  // If using a NeoPixel
+#define PIN_DATA 4   // If using a NeoPixel
 #define NUM_LEDS 24  // Number of physical LEDs.
 
 #include <FastLED.h>
@@ -68,6 +67,9 @@ void fdrs_recv_cb(DataReading theData) {
     case 6:
       hsv_color.val = data;
       hsv_mode = true;
+      break;
+    case 7:
+      sleepFDRS(data * 60);
       break;
   }
 }
@@ -125,6 +127,7 @@ void setup() {
   beginFDRS();
   addFDRS(1000, fdrs_recv_cb);
   subscribeFDRS(READING_ID);
+  subscribeFDRS(0);
 }
 void loop() {
   loopFDRS();
