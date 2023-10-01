@@ -248,7 +248,7 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
   data_count++;
 }
 
-void sleepFDRS(int sleep_time)
+void sleepFDRS(uint32_t sleep_time)
 {
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
