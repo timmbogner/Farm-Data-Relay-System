@@ -9,7 +9,7 @@
 
 #define USE_ESPNOW
 //#define USE_LORA
-//#define DEEP_SLEEP
+#define DEEP_SLEEP
 //#define POWER_CTRL    14
 #define FDRS_DEBUG
 
