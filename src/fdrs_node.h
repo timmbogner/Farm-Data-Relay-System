@@ -253,7 +253,7 @@ void sleepFDRS(int sleep_time)
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
-  esp_sleep_enable_timer_wakeup(sleep_time * 1000000);
+  esp_sleep_enable_timer_wakeup(sleep_time * 1000000ULL);
   esp_deep_sleep_start();
 #endif
 #ifdef ESP8266
