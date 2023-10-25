@@ -36,6 +36,7 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
   return crc;
 }
 
+bool is_controller = false;
 SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
@@ -283,6 +284,58 @@ if (is_controller){
   }
 }
 
+bool addFDRS(void (*new_cb_ptr)(DataReading))
+{
+  is_controller = true;  
+  callback_ptr = new_cb_ptr;
+#ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  uint32_t add_start = millis();
+  is_added = false;
+  while ((millis() - add_start) <= 1000) // 1000ms timeout
+  {
+    yield();
+    if (is_added)
+    {
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      last_refresh = millis();
+      return true;
+    }
+  }
+  DBG("No gateways accepted the request");
+  return false;
+#endif // USE_ESPNOW
+  return true;
+}
+
+bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
+{
+  is_controller = true;  
+  callback_ptr = new_cb_ptr;
+#ifdef USE_ESPNOW
+  SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  uint32_t add_start = millis();
+  is_added = false;
+  while ((millis() - add_start) <= timeout)
+  {
+    yield();
+    if (is_added)
+    {
+      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      last_refresh = millis();
+      return true;
+    }
+  }
+  DBG("No gateways accepted the request");
+  return false;
+#endif // USE_ESPNOW
+  return true;
+}
+
 bool subscribeFDRS(uint16_t sub_id)
 {
   for (int i = 0; i < 255; i++)
@@ -334,3 +387,4 @@ uint32_t pingFDRS(uint32_t timeout)
   return pingResponseMs;
 #endif
 }
+
