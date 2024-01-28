@@ -100,7 +100,7 @@ void sendLog()
   DBG("Logging to buffer");
   for (int i = 0; i < ln; i++)
   {
-    StaticJsonDocument<96> doc;
+    JsonDocument doc;
     JsonObject doc_0 = doc.createNestedObject();
     doc_0["id"] = theData[i].id;
     doc_0["type"] = theData[i].t;

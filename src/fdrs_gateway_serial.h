@@ -32,7 +32,7 @@ void getSerial() {
   else if (Serial.available()){
    incomingString =  Serial.readStringUntil('\n');
   }
-  DynamicJsonDocument doc(24576);
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
     //    DBG("json parse err");
@@ -55,7 +55,7 @@ void getSerial() {
 
 void sendSerial() {
   DBG("Sending Serial.");
-  DynamicJsonDocument doc(24576);
+  JsonDocument doc;
   for (int i = 0; i < ln; i++) {
     doc[i]["id"]   = theData[i].id;
     doc[i]["type"] = theData[i].t;
