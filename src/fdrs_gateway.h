@@ -80,9 +80,7 @@ void releaseLogBuffer();
   #include "fdrs_gateway_mqtt.h"
   #include "fdrs_gateway_ota.h"
 #endif
-#if defined(USE_FS_LOG) || defined(USE_SD_LOG)
-  #include "fdrs_gateway_filesystem.h"
-#endif
+
 #ifdef DEBUG_CONFIG
   #include "fdrs_checkConfig.h"
 #endif
@@ -139,12 +137,7 @@ void beginFDRS()
 #ifdef USE_ESPNOW
   begin_espnow();
 #endif
-#ifdef USE_SD_LOG
-  begin_SD();
-#endif
-#ifdef USE_FS_LOG
-  begin_FS();
-#endif
+
 
 #ifdef USE_WIFI
   client.publish(TOPIC_STATUS, "FDRS initialized");
@@ -177,9 +170,6 @@ void loopFDRS()
 {
   handle_schedule();
   handleCommands();
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-  handleLogger();
-#endif
   handleSerial();
 #ifdef USE_LORA
   handleLoRa();

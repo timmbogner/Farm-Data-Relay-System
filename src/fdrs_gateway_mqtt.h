@@ -47,10 +47,6 @@ PubSubClient client(espClient);
 
 const char *mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-    extern time_t last_log_write;
-    extern time_t last_mqtt_success;
-#endif
 
 
 #ifdef FDRS_MQTT_AUTH
@@ -160,20 +156,7 @@ void mqtt_publish(const char *payload)
     if (!client.publish(TOPIC_DATA, payload))
     {
         DBG(" Error on sending MQTT");
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-        sendLog();
-#endif
-    }
-    else
-    {
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-        if (last_log_write >= last_mqtt_success)
-        {
-            releaseLogBuffer();
-            resendLog();
-        }
-        time(&last_mqtt_success);
-#endif
+
     }
 }
 
@@ -186,7 +169,6 @@ void sendMQTT()
         doc[i]["id"] = theData[i].id;
         doc[i]["type"] = theData[i].t;
         doc[i]["data"] = theData[i].d;
-        doc[i]["time"] = time(nullptr);
     }
     String outgoingString;
     serializeJson(doc, outgoingString);
