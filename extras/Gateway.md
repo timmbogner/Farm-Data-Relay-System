@@ -21,9 +21,9 @@ void loop() {
 #### ```#define UNIT_MAC 0xNN```
 The ESP-NOW and LoRa address of the gateway. This is the address that nodes and other gateways will use to pass data to this device.
 #### ```#define ESPNOW_NEIGHBOR_1 0xNN```, ```ESPNOW_NEIGHBOR_2 0xNN```
-The addresses of any ESP-NOW repeaters neighboring this gateway.
+The addresses of ESP-NOW repeaters neighboring this gateway.
 #### ```#define LORA_NEIGHBOR_1 0xNN```, ```LORA_NEIGHBOR_2 0xNN```
-The addresses of any LoRa repeaters neighboring this gateway.
+The addresses of LoRa repeaters neighboring this gateway.
 ## Interfaces
 #### ```#define USE_ESPNOW```
 Enables ESP-NOW.
@@ -76,6 +76,11 @@ Broadcasts the data to any LoRa controller node that is listening to this gatewa
 #### ```sendESPNow(0xNN);```
 Sends the data directly to the ESP-NOW gateway address provided. There is no LoRa equivalent of this function.
 
+## Neighbors
+On each gateway, the user can configure the addresses of two ESP-NOW neighbors and two LoRa neighbors. When data arrives from one of these addresses, it will trigger `ESPNOW1_ACT`, `ESPNOW2_ACT`, `LORA1_ACT`, or `LORA2_ACT`. A neighboring gateway should be placed just at the edge of another gateway's range. It acts as a repeater to broaden the reach of the system. A repeater's routing options should be defined so that messages coming away from the front-end (controller messages) are coming from neighbor #1, and data heading towards the front-end are coming from #2.
+
+Check out the configurations for the  [ESP-NOW](https://github.com/timmbogner/Farm-Data-Relay-System/blob/main/examples/2_ESPNOW_Repeater/fdrs_gateway_config.h#L8) and [LoRa](https://github.com/timmbogner/Farm-Data-Relay-System/blob/main/examples/3_LoRa_Repeater/fdrs_gateway_config.h#L10) repeater examples to see this in action.
+
 #
 ## LoRa Configuration
 #### ```#define RADIOLIB_MODULE cccc```
@@ -117,7 +122,7 @@ LoRa sync word. Can be used to distinguish different networks. Note that 0x34 is
 Interval between LoRa buffer releases. Must be longer than transmission time-on-air.
 
 ## WiFi and MQTT Configuration
-WiFi and MQTT parameters are generally configured in the 'src/fdrs_globals.h' file. The following values may be set in the gateway configuration file if the user wishes to override the global value:
+WiFi and MQTT parameters are generally configured in the 'src/fdrs_globals.h' file. Be sure to use the correct topic when sending MQTT commands. The following values may be set in the gateway configuration file if the user wishes to override the global value:
 #### ```#define WIFI_SSID "cccc"``` and ``` WIFI_PASS "cccc"  ```
 WiFi credentials
 #### ```#define MQTT_ADDR "n.n.n.n"``` or ```MQTT_ADDR "cccc"```
@@ -146,8 +151,6 @@ Configures a second, data-only UART interface on ESP32. The ESP8266 serial inter
 
 #### ```#define USE_LR```
 Enables ESP-NOW Long-Range mode. Requires ESP32.
-## Neighbors
-*To-do: Describe neighbors and how to use them to make repeaters.*
 
 ## User-Defined Functions
 This feature allows the user to send data from the gateway itself. For example: the battery level or ambient temperature at the gateway.
