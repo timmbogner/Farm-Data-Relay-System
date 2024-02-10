@@ -42,6 +42,7 @@
 
 SystemPacket theCmd;
 DataReading theData[256];
+TimeMaster timeMaster;
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;
@@ -67,6 +68,7 @@ void releaseLogBuffer();
   #include "fdrs_oled.h"
 #endif
 #include "fdrs_debug.h"
+#include "fdrs_gateway_time.h"
 #include "fdrs_gateway_serial.h"
 #include "fdrs_gateway_scheduler.h"
 #ifdef USE_ESPNOW
@@ -118,6 +120,12 @@ void beginFDRS()
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
+#if defined(USE_OLED) || defined(USE_DS3231) || defined(USE_RTC_DS1307)
+  Wire.begin(I2C_SDA, I2C_SCL);
+#endif
+#if defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
+  begin_rtc();
+#endif
 #ifdef USE_OLED
   init_oled();
   DBG("Display initialized!");
@@ -132,6 +140,7 @@ void beginFDRS()
   begin_wifi();
   DBG("Connected.");
   begin_mqtt();
+  begin_ntp();
   begin_OTA();
 #endif
 #ifdef USE_ESPNOW
@@ -141,7 +150,9 @@ void beginFDRS()
 
 #ifdef USE_WIFI
   client.publish(TOPIC_STATUS, "FDRS initialized");
+scheduleFDRS(fetchNtpTime,1000*60*FDRS_TIME_FETCHNTP);
 #endif
+scheduleFDRS(printTime,1000*60*FDRS_TIME_PRINTTIME);
 }
 
 void handleCommands()
@@ -161,6 +172,14 @@ void handleCommands()
 #endif // USE_ESPNOW
 
     break;
+
+  case cmd_time:
+#ifdef USE_ESPNOW
+    recvTimeEspNow(theCmd.param);
+#endif // USE_ESPNOW
+
+    break;
+  
   }
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
@@ -168,11 +187,16 @@ void handleCommands()
 
 void loopFDRS()
 {
+  updateTime();
   handle_schedule();
   handleCommands();
   handleSerial();
 #ifdef USE_LORA
   handleLoRa();
+// Ping LoRa time master to estimate time delay in radio link
+  if(timeMaster.tmType == TM_LORA && netTimeOffset == UINT32_MAX) {
+    pingLoRaTimeMaster();
+  }
 #endif
 #ifdef USE_WIFI
   handleMQTT();
@@ -221,12 +245,14 @@ void loopFDRS()
 #ifndef USE_LORA
   void broadcastLoRa() {}
   void sendLoRaNbr(uint8_t address) {}
-  void timeFDRSLoRa(uint8_t *address) {}
+  void timeFDRSLoRa(uint8_t *address) {}  // fdrs_gateway_lora.h
+  void sendTimeLoRa() {}                  // fdrs_gateway_time.h
 #endif
 #ifndef USE_ESPNOW
   void sendESPNowNbr(uint8_t interface) {}
   void sendESPNowPeers() {}
   void sendESPNow(uint8_t address) {}
+  esp_err_t sendTimeESPNow() { return ESP_OK; }                  // fdrs_gateway_time.h
 #endif
 #ifndef USE_WIFI
   void sendMQTT() {}

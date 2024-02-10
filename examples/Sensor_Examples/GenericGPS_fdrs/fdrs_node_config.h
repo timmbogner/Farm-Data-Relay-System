@@ -21,8 +21,10 @@
 #define LORA_TXPWR 17    // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 #define LORA_ACK        // Request LoRa acknowledgment.
 
+// I2C - OLED or RTC
+#define I2C_SDA 4
+#define I2C_SCL 15
+
 #define USE_OLED    
 #define OLED_HEADER "FDRS"
-#define OLED_SDA 4
-#define OLED_SCL 15
 #define OLED_RST 16

@@ -78,6 +78,7 @@ void beginFDRS()
   // resetReason = esp_reset_reason();
 #endif
 #ifdef USE_OLED
+  Wire.begin(I2C_SDA, I2C_SCL);
   init_oled();
   DBG("Display initialized!");
   DBG("Hello, World!");

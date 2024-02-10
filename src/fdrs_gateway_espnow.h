@@ -23,7 +23,9 @@ uint8_t incMAC[6];
 
 uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
 uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
-
+extern time_t now;
+// JL - pingFlagEspNow var probably to be removed
+bool pingFlagEspNow = false;
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
@@ -192,6 +194,10 @@ void add_espnow_peer()
     SystemPacket sys_packet = {.cmd = cmd_add, .param = PEER_TIMEOUT};
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
+if(validTimeFlag){
+    SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+    esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+  }
 }
 
 // Sends ping reply to sender
@@ -298,8 +304,6 @@ void sendESPNowNbr(uint8_t interface)
   }
 }
 
-
-
 void sendESPNowPeers()
 {
   DBG("Sending to ESP-NOW peers.");
@@ -329,10 +333,6 @@ void sendESPNowPeers()
 
 
 }
-
-
-
-
 
 void sendESPNow(uint8_t address)
 {
@@ -366,4 +366,47 @@ void sendESPNow(uint8_t address)
 
   esp_now_send(temp_peer, (uint8_t *)&thePacket, j * sizeof(DataReading));
   esp_now_del_peer(temp_peer);
+}
+
+void recvTimeEspNow(uint32_t t) {
+  // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
+  if(timeMaster.tmType == TM_NONE || timeMaster.tmType == TM_LORA || (timeMaster.tmType == TM_ESPNOW && timeMaster.tmAddress == incMAC[4] << 8 | incMAC[5])) {
+    DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
+    if(timeMaster.tmAddress == 0x0000) {
+      timeMaster.tmType = TM_ESPNOW;
+      timeMaster.tmAddress = incMAC[4] << 8 & incMAC[5];
+      DBG("ESP-NOW time master is 0x" + String(incMAC[5], HEX));
+    }
+    setTime(t);
+    timeMaster.tmLastTimeSet = millis();
+  }
+  else {
+    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time master, discarding request");
+  }
+  return;
+}
+
+// Sends time to both neighbors and all peers
+esp_err_t sendTimeESPNow() {
+  
+  esp_err_t result1 = ESP_OK, result2 = ESP_OK, result3 = ESP_OK;
+  SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+
+  if((timeMaster.tmAddress != ESPNOW1[4] << 8 | ESPNOW1[5]) && ESPNOW1[5] != 0x00) {
+    DBG("Sending time to ESP-NOW Peer 1");
+    result1 = sendESPNow(ESPNOW1, &sys_packet);
+  }
+  if((timeMaster.tmAddress != ESPNOW2[4] << 8 | ESPNOW2[5]) && ESPNOW2[5] != 0x00) {
+    DBG("Sending time to ESP-NOW Peer 2");
+    result2 = sendESPNow(ESPNOW2, &sys_packet);
+  }
+  DBG("Sending time to ESP-NOW registered peers");
+  result3 = sendESPNow(nullptr, &sys_packet);
+
+  if(result1 != ESP_OK || result2 != ESP_OK || result3 != ESP_OK){
+    return ESP_FAIL;
+  }
+  else {
+    return ESP_OK;
+  }
 }
