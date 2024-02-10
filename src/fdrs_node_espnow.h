@@ -95,7 +95,7 @@ bool refresh_registration()
 #ifdef USE_ESPNOW
   SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
   esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("Refreshing registration to " + String(gatewayAddress[5]));
+  DBG1("Refreshing registration to " + String(gatewayAddress[5]));
   uint32_t add_start = millis();
   is_added = false;
   while ((millis() - add_start) <= 1000) // 1000ms timeout
@@ -103,12 +103,12 @@ bool refresh_registration()
     yield();
     if (is_added)
     {
-      DBG("Registration accepted. Timeout: " + String(gtwy_timeout));
+      DBG1("Registration accepted. Timeout: " + String(gtwy_timeout));
       last_refresh = millis();
       return true;
     }
   }
-  DBG("No gateways accepted the request");
+  DBG1("No gateways accepted the request");
   return false;
 #endif // USE_ESPNOW
   return true;

@@ -35,8 +35,8 @@ void getSerial() {
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
-    //    DBG("json parse err");
-    //    DBG(incomingString);
+        DBG("json parse err");
+        DBG1(incomingString);
     return;
   } else {
     int s = doc.size();
