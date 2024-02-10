@@ -45,6 +45,7 @@ void sendTimeLoRa();
 void printTime();
 esp_err_t sendTimeESPNow();
 bool setTime(time_t);
+void sendTimeSerial();
 
 #ifdef USE_RTC_DS3231
 #include <RtcDS3231.h>
@@ -54,7 +55,7 @@ RtcDS3231<TwoWire> rtc(Wire);
 RtcDS3231<TwoWire> rtc(Wire);
 #endif
 
-#if defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
+#ifdef USE_RTC
 void begin_rtc() {
   DBG("Starting RTC");
   rtc.Begin();
@@ -96,7 +97,7 @@ void begin_rtc() {
   rtc.Enable32kHzPin(false);
   rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone); 
 }
-#endif // USE_RTC_DS3231 || USE_RTC_DS1307
+#endif // USE_RTC
 
 bool validTime() {
   if(now < 1672000000 || (millis() - lastNTPFetchSuccess > (24*60*60*1000))) {
@@ -255,7 +256,7 @@ void sendTime() {
   if(validTime()) { // Only send time if it is valid
     DBG("Sending out time");
   // Only send via Serial interface if WiFi is enabled to prevent loops
-#if defined(USE_WIFI) || defined (USE_RTC_DS3231) || defined(USE_RTC_DS1307) // do not remove this line
+#if defined(USE_WIFI) || defined (USE_RTC) // do not remove this line
     sendTimeSerial();
 #endif          // do not remove this line
     sendTimeLoRa();
@@ -282,7 +283,7 @@ bool setTime(time_t currentTime) {
 #if defined(ESP32) || defined(ESP8266) // settimeofday may only work with Espressif chips
   settimeofday(&tv,NULL); // set the RTC time
 #endif
-#if defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
+#ifdef USE_RTC
   RtcDateTime rtcNow;
   rtcNow.InitWithUnix32Time(now);
   rtc.SetDateTime(rtcNow);

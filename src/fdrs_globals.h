@@ -37,4 +37,12 @@
 
 #define MAC_PREFIX  0xAA, 0xBB, 0xCC, 0xDD, 0xEE  // MAC address prefix. Can be used to distinguish different ESP-NOW networks.
 
+#if defined(USE_OLED) || defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
+    #define USE_I2C
+#endif
+
+#if defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
+  #define USE_RTC
+#endif
+
 #endif
