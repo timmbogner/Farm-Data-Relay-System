@@ -120,7 +120,7 @@ void beginFDRS()
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
-#if defined(USE_OLED) || defined(USE_DS3231) || defined(USE_RTC_DS1307)
+#if defined(USE_OLED) || defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)
   Wire.begin(I2C_SDA, I2C_SCL);
 #endif
 #if defined(USE_RTC_DS3231) || defined(USE_RTC_DS1307)

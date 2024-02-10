@@ -67,7 +67,7 @@ void begin_rtc() {
         //    1) first time you ran and the device wasn't running yet
         //    2) the battery on the device is low or even missing
 
-        DBGF("RTC error: Date and Time not valid! Err: " + String(err));
+        DBG("RTC error: Date and Time not valid! Err: " + String(err));
         validRtcFlag = false;
     }
   }
@@ -78,7 +78,7 @@ void begin_rtc() {
   if(!rtc.GetIsRunning()) {
     uint8_t err = rtc.LastError();
     if(err != 0) {
-      DBGF("RTC was not actively running, starting now. Err: " + String(err));
+      DBG("RTC was not actively running, starting now. Err: " + String(err));
       rtc.SetIsRunning(true);
       validRtcFlag = false;
     }
@@ -86,7 +86,7 @@ void begin_rtc() {
 
   if(validRtcFlag) {
     // Set date and time on the system
-    DBGF("Using Date and Time from RTC.");
+    DBG("Using Date and Time from RTC.");
     setTime(rtc.GetDateTime().Unix32Time());
     printTime();
   }
@@ -101,7 +101,7 @@ void begin_rtc() {
 bool validTime() {
   if(now < 1672000000 || (millis() - lastNTPFetchSuccess > (24*60*60*1000))) {
     if(validTimeFlag) {
-      DBGF("Time no longer reliable.");
+      DBG("Time no longer reliable.");
       validTimeFlag = false;
     }
     return false;
@@ -186,7 +186,7 @@ void checkDST() {
       dstEnd.tm_mday = dstEnd.tm_mday + ((7 - dstEnd.tm_wday) % 7);
       // mktime(&dstEnd); // recalculate tm_dow
       // strftime(buf, sizeof(buf), "%c", &dstEnd);
-      // DBGFST("DST Ends: " + String(buf)  + " local");
+      // DBG("DST Ends: " + String(buf)  + " local");
       time_t tdstEnd = mktime(&dstEnd);
       if(tdstEnd != -1 && (time(NULL) - tdstEnd >= 0) && isDST == true) { // DST -> STD
         dstFlag = 0;
@@ -214,7 +214,7 @@ void checkDST() {
       dstEnd.tm_mday = dstEnd.tm_mday + ((7 - dstEnd.tm_wday) % 7);
       // mktime(&dstEnd); // recalculate tm_dow
       // strftime(buf, sizeof(buf), "%c", &dstEnd);
-      // DBGFST("DST Ends: " + String(buf)  + " local");
+      // DBG("DST Ends: " + String(buf)  + " local");
       time_t tdstEnd = mktime(&dstEnd) - dstOffset;
       if(tdstEnd != -1 && (time(NULL) - tdstEnd >= 0) && isDST == true) { // DST -> STD
         dstFlag = 0;
@@ -237,14 +237,14 @@ void checkDST() {
     }
     if(dstFlag == 1) {
       isDST = true;
-      DBGF("Time change from STD -> DST");
+      DBG("Time change from STD -> DST");
     }
     else if(dstFlag == 0) {
       isDST = false;
       // Since we are potentially moving back an hour we need to prevent flip flopping back and forth
       // 2AM -> 1AM, wait 70 minutes -> 2:10AM then start DST checks again.
       lastDstCheck += ((65-timeinfo.tm_min) * 60); // skip checks until after beginning of next hour
-      DBGF("Time change from DST -> STD");
+      DBG("Time change from DST -> STD");
     }
   }
   return;
@@ -253,7 +253,7 @@ void checkDST() {
 // Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
 void sendTime() {
   if(validTime()) { // Only send time if it is valid
-    DBGF("Sending out time");
+    DBG("Sending out time");
   // Only send via Serial interface if WiFi is enabled to prevent loops
 #if defined(USE_WIFI) || defined (USE_RTC_DS3231) || defined(USE_RTC_DS1307) // do not remove this line
     sendTimeSerial();
@@ -270,7 +270,7 @@ bool setTime(time_t currentTime) {
   if(currentTime != 0) {
     now = currentTime;
     slewSecs = now - previousTime;
-    DBGF("Time adjust " + String(slewSecs) + " secs");
+    DBG("Time adjust " + String(slewSecs) + " secs");
   }
 
   // time(&now);
@@ -337,6 +337,6 @@ void adjTimeforNetDelay(time_t newOffset) {
   if(newOffset < UINT32_MAX && validTimeFlag) {
     now = now + newOffset - previousOffset;
     previousOffset = newOffset;
-    DBGF("Time adj by " + String(newOffset) + " secs");
+    DBG("Time adj by " + String(newOffset) + " secs");
   }
 }
