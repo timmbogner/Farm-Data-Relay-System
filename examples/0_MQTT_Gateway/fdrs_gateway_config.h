@@ -43,7 +43,11 @@
 #define LORA_SPI_MISO 19
 #define LORA_SPI_MOSI 27
 
+// Choose none or one of the debug options below.  
+// DEBUG will show some information but for troubleshooting a good level would be FDRS_DEBUG_1
 #define FDRS_DEBUG     // Enable USB-Serial debugging
+// define FDRS_DEBUG_1 // Additional logging messages for troubleshooting purposes - commment out the other FDRS_DEBUG options
+// define FDRS_DEBUG_2 // Show all logging messages for development purposes - comment out the other FDRS_DEBUG options
 
 // OLED -- Displays console debugging messages on an SSD1306 I²C OLED
 ///#define USE_OLED    

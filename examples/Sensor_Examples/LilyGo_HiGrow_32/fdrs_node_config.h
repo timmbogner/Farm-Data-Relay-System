@@ -10,7 +10,13 @@
 //#define USE_LORA
 #define DEEP_SLEEP
 #define POWER_CTRL    4
-#define FDRS_DEBUG
+
+// Choose none or one of the debug options below.  
+// DEBUG will show some information but for troubleshooting a good level would be FDRS_DEBUG_1
+#define FDRS_DEBUG     // Enable USB-Serial debugging
+// define FDRS_DEBUG_1 // Additional logging messages for troubleshooting purposes - commment out the other FDRS_DEBUG options
+// define FDRS_DEBUG_2 // Show all logging messages for development purposes - comment out the other FDRS_DEBUG options
+
 // LoRa Configuration
 #define RADIOLIB_MODULE SX1276 //Tested on SX1276
 #define LORA_SS 18
