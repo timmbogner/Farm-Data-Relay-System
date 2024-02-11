@@ -135,3 +135,7 @@ bool refresh_registration()
 #endif // USE_ESPNOW
   return true;
 }
+
+esp_err_t sendTimeESPNow() {
+    return ESP_OK;
+}

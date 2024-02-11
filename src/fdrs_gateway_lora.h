@@ -672,6 +672,8 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
 // Pings the LoRa time master periodically to calculate the time delay in the LoRa radio link
 // Returns success or failure of the ping result
 bool pingLoRaTimeMaster() {
+  static unsigned long lastTimeMasterPing = 0;
+
   // ping the time master every 5 minutes
   if(millis() - lastTimeMasterPing > (5*60*1000 + random(0,2000))) {
     time_t pingTimeMs;

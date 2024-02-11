@@ -274,6 +274,10 @@ void loopFDRS()
   updateTime();
 #ifdef USE_LORA
   handleLoRa();
+// Ping LoRa time master to estimate time delay in radio link
+  if(timeMaster.tmType == TM_LORA && netTimeOffset == UINT32_MAX) {
+    pingLoRaTimeMaster();
+  }
 #endif
 if (is_controller){
   handleIncoming();
