@@ -7,6 +7,12 @@
 #define FDRS_TIME_PRINTTIME GLOBAL_TIME_PRINTTIME
 #endif // TIME_PRINTTIME
 
+#if defined(TIME_SEND_INTERVAL)
+#define FDRS_TIME_SEND_INTERVAL TIME_SEND_INTERVAL
+#else
+#define FDRS_TIME_SEND_INTERVAL GLOBAL_TIME_SEND_INTERVAL
+#endif // TIME_SEND_INTERVAL
+
 // select Local Standard time Offset from UTC configuration
 #if defined(STD_OFFSET)
 #define FDRS_STD_OFFSET STD_OFFSET
@@ -294,7 +300,7 @@ bool setTime(time_t currentTime) {
   // Do not call sendFDRS here.  It will not work for some reason.
   if(validTime()) {
     lastNTPFetchSuccess = millis();
-    if(TIME_SEND_INTERVAL == 0 && ((millis() - lastTimeSend > 5000) || lastTimeSend == 0)) { // avoid sending twice on start with RTC and WiFi
+    if(FDRS_TIME_SEND_INTERVAL == 0 && ((millis() - lastTimeSend > 5000) || lastTimeSend == 0)) { // avoid sending twice on start with RTC and WiFi
       lastTimeSend = millis();
       sendTime();
     }
@@ -320,7 +326,7 @@ void updateTime() {
     lastUpdate = millis();
   }
   // Send out time to other devices if we have exceeded the time send interval
-  if(validTimeFlag && (TIME_SEND_INTERVAL != 0) && (millis() - lastTimeSend) > (1000 * 60 * TIME_SEND_INTERVAL)) {
+  if(validTimeFlag && (FDRS_TIME_SEND_INTERVAL != 0) && (millis() - lastTimeSend) > (1000 * 60 * FDRS_TIME_SEND_INTERVAL)) {
     lastTimeSend = millis();
     sendTime();
   }

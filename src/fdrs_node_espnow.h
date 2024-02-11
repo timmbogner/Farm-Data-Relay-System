@@ -14,6 +14,24 @@ bool pingFlag = false;
 uint32_t last_refresh = 0;
 uint32_t gtwy_timeout = 300000;
 
+void recvTimeEspNow(uint32_t t) {
+  // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
+  if(timeMaster.tmType == TM_NONE || (timeMaster.tmType == TM_ESPNOW && timeMaster.tmAddress == incMAC[4] << 8 | incMAC[5])) {
+    DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
+    if(timeMaster.tmAddress == 0x0000) {
+      timeMaster.tmType = TM_ESPNOW;
+      timeMaster.tmAddress = incMAC[4] << 8 & incMAC[5];
+      DBG("ESP-NOW time master is 0x" + String(incMAC[5], HEX));
+    }
+    setTime(t);
+    timeMaster.tmLastTimeSet = millis();
+  }
+  else {
+    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time master, discarding request");
+  }
+  return;
+}
+
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
@@ -44,6 +62,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
 #endif
+memcpy(&incMAC, mac, sizeof(incMAC));
     if (len < sizeof(DataReading))
     {
         SystemPacket command;
@@ -56,6 +75,9 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
         case cmd_add:
             is_added = true;
             gtwy_timeout = command.param;
+            break;
+case cmd_time:
+            recvTimeEspNow(command.param);
             break;
         }
     }
@@ -113,4 +135,3 @@ bool refresh_registration()
 #endif // USE_ESPNOW
   return true;
 }
-

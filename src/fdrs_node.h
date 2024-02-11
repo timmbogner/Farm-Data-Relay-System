@@ -37,7 +37,7 @@ static uint16_t crc16_update(uint16_t crc, uint8_t a)
 }
 
 bool is_controller = false;
-SystemPacket theCmd;
+// SystemPacket theCmd;  // does not seem to be used
 DataReading theData[256];
 uint8_t ln;
 bool newData;
@@ -48,19 +48,22 @@ crcResult crcReturned = CRC_NULL;
 uint8_t incMAC[6];
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
+TimeMaster timeMaster;
 
 uint8_t data_count = 0;
 
 void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
+unsigned long lastTimePrint = 0;
 
-#include "fdrs_debug.h"
-#ifdef DEBUG_CONFIG
-// #include "fdrs_checkConfig.h"
-#endif
 #ifdef USE_OLED
   #include "fdrs_oled.h"
+#endif
+#include "fdrs_debug.h"
+#include "fdrs_time.h"
+#ifdef DEBUG_CONFIG
+// #include "fdrs_checkConfig.h"
 #endif
 #ifdef USE_ESPNOW
   #include "fdrs_node_espnow.h"
@@ -71,13 +74,11 @@ bool active_subs[256] = {};
 
 void beginFDRS()
 {
-#ifdef FDRS_DEBUG
   Serial.begin(115200);
   // // find out the reset reason
   // esp_reset_reason_t resetReason;
   // resetReason = esp_reset_reason();
-#endif
-#ifdef USE_OLED
+#ifdef USE_I2C
   Wire.begin(I2C_SDA, I2C_SCL);
   init_oled();
   DBG("Display initialized!");
@@ -270,6 +271,7 @@ void sleepFDRS(uint32_t sleep_time)
 
 void loopFDRS()
 {
+  updateTime();
 #ifdef USE_LORA
   handleLoRa();
 #endif
@@ -282,6 +284,11 @@ if (is_controller){
       last_refresh = millis();
     }
 #endif 
+  }
+// Output time to display if time is valid
+  if(millis() - lastTimePrint > (1000*60*FDRS_TIME_PRINTTIME)) {
+    lastTimePrint = millis();
+    printTime();
   }
 }
 
@@ -389,3 +396,10 @@ uint32_t pingFDRS(uint32_t timeout)
 #endif
 }
 
+// Skeleton Functions related to function calls to files that are not included
+#ifndef USE_LORA
+  void sendTimeLoRa() {}
+#endif
+#ifndef USE_ESPNOW
+  esp_err_t sendTimeESPNow() { return ESP_OK; }                  // fdrs_gateway_time.h
+#endif
