@@ -120,7 +120,7 @@ void mqtt_callback(char *topic, byte *message, unsigned int length)
     if (error)
     { // Test if parsing succeeds.
         DBG("json parse err");
-        DBG(incomingString);
+        DBG1(incomingString);
         return;
     }
     else
