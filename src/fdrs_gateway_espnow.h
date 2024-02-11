@@ -44,7 +44,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   memcpy(&incMAC, mac, sizeof(incMAC));
   if (len < sizeof(DataReading))
   {
-    DBG("ESP-NOW System Packet");
+    DBG1("ESP-NOW System Packet");
     memcpy(&theCmd, incomingData, sizeof(theCmd));
     memcpy(&incMAC, mac, sizeof(incMAC));
     return;
@@ -140,7 +140,7 @@ int find_espnow_peer()
 // Returns the index of the peer list array element that contains the provided MAC address, -1 if not found
 int getFDRSPeer(uint8_t *mac)
 {
-  DBG1("Getting peer #");
+  DBG2("Getting peer #");
 
   for (int i = 0; i < 16; i++)
   {
@@ -157,12 +157,12 @@ int getFDRSPeer(uint8_t *mac)
 
 void add_espnow_peer()
 {
-  DBG("Device requesting peer registration");
+  DBG1("Device requesting peer registration");
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
     int open_peer = find_espnow_peer();            // find open spot in peer_list
-    DBG1("New device will be registered as " + String(open_peer));
+    DBG("Registering new peer. Slot: " + String(open_peer));
     memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
     peer_list[open_peer].last_seen = millis();
 #if defined(ESP32)
