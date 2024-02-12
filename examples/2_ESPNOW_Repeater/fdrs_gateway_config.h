@@ -44,6 +44,7 @@
 #define LORA_SPI_MOSI 27
 
 #define FDRS_DEBUG     // Enable USB-Serial debugging
+//#define DBG_LEVEL 0    // 0 for minimal messaging, 1 for troubleshooting, 2 for development
 
 // OLED -- Displays console debugging messages on an SSD1306 I²C OLED
 ///#define USE_OLED    
