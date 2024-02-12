@@ -93,7 +93,7 @@ const uint8_t mac_prefix[] = {MAC_PREFIX};
 const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 #endif
 
-bool pingFlag = false;
+bool pingFlag = false;                // flag to indicate we have received a LoRa ping response
 bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
@@ -650,7 +650,7 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
     transmitLoRa(address, &sys_packet, 1);
     DBG("LoRa ping sent to address: 0x" + String(*address, HEX));
     uint32_t ping_start = millis();
-    pingFlagLoRa = false;
+    pingFlag = false;
     // JL - future: figure out how to handle this asynchronously so we are not taking up processor time
     while ((millis() - ping_start) <= timeout)
     {
@@ -658,10 +658,10 @@ uint32_t pingFDRSLoRa(uint16_t *address, uint32_t timeout)
         #ifdef ESP8266
             yield();
         #endif
-        if (pingFlagLoRa)
+        if (pingFlag)
         {   
             DBG("LoRa Ping Returned: " + String(millis() - ping_start) + "ms.");
-            pingFlagLoRa = false;
+            pingFlag = false;
             return (millis() - ping_start);
         }
     }

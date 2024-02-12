@@ -330,9 +330,109 @@ void sendESPNowPeers()
       //DBG(millis() - clktm);
     }
   }
-
-
 }
+
+// Lower level function meant to be called by other functions 
+// Sends SystemPacket via ESP-NOW
+esp_err_t sendESPNow(uint8_t *dest, SystemPacket *data) {
+  esp_err_t sendResult;
+  if (dest != nullptr && !esp_now_is_peer_exist(dest))
+  {
+#ifdef ESP8266
+    sendResult = esp_now_add_peer(dest, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+    if (sendResult != ESP_OK)
+    {
+      DBG("Failed to add peer");
+      return sendResult;
+    }
+#endif
+#if defined(ESP32)
+    esp_now_peer_info_t peerInfo;
+    peerInfo.ifidx = WIFI_IF_STA;
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    memcpy(peerInfo.peer_addr, dest, 6);
+    sendResult = esp_now_add_peer(&peerInfo);
+    if (sendResult != ESP_OK)
+    {
+      DBG("Failed to add peer");
+      return sendResult;
+    }
+#endif
+    sendResult = esp_now_send(dest, (uint8_t *)data, sizeof(SystemPacket));
+    esp_now_del_peer(dest);
+  }
+  else
+  {
+    sendResult = esp_now_send(dest, (uint8_t *)data, sizeof(SystemPacket));
+  }
+  return sendResult;
+}
+
+// Lower level function meant to be called by other functions 
+// Sends DataReading via ESP-NOW
+esp_err_t sendESPNow(uint8_t *dest, DataReading *data) {
+  esp_err_t sendResult;
+  bool tempPeerFlag = false;
+
+
+  if (dest != nullptr && !esp_now_is_peer_exist(dest))
+  {
+    tempPeerFlag = true;
+#ifdef ESP8266
+    sendResult = esp_now_add_peer(dest, ESP_NOW_ROLE_COMBO, 0, NULL, 0);
+    if (sendResult != ESP_OK)
+    {
+      DBG("Failed to add peer");
+      return sendResult;
+    }
+  }
+#endif
+#if defined(ESP32)
+    esp_now_peer_info_t peerInfo;
+    peerInfo.ifidx = WIFI_IF_STA;
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    memcpy(peerInfo.peer_addr, dest, 6);
+    sendResult = esp_now_add_peer(&peerInfo);
+    if (sendResult != ESP_OK)
+    {
+      DBG("Failed to add peer");
+      return sendResult;
+    }
+  }
+#endif // ESP32
+    for(int i = 0; i < ln; ) {
+      if(ln > espnow_size) {
+        sendResult = esp_now_send(dest, (uint8_t *)&data[i], espnow_size * sizeof(DataReading));
+        if(sendResult == ESP_OK) {
+          i += espnow_size;
+        }
+        else {
+          // Send failed!
+          delay(10);
+          return sendResult;
+        }
+      }
+      else {
+        sendResult = esp_now_send(dest, (uint8_t *)&data[i], ln * sizeof(DataReading));
+        if(sendResult == ESP_OK) {
+          ln = 0;
+        }
+        else {
+          // Send Failed!
+          delay(10);
+          return sendResult;
+        }
+      }
+    } 
+    if(tempPeerFlag) {
+      esp_now_del_peer(dest);
+    }
+    return sendResult;
+}
+
+
 
 void sendESPNow(uint8_t address)
 {
