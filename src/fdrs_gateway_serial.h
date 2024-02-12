@@ -24,6 +24,8 @@
 #endif
 #endif
 
+extern time_t now;
+
 void getSerial() {
   String incomingString;
   if (UART_IF.available()){
@@ -40,6 +42,8 @@ void getSerial() {
     return;
   } else {
     int s = doc.size();
+    JsonObject obj = doc[0].as<JsonObject>();
+    if(obj.containsKey("type")) { // DataReading
     //UART_IF.println(s);
     for (int i = 0; i < s; i++) {
       theData[i].id = doc[i]["id"];
@@ -48,19 +52,48 @@ void getSerial() {
     }
     ln = s;
     newData = event_serial;
-    DBG("Incoming Serial.");
-
+    DBG("Incoming Serial: DR");
+      String data;
+      serializeJson(doc, data);
+      DBG("Serial data: " + data);
+    }
+    else if(obj.containsKey("cmd")) { // SystemPacket
+      cmd_t c = doc[0]["cmd"];
+      if(c == cmd_time) {
+        // Serial time master takes precedence over all others
+        if(timeMaster.tmType == TM_NONE) {
+          timeMaster.tmType = TM_SERIAL;
+          timeMaster.tmAddress = 0x0000;
+          DBG("Time master is now Serial peer");
+        }
+        setTime(doc[0]["param"]); 
+        DBG("Incoming Serial: time");
+        timeMaster.tmLastTimeSet = millis();
+      }
+      else {
+        DBG("Incoming Serial: unknown cmd: " + String(c));
+      }
+    }
+    else {    // Who Knows???
+      DBG("Incoming Serial: unknown: " + incomingString);
+    }
   }
 }
 
+
 void sendSerial() {
-  DBG("Sending Serial.");
+  
   JsonDocument doc;
   for (int i = 0; i < ln; i++) {
     doc[i]["id"]   = theData[i].id;
     doc[i]["type"] = theData[i].t;
     doc[i]["data"] = theData[i].d;
   }
+  DBG("Sending Serial.");
+  // String data;
+  // serializeJson(doc, data);
+  // DBG("Serial data: " + data);
+
   serializeJson(doc, UART_IF);
   UART_IF.println();
 
@@ -75,4 +108,19 @@ void handleSerial(){
   {
     getSerial();
   }
+}
+
+void sendTimeSerial() {
+  
+  JsonDocument SysPacket;
+  SysPacket[0]["cmd"]   = cmd_time;
+  SysPacket[0]["param"] = now;
+  serializeJson(SysPacket, UART_IF);
+  UART_IF.println();
+  DBG("Sending Time via Serial.");
+
+#ifndef ESP8266
+  // serializeJson(SysPacket, Serial);
+  // Serial.println();
+#endif
 }

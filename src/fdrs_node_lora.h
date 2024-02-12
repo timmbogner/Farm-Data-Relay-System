@@ -89,17 +89,15 @@ volatile bool operationDone = false;  // flag to indicate that a packet was sent
 
 unsigned long receivedLoRaMsg = 0; // Number of total LoRa packets destined for us and of valid size
 unsigned long ackOkLoRaMsg = 0;    // Number of total LoRa packets with valid CRC
-
 uint16_t LoRaAddress;
-
 unsigned long transmitLoRaMsgwAck = 0; // Number of total LoRa packets destined for us and of valid size
 unsigned long msgOkLoRa = 0;           // Number of total LoRa packets with valid CRC
-void printLoraPacket(uint8_t *p, int size);
-
+time_t netTimeOffset = UINT32_MAX;  // One direction of LoRa Ping time in units of seconds (1/2 full ping time)
 uint16_t gtwyAddress = ((gatewayAddress[4] << 8) | GTWY_MAC);
 
 // Function prototypes
 crcResult getLoRa();
+void printLoraPacket(uint8_t *p, int size);
 
 #if defined(ESP8266) || defined(ESP32)
 ICACHE_RAM_ATTR
@@ -398,7 +396,7 @@ crcResult getLoRa()
                 unsigned int ln = (packetSize - 6) / sizeof(SystemPacket);
                 SystemPacket receiveData[ln];
 
-                if (calcCRC == packetCRC)
+                if ((packetCRC == calcCRC) || (packetCRC == crc16_update(calcCRC, 0xA1)))
                 {
                     memcpy(receiveData, &packet[4], packetSize - 6); // Split off data portion of packet (N bytes)
                     if (ln == 1 && receiveData[0].cmd == cmd_ack)
@@ -419,33 +417,20 @@ crcResult getLoRa()
                             transmitLoRa(&sourceMAC, &pingReply, 1);
                         }
                     }
-                    else
-                    { // data we have received is not yet programmed.  How we handle is future enhancement.
-                        DBG("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
-                        DBG("ln: " + String(ln) + "data type: " + String(receiveData[0].cmd));
-                    }
-                    ackOkLoRaMsg++;
-                    return CRC_OK;
-                }
-                else if (packetCRC == crc16_update(calcCRC, 0xA1))
-                {                                                    // Sender does not want ACK and CRC is valid
-                    memcpy(receiveData, &packet[4], packetSize - 6); // Split off data portion of packet (N bytes)
-                    if (ln == 1 && receiveData[0].cmd == cmd_ack)
-                    {
-                        DBG("ACK Received - CRC Match");
-                    }
-                    else if (ln == 1 && receiveData[0].cmd == cmd_ping)
-                    { // We have received a ping request or reply??
-                        if (receiveData[0].param == 1)
-                        { // This is a reply to our ping request
-                            pingFlag = true;
-                            DBG("We have received a ping reply via LoRa from address " + String(sourceMAC, HEX));
+                    else if (ln == 1 && receiveData[0].cmd == cmd_time) {
+                        if(timeMaster.tmType == TM_NONE || timeMaster.tmType != TM_ESPNOW || (timeMaster.tmType == TM_LORA && timeMaster.tmAddress == sourceMAC)) {
+                            DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
+                            if(timeMaster.tmType == TM_NONE) {
+                                timeMaster.tmType = TM_LORA;
+                                timeMaster.tmAddress = sourceMAC;
+                                DBG("Time master is LoRa 0x" + String(sourceMAC, HEX));
                         }
-                        else if (receiveData[0].param == 0)
-                        {
-                            DBG("We have received a ping request from 0x" + String(sourceMAC, HEX) + ", Replying.");
-                            SystemPacket pingReply = {.cmd = cmd_ping, .param = 1};
-                            transmitLoRa(&sourceMAC, &pingReply, 1);
+                        setTime(receiveData[0].param);
+                            adjTimeforNetDelay(netTimeOffset);
+                            timeMaster.tmLastTimeSet = millis();
+                        }
+                        else {
+                            DBG("LoRa 0x" + String(sourceMAC, HEX) + " is not time master, discarding request");
                         }
                     }
                     else
@@ -522,4 +507,29 @@ void printLoraPacket(uint8_t *p, int size)
         printf("%02X ", p[i]);
     }
     printf("\n");
+}
+
+// Pings the LoRa time master periodically to calculate the time delay in the LoRa radio link
+// Returns success or failure of the ping result
+bool pingLoRaTimeMaster() {
+    static unsigned long lastTimeMasterPing = 0;
+
+  // ping the time master every 5 minutes
+  if(millis() - lastTimeMasterPing > (5*60*1000 + random(0,2000))) {
+    time_t pingTimeMs;
+    pingTimeMs = pingFDRSLoRa(&timeMaster.tmAddress,4000);
+    if(pingTimeMs != UINT32_MAX) {
+      netTimeOffset = pingTimeMs/2/1000;
+      adjTimeforNetDelay(netTimeOffset);
+      lastTimeMasterPing = millis();
+      return true;  
+    }
+    lastTimeMasterPing = millis();
+  }
+  return false;
+}
+
+// skeleton function required by fdrs_time.h
+void sendTimeLoRa() {
+    return;
 }

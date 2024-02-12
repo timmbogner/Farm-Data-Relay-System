@@ -26,11 +26,12 @@ enum crcResult {
   CRC_BAD,
 } returnCRC;
 
-enum {
+enum cmd_t {
   cmd_clear,
   cmd_ping,
   cmd_add,
   cmd_ack,
+  cmd_time,
 };
 
 enum
@@ -46,6 +47,26 @@ enum
   event_lora2,
   event_internal
 };
+
+enum TmType {
+  TM_NONE,
+  TM_SERIAL,
+  TM_ESPNOW,
+  TM_LORA,
+};
+
+typedef struct TimeMaster {
+  TmType tmType;
+  uint16_t tmAddress;
+  unsigned long tmLastTimeSet;
+} TimeMaster;
+
+#ifndef ESP32
+typedef int esp_err_t;
+#define ESP_FAIL 0
+#define ESP_OK 1
+#endif
+
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 
