@@ -238,9 +238,9 @@ crcResult transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
   calcCRC = crc16_update(calcCRC, 0xA1);                  // No ACK for SystemPacket messages so generate new CRC with 0xA1
   pkt[(len * sizeof(SystemPacket) + 4)] = (calcCRC >> 8); // Append calculated CRC to the last 2 bytes of the packet
   pkt[(len * sizeof(SystemPacket) + 5)] = (calcCRC & 0x00FF);
-  DBG("Transmitting LoRa message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
+  DBG("Transmitting LoRa SYSTEM message of size " + String(sizeof(pkt)) + " bytes with CRC 0x" + String(calcCRC, HEX) + " to LoRa MAC 0x" + String(*destMac, HEX));
   // printLoraPacket(pkt,sizeof(pkt));
-  int state = radio.startTransmit(pkt, sizeof(pkt));
+  int state = radio.transmit(pkt, sizeof(pkt));
   transmitFlag = true;
   if (state == RADIOLIB_ERR_NONE)
   {
