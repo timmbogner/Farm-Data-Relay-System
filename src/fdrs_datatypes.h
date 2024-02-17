@@ -31,7 +31,8 @@ enum cmd_t {
   cmd_ping,
   cmd_add,
   cmd_ack,
-  cmd_time,
+  cmd_time,     // Time is sent across the network calling cmd_time on the receiving device
+  cmd_time_req, // Device is requesting that gateway send time to it.
 };
 
 enum
@@ -47,17 +48,27 @@ enum
   event_lora2,
   event_internal
 };
-
-enum TmType {
-  TM_NONE,
-  TM_SERIAL,
-  TM_ESPNOW,
-  TM_LORA,
+// Interface type that is the network master
+enum TmNetIf {
+  TMIF_NONE,
+  TMIF_LORA,
+  TMIF_ESPNOW,
+  TMIF_SERIAL,
+  TMIF_LOCAL,
+};
+// Local time source that is setting the time
+enum TmSource {
+  TMS_NONE,
+  TMS_NET,
+  TMS_RTC,
+  TMS_NTP,
+  TMS_GPS,
 };
 
 typedef struct TimeMaster {
-  TmType tmType;
+  TmNetIf tmNetIf;
   uint16_t tmAddress;
+  TmSource tmSource;
   unsigned long tmLastTimeSet;
 } TimeMaster;
 

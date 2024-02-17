@@ -93,6 +93,12 @@ byte packetBuffer[NTP_PACKET_SIZE];   //buffer to hold incoming and outgoing pac
 uint NTPFetchFail = 0;                // consecutive NTP fetch failures
 extern time_t now;
 
+const char *ssid = FDRS_WIFI_SSID;
+const char *password = FDRS_WIFI_PASS;
+#ifdef USE_STATIC_IPADDRESS
+  uint8_t hostIpAddress[4], gatewayAddress[4], subnetAddress[4], dns1Address[4], dns2Address[4]; 
+#endif
+
 #ifdef USE_ETHERNET
 static bool eth_connected = false;
 
@@ -134,12 +140,6 @@ void WiFiEvent(WiFiEvent_t event)
 }
 
 #endif // USE_ETHERNET
-const char *ssid = FDRS_WIFI_SSID;
-const char *password = FDRS_WIFI_PASS;
-#ifdef USE_STATIC_IPADDRESS
-  uint8_t hostIpAddress[4], gatewayAddress[4], subnetAddress[4], dns2Address[4]; 
-#endif
-uint8_t dns1Address[4];
 
 // Convert IP Addresses from strings to byte arrays of 4 bytes
 void stringToByteArray(const char* str, char sep, byte* bytes, int maxBytes, int base) {
@@ -175,11 +175,18 @@ void begin_wifi()
   WiFi.config(hostIpAddress, gatewayAddress, subnetAddress, dns1Address, dns2Address);
 #endif
   WiFi.begin(ssid, password);
+int connectTries = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
-    DBG("Connecting to WiFi...");
-    DBG(FDRS_WIFI_SSID);
-    delay(500);
+    connectTries++;
+    DBG("Connecting to WiFi SSID: " + String(FDRS_WIFI_SSID) + " try number " + String(connectTries));
+    delay(1000);
+    WiFi.reconnect();
+    if(connectTries >= 15) {
+        DBG("Restarting ESP32: WiFi issues\n");
+        delay(5000);  
+        ESP.restart();
+}
   }
 #endif // USE_ETHERNET
 }
@@ -208,10 +215,11 @@ void sendNTPpacket(const char * address) {
 }
 
 void fetchNtpTime() {
-  //DBG("GetTime Function");
+//DBG("GetTime Function");
+  if(timeMaster.tmSource <= TMS_NTP) {
 #ifdef USE_ETHERNET
   if(eth_connected) {
-#else
+#elif defined(USE_WIFI)
   if(WiFi.status() == WL_CONNECTED) {
 #endif
     //DBG("Calling .begin function");
@@ -246,22 +254,24 @@ void fetchNtpTime() {
       // subtract seventy years:
       // now is epoch format - seconds since Jan 1 1970
       now = secsSince1900 - seventyYears;
-      setTime(now); // UTC time
-    }
+      if(setTime(now)) {
+          timeMaster.tmNetIf = TMIF_LOCAL;
+          timeMaster.tmAddress = 0xFFFF;
+          timeMaster.tmSource = TMS_NTP;
+          timeMaster.tmLastTimeSet = millis();
+          DBG1("Time source is now local NTP");
+        } // UTC time
+          }
     else {
-      NTPFetchFail++;
-      DBG("Timeout getting a NTP response. " + String(NTPFetchFail) + " consecutive failures.");
-      // If unable to Update the time after N tries then set the time to be not valid.
-      if(NTPFetchFail > 5) {
-        validTimeFlag = false;
-        DBG("Time no longer reliable.");
+      DBG1("Timeout getting a NTP response.");
       }
     }
   }
+  return;
 }
 
 void begin_ntp() {
   fetchNtpTime();
-  updateTime();
+  handleTime();
   printTime();
 }

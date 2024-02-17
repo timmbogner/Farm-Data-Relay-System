@@ -7,6 +7,22 @@
     #include <esp_wifi.h>
 #endif
 
+enum PingStatusEspNow {
+  psNotStarted,
+  psWaiting,
+  psCompleted,
+};
+
+typedef struct EspNowPing {
+  PingStatusEspNow status = psNotStarted;
+  unsigned long start;
+  uint timeout;
+  uint8_t address[6];
+  uint32_t response = __UINT32_MAX__;
+} EspNowPing;
+
+EspNowPing espNowPing;
+
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
@@ -16,20 +32,49 @@ uint32_t gtwy_timeout = 300000;
 
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
-  if(timeMaster.tmType == TM_NONE || (timeMaster.tmType == TM_ESPNOW && timeMaster.tmAddress == incMAC[4] << 8 | incMAC[5])) {
+  if(timeMaster.tmNetIf < TMIF_ESPNOW || (timeMaster.tmNetIf == TMIF_ESPNOW && timeMaster.tmAddress == (incMAC[4] << 8 | incMAC[5]))) {
     DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
-    if(timeMaster.tmAddress == 0x0000) {
-      timeMaster.tmType = TM_ESPNOW;
+    if(timeMaster.tmNetIf < TMIF_ESPNOW) {
+      timeMaster.tmNetIf = TMIF_ESPNOW;
+timeMaster.tmSource = TMS_NET;
       timeMaster.tmAddress = incMAC[4] << 8 & incMAC[5];
-      DBG("ESP-NOW time master is 0x" + String(incMAC[5], HEX));
+      DBG("ESP-NOW time source is now 0x" + String(incMAC[5], HEX));
     }
     setTime(t);
     timeMaster.tmLastTimeSet = millis();
   }
   else {
-    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time master, discarding request");
+    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not our time source, discarding request");
   }
   return;
+}
+
+uint32_t recvPingEspNow(uint8_t *srcAddr) {
+    uint32_t response = UINT32_MAX;
+
+    if(memcmp(espNowPing.address, srcAddr, sizeof(espNowPing.address)) == 0) {
+
+        if(TDIFF(espNowPing.start,espNowPing.timeout)) {
+            DBG1("No ESP-NOW ping returned within " + String(espNowPing.timeout) + "ms.");
+        }
+        else {
+            espNowPing.response = millis() - espNowPing.start;
+            DBG1("ESP-NOW Ping Reply in " + String(espNowPing.response) + "ms from 0x" + String(espNowPing.address[5], HEX));
+            response = espNowPing.response;
+        }
+    }
+    else {
+        DBG1("ESP-NOW ping reply from unexpected source 0x" + String(*(srcAddr + 5),HEX));
+    }
+
+    // reset status
+    espNowPing.status = psNotStarted;
+    espNowPing.timeout = 0;
+    espNowPing.start = 0;
+    memcpy(espNowPing.address, broadcast_mac, sizeof(espNowPing.address));
+    espNowPing.response = 0;
+
+    return response;
 }
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -63,53 +108,61 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
 #endif
 memcpy(&incMAC, mac, sizeof(incMAC));
-    if (len < sizeof(DataReading))
+    if (len == sizeof(SystemPacket))
     {
         SystemPacket command;
         memcpy(&command, incomingData, sizeof(command));
+        DBG2("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
         switch (command.cmd)
         {
         case cmd_ping:
-            pingFlag = true;
+            recvPingEspNow(incMAC);
             break;
         case cmd_add:
             is_added = true;
             gtwy_timeout = command.param;
             break;
-case cmd_time:
+        case cmd_time:
             recvTimeEspNow(command.param);
             break;
         }
     }
-    else
+    else if((len == sizeof(DataReading)))
     {
         memcpy(&theData, incomingData, len);
         ln = len / sizeof(DataReading);
+        DBG2("Incoming ESP-NOW Data Reading from 0x" + String(incMAC[5], HEX));
         newData = true;
+        // Processing done by handleIncoming() in fdrs_node.h
+    }
+    else {
+        DBG2("Incoming ESP-NOW Data from 0x" + String(incMAC[5], HEX) + " of unexpected size " + String(len));
     }
 }
 
 // FDRS node pings gateway and listens for a defined amount of time for a reply
-// Blocking function for timeout amount of time (up to timeout time waiting for reply)(IE no callback)
-// Returns the amount of time in ms that the ping takes or predefined value if ping fails within timeout
-uint32_t pingFDRSEspNow(uint8_t *address, uint32_t timeout) {
+// Asynchonous call so does not wait for a reply so we do not know how long the ping takes
+// ESP-NOW is on the order of 10 milliseconds so happens very quickly.  Not sure Async is warranted.
+void pingFDRSEspNow(uint8_t *dstaddr, uint32_t timeout) {
     SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
     
-    esp_now_send(address, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-    DBG(" ESP-NOW ping sent.");
-    uint32_t ping_start = millis();
-    pingFlag = false;
-    while ((millis() - ping_start) <= timeout)
-    {
-        yield(); // do I need to yield or does it automatically?
-        if (pingFlag)
-        {
-            DBG("ESP-NOW Ping Reply in " + String(millis() - ping_start) + "ms from " + String(address[0], HEX) + ":" + String(address[1], HEX) + ":" + String(address[2], HEX) + ":" + String(address[3], HEX) + ":" + String(address[4], HEX) + ":" + String(address[5], HEX));
-            return (millis() - ping_start);
-        }
+    // ping function called again after previous ping not received for some reason
+    if(espNowPing.status == psWaiting) {
+        espNowPing.status = psNotStarted;
+        espNowPing.timeout = 0;
+        espNowPing.start = 0;
+        espNowPing.response = 0;
+        memcpy(espNowPing.address, broadcast_mac, sizeof(espNowPing.address));
     }
-    DBG("No ESP-NOW ping returned within " + String(timeout) + "ms.");
-    return UINT32_MAX;
+
+    espNowPing.status = psWaiting;
+    espNowPing.timeout = timeout;
+    espNowPing.start = millis();
+    espNowPing.response = 0;
+    memcpy(espNowPing.address, dstaddr, sizeof(espNowPing.address));
+    DBG1("ESP-NOW ping sent to 0x" + String(*(espNowPing.address + 5),HEX));
+    esp_now_send(dstaddr, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    
 }
 
 bool refresh_registration()
@@ -117,7 +170,7 @@ bool refresh_registration()
 #ifdef USE_ESPNOW
   SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
   esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("Refreshing registration to " + String(gatewayAddress[5]));
+  DBG("Refreshing registration to 0x" + String(gatewayAddress[5],HEX));
   uint32_t add_start = millis();
   is_added = false;
   while ((millis() - add_start) <= 1000) // 1000ms timeout

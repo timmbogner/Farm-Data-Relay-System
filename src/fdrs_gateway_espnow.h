@@ -46,25 +46,27 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   memcpy(&incMAC, mac, sizeof(incMAC));
   if (len < sizeof(DataReading))
   {
-    DBG("ESP-NOW System Packet");
+    DBG("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
     memcpy(&theCmd, incomingData, sizeof(theCmd));
-    memcpy(&incMAC, mac, sizeof(incMAC));
+    // processing is handled in the handlecommands() function in gateway.h - do not process here
     return;
   }
-  memcpy(&theData, incomingData, sizeof(theData));
-  DBG("Incoming ESP-NOW.");
-  ln = len / sizeof(DataReading);
-  if (memcmp(&incMAC, &ESPNOW1, 6) == 0)
-  {
-    newData = event_espnow1;
-    return;
+  else {
+    memcpy(&theData, incomingData, sizeof(theData));
+    DBG("Incoming ESP-NOW Data Reading from 0x" + String(incMAC[5], HEX));
+    ln = len / sizeof(DataReading);
+    if (memcmp(&incMAC, &ESPNOW1, 6) == 0)
+    {
+      newData = event_espnow1;
+      return;
+    }
+    if (memcmp(&incMAC, &ESPNOW2, 6) == 0)
+    {
+      newData = event_espnow2;
+      return;
+    }
+    newData = event_espnowg;
   }
-  if (memcmp(&incMAC, &ESPNOW2, 6) == 0)
-  {
-    newData = event_espnow2;
-    return;
-  }
-  newData = event_espnowg;
 }
 
 void begin_espnow()
@@ -127,7 +129,7 @@ int find_espnow_peer()
   }
   for (int i = 0; i < 16; i++)
   {
-    if ((millis() - peer_list[i].last_seen) >= PEER_TIMEOUT)
+    if (TDIFF(peer_list[i].last_seen,PEER_TIMEOUT))
     {
       // DBG("Recycling peer entry " + String(i));
       esp_now_del_peer(peer_list[i].mac);
@@ -470,15 +472,19 @@ void sendESPNow(uint8_t address)
 
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
-  if(timeMaster.tmType == TM_NONE || timeMaster.tmType == TM_LORA || (timeMaster.tmType == TM_ESPNOW && timeMaster.tmAddress == incMAC[4] << 8 | incMAC[5])) {
+  if(timeMaster.tmNetIf <= TMIF_ESPNOW ) {
     DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
-    if(timeMaster.tmAddress == 0x0000) {
-      timeMaster.tmType = TM_ESPNOW;
-      timeMaster.tmAddress = incMAC[4] << 8 & incMAC[5];
-      DBG("ESP-NOW time master is 0x" + String(incMAC[5], HEX));
+    if(timeMaster.tmNetIf < TMIF_ESPNOW) {
+      timeMaster.tmNetIf = TMIF_ESPNOW;
+      timeMaster.tmAddress = incMAC[4] << 8 | incMAC[5];
+      timeMaster.tmSource = TMS_NET;
+      DBG1("ESP-NOW time source is 0x" + String(incMAC[5], HEX));
     }
-    setTime(t);
-    timeMaster.tmLastTimeSet = millis();
+    if(timeMaster.tmAddress == incMAC[4] << 8 | incMAC[5]) {
+      if(setTime(t)) {
+        timeMaster.tmLastTimeSet = millis();
+      }
+    }
   }
   else {
     DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time master, discarding request");
@@ -492,11 +498,11 @@ esp_err_t sendTimeESPNow() {
   esp_err_t result1 = ESP_OK, result2 = ESP_OK, result3 = ESP_OK;
   SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
 
-  if((timeMaster.tmAddress != ESPNOW1[4] << 8 | ESPNOW1[5]) && ESPNOW1[5] != 0x00) {
+  if((timeMaster.tmAddress != (ESPNOW1[4] << 8 | ESPNOW1[5])) && ESPNOW1[5] != 0x00) {
     DBG("Sending time to ESP-NOW Peer 1");
     result1 = sendESPNow(ESPNOW1, &sys_packet);
   }
-  if((timeMaster.tmAddress != ESPNOW2[4] << 8 | ESPNOW2[5]) && ESPNOW2[5] != 0x00) {
+  if((timeMaster.tmAddress != (ESPNOW2[4] << 8 | ESPNOW2[5])) && ESPNOW2[5] != 0x00) {
     DBG("Sending time to ESP-NOW Peer 2");
     result2 = sendESPNow(ESPNOW2, &sys_packet);
   }
@@ -509,4 +515,15 @@ esp_err_t sendTimeESPNow() {
   else {
     return ESP_OK;
   }
+}
+
+// Send the time to a specific node
+esp_err_t sendTimeESPNow(uint8_t addr) {
+  
+  esp_err_t result = ESP_FAIL;
+  SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+  DBG1("Sending time to ESP-NOW address 0x" + String(addr));
+  result = sendESPNow(&addr, &sys_packet);
+
+  return result;
 }

@@ -418,10 +418,10 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-                        if(timeMaster.tmType == TM_NONE || timeMaster.tmType != TM_ESPNOW || (timeMaster.tmType == TM_LORA && timeMaster.tmAddress == sourceMAC)) {
+                        if(timeMaster.tmNetIf == TMIF_NONE || timeMaster.tmNetIf != TMIF_ESPNOW || (timeMaster.tmNetIf == TMIF_LORA && timeMaster.tmAddress == sourceMAC)) {
                             DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
-                            if(timeMaster.tmType == TM_NONE) {
-                                timeMaster.tmType = TM_LORA;
+                            if(timeMaster.tmNetIf == TMIF_NONE) {
+                                timeMaster.tmNetIf = TMIF_LORA;
                                 timeMaster.tmAddress = sourceMAC;
                                 DBG("Time master is LoRa 0x" + String(sourceMAC, HEX));
                         }
