@@ -4,7 +4,7 @@
 
 #ifdef FDRS_DEBUG
     #ifdef USE_OLED
-        #define DBG(a) ("    "); Serial.println(a); debug_OLED(String(a));
+        #define DBG(a) Serial.print("    "); Serial.println(a); debug_OLED(String(a));
     #else
         #define DBG(a) Serial.print("    "); Serial.println(a);
     #endif // USE_OLED

@@ -41,7 +41,6 @@ struct tm timeinfo;                   // Structure containing time elements
 struct timeval tv;
 bool validTimeFlag = false;           // Indicate whether we have reliable time 
 bool validRtcFlag = false;            // Is RTC date and time valid?
-// time_t lastNTPFetchSuccess = 0;      // Last time that a successful NTP fetch was made
 bool isDST;                           // Keeps track of Daylight Savings Time vs Standard Time
 long slewSecs = 0;                  // When time is set this is the number of seconds the time changes
 double stdOffset = (FDRS_STD_OFFSET * 60 * 60);  // UTC -> Local time, in Seconds, offset from UTC in Standard Time

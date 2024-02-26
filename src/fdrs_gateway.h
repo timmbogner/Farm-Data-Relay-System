@@ -212,21 +212,7 @@ void handleCommands()
 #endif // USE_ESPNOW
     }
     
-    break;
-
-  case cmd_time_req:
-#ifdef USE_ESPNOW
-    // theCmd.param = theCmd.param & 0x000000FF;
-    DBG1("Received ESP-NOW time request from 0x" + String((uint8_t) theCmd.param << 24,HEX));
-    sendTimeESPNow((uint8_t) theCmd.param << 24);
-#endif // USE_ESPNOW
-#ifdef USE_LORA
-    DBG1("Received LoRa time request from 0x" + String((uint16_t) theCmd.param << 16,HEX));
-    sendTimeLoRa((uint16_t) theCmd.param << 16);
-#endif // USE_LORA
-
-    break;
-  
+    break;  
   }
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
@@ -290,8 +276,8 @@ void loopFDRS()
   void broadcastLoRa() {}
   void sendLoRaNbr(uint8_t address) {}
   void timeFDRSLoRa(uint8_t *address) {}  // fdrs_gateway_lora.h
-  crcResult sendTimeLoRa() { return CRC_NULL; }                  // fdrs_gateway_time.h
-  crcResult handleLoRa() { return CRC_NULL; }                    // fdrs_gateway_lora.h
+  void sendTimeLoRa() { return; }                  // fdrs_gateway_time.h
+  void handleLoRa() { return; }                    // fdrs_gateway_lora.h
   bool pingLoRaTimeMaster() { return false; } //fdrs_gateway_lora.h
 #endif
 #ifndef USE_ESPNOW

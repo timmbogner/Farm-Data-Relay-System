@@ -30,15 +30,33 @@ bool pingFlag = false;
 uint32_t last_refresh = 0;
 uint32_t gtwy_timeout = 300000;
 
+// Request time from gateway - Optionally used in sensors
+bool reqTimeEspNow() {
+    unsigned long pingStart = millis();
+    SystemPacket sys_packet = {.cmd = cmd_time, .param = 0};
+    DBG1("Requesting time from gateway 0x" + String(gatewayAddress[5],HEX));
+    esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    while(timeSource.tmNetIf < TMIF_ESPNOW && (millis() - pingStart < 1000)) {
+        // wait for time to be set
+        // magic happens here :)
+    }
+    if(timeSource.tmNetIf == TMIF_ESPNOW) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
   if(timeSource.tmNetIf < TMIF_ESPNOW || (timeSource.tmNetIf == TMIF_ESPNOW && timeSource.tmAddress == (incMAC[4] << 8 | incMAC[5]))) {
     DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
     if(timeSource.tmNetIf < TMIF_ESPNOW) {
-      timeSource.tmNetIf = TMIF_ESPNOW;
-timeSource.tmSource = TMS_NET;
-      timeSource.tmAddress = incMAC[4] << 8 & incMAC[5];
-      DBG("ESP-NOW time source is now 0x" + String(incMAC[5], HEX));
+        timeSource.tmNetIf = TMIF_ESPNOW;
+        timeSource.tmSource = TMS_NET;
+        timeSource.tmAddress = incMAC[4] << 8 & incMAC[5];
+        DBG("ESP-NOW time source is now 0x" + String(incMAC[5], HEX));
     }
     setTime(t);
     timeSource.tmLastTimeSet = millis();
@@ -116,14 +134,18 @@ memcpy(&incMAC, mac, sizeof(incMAC));
         switch (command.cmd)
         {
         case cmd_ping:
-            recvPingEspNow(incMAC);
+            if(command.param == ping_reply) {
+                recvPingEspNow(incMAC);
+            }
             break;
         case cmd_add:
             is_added = true;
             gtwy_timeout = command.param;
             break;
         case cmd_time:
-            recvTimeEspNow(command.param);
+            if(command.param > MIN_TS) {
+                recvTimeEspNow(command.param);
+            }
             break;
         }
     }
@@ -132,7 +154,7 @@ memcpy(&incMAC, mac, sizeof(incMAC));
         memcpy(&theData, incomingData, len);
         ln = len / sizeof(DataReading);
         DBG2("Incoming ESP-NOW Data Reading from 0x" + String(incMAC[5], HEX));
-        newData = true;
+        newData = event_espnowg;
         // Processing done by handleIncoming() in fdrs_node.h
     }
     else {

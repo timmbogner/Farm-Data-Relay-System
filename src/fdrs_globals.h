@@ -46,4 +46,17 @@
   #define USE_RTC
 #endif
 
+#if defined(USE_GPS) && defined(ESP8266)
+  #error "For ESP8266 only one UART has both Tx and Rx capabilities. GPS not supported for ESP8266"
 #endif
+
+#if defined(USE_ETHERNET) && !defined(ESP32)
+  #error "Ethernet only supported for ESP32."
+#endif
+
+#if defined(USE_OLED) && (!defined(ESP32) || !defined(ESP8266))
+  #warning "OLED current supported for only ESP32 or ESP8266."
+  #undef USE_OLED
+#endif
+
+#endif // __FDRS_GLOBALS_h__

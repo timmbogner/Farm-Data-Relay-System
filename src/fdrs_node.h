@@ -8,39 +8,10 @@
 #include <fdrs_globals.h>
 #define FDRS_NODE
 
-// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
-
-/** @ingroup util_crc16
-    Processor-independent CRC-16 calculation.
-    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
-    Initial value: 0xFFFF
-    This CRC is normally used in disk-drive controllers.
-    @param uint16_t crc (0x0000..0xFFFF)
-    @param uint8_t a (0x00..0xFF)
-    @return calculated CRC (0x0000..0xFFFF)
-*/
-
-static uint16_t crc16_update(uint16_t crc, uint8_t a)
-{
-  int i;
-
-  crc ^= a;
-  for (i = 0; i < 8; ++i)
-  {
-    if (crc & 1)
-      crc = (crc >> 1) ^ 0xA001;
-    else
-      crc = (crc >> 1);
-  }
-
-  return crc;
-}
-
 bool is_controller = false;
-// SystemPacket theCmd;  // does not seem to be used
 DataReading theData[256];
 uint8_t ln;
-bool newData;
+uint8_t newData; = event_clear;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 crcResult crcReturned = CRC_NULL;
@@ -165,10 +136,10 @@ void beginFDRS()
 
 void handleIncoming()
 {
-  if (newData)
+  if (newData != event_clear)
   {
 
-    newData = false;
+    newData = event_clear;
     for (int i = 0; i < ln; i++)
     { // Cycle through array of incoming DataReadings for any we are subbed to
       for (int j = 0; j < 255; j++)
@@ -213,24 +184,10 @@ bool sendFDRS()
   }
 #endif
 #ifdef USE_LORA
-  crcReturned = transmitLoRa(&gtwyAddress, fdrsData, data_count);
+  transmitLoRaAsync(&gtwyAddress, fdrsData, data_count);
   // DBG(" LoRa sent.");
-#ifdef LORA_ACK
-  if(crcReturned == CRC_OK) {
   data_count = 0;
-    return true;
-  }
-#endif
-#ifndef LORA_ACK
-  if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
-    data_count = 0;
   return true;
-}
-#endif
-  else {
-    data_count = 0;
-    return false;
-  }
 #endif
 }
 
@@ -396,22 +353,31 @@ bool unsubscribeFDRS(uint16_t sub_id)
 
 
 
-uint32_t pingFDRS(uint32_t timeout)
+void pingFDRS(uint32_t timeout)
 {
 #ifdef USE_ESPNOW
   // pingFDRSEspNow is now asynchronous so cannot return a value directly
   pingFDRSEspNow(gatewayAddress, timeout);
-  return UINT32_MAX;
 #endif
 #ifdef USE_LORA
-  uint32_t pingResponseMs = pingFDRSLoRa(&gtwyAddress, timeout);
-  return pingResponseMs;
+  pingRequestLoRa(&gtwyAddress, timeout);
+#endif
+  return;
+}
+
+bool reqTimeFDRS() {
+#ifdef USE_ESPNOW
+  return reqTimeEspNow();
+#endif
+#ifdef USE_LORA
+  return reqTimeLoRa();
 #endif
 }
 
 // Skeleton Functions related to function calls to files that are not included
 #ifndef USE_LORA
   void sendTimeLoRa() {}
+  bool reqTimeLoRa() { return false; }
 #endif
 #ifndef USE_ESPNOW
   esp_err_t sendTimeESPNow() { return ESP_OK; }                  // fdrs_gateway_time.h

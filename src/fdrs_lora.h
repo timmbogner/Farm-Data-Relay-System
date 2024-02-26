@@ -786,7 +786,7 @@ void handleLoRa()
 
     static unsigned long txWindow = 0;
     // It's polite to Listen more than you talk
-    if(TDIFF(txWindow,TXWINDOWMS)) {
+    if(TDIFF(txWindow,(TXWINDOWMS + random(0,50)))) {
         // Start Transmit data from the SystemPacket queue
         if(!SPQUEUEEMPTY && (loraTxState == stReady)) {
             DBG2("SP Index: start: " + String(startIdxSP) + " end: " + String(endIdxSP) + " Address: 0x" + String(loraSPBuffTx[endIdxSP].dstAddress,HEX));

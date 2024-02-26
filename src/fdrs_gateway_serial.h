@@ -1,10 +1,13 @@
 #include <ArduinoJson.h>
 
 #if defined (ESP32)
-#define UART_IF Serial1
-#define GPS_IF Serial2
+  #define UART_IF Serial1
+  #define GPS_IF Serial2
+#elif defined (ESP8266)
+  #define UART_IF Serial
 #else
-#define UART_IF Serial
+  #define UART_IF Serial
+  #define GPS_IF Serial1
 #endif
 
 #if defined(ESP32)
@@ -127,6 +130,7 @@ void getSerial() {
   else if (Serial.available()){
    incomingString =  Serial.readStringUntil('\n');
   }
+#ifdef GPS_IF
   if (GPS_IF.available()){
    
    // Data is coming in every second from the GPS, let's minimize the processing power
@@ -143,6 +147,7 @@ void getSerial() {
    }
    return;
   }
+#endif // GPS_IF
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, incomingString);
   if (error) {    // Test if parsing succeeds.
@@ -227,7 +232,11 @@ void sendSerial() {
 
 }
 void handleSerial(){
+#ifdef GPS_IF
   while (UART_IF.available() || Serial.available() || GPS_IF.available())
+#else
+  while (UART_IF.available() || Serial.available())
+#endif
   {
     getSerial();
   }
@@ -251,5 +260,11 @@ void sendTimeSerial() {
 }
 
 void begin_gps() {
-  GPS_IF.begin(9600, SERIAL_8N1, GPS_RXD, GPS_TXD);
+#ifdef GPS_IF
+#ifdef ARDUINO_ARCH_SAMD
+    GPS_IF.begin(9600);
+  #else
+    GPS_IF.begin(9600, SERIAL_8N1, GPS_RXD, GPS_TXD);
+  #endif  
+#endif
 }
