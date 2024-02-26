@@ -72,6 +72,32 @@ typedef struct TimeSource {
   unsigned long tmLastTimeSet;
 } TimeSource;
 
+enum LoRaState {
+  stReady,
+  stInProcess,
+  stCrcMismatch,
+  stCrcMatch,
+  stCompleted
+};
+
+typedef struct LoRaPing {
+  LoRaState status = stReady;
+  unsigned long start;
+  uint timeout;
+  uint16_t address;
+  uint32_t response = __UINT32_MAX__;
+} LoRaPing;
+
+typedef struct LoRaTaskSP {
+  SystemPacket data;
+  uint16_t dstAddress;
+} tskLoRaTaskSP;
+
+typedef struct LoRaTaskDR {
+  DataReading data;
+  uint16_t dstAddress;
+} tskLoRaTaskDR;
+
 #ifndef ESP32
 typedef int esp_err_t;
 #define ESP_FAIL 0

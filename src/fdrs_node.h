@@ -75,7 +75,7 @@ void sendTimeSerial();
   #include "fdrs_node_espnow.h"
 #endif
 #ifdef USE_LORA
-  #include "fdrs_node_lora.h"
+  #include "fdrs_lora.h"
 #endif
 
 void beginFDRS()

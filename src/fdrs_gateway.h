@@ -83,7 +83,7 @@ void printFDRS(DataReading*, int);
   #include "fdrs_gateway_espnow.h"
 #endif
 #ifdef USE_LORA
-  #include "fdrs_gateway_lora.h"
+  #include "fdrs_lora.h"
 #endif
 #ifdef USE_WIFI
   #include "fdrs_gateway_wifi.h"
