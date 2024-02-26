@@ -207,7 +207,7 @@ void pingback_espnow()
 {
   DBG("Ping back to sender");
   SystemPacket sys_packet;
-  sys_packet.cmd = cmd_ping;
+  sys_packet = { .cmd = cmd_ping, .param = ping_reply };
   if (!esp_now_is_peer_exist(incMAC))
   {
 #ifdef ESP8266
@@ -471,7 +471,7 @@ void sendESPNow(uint8_t address)
 }
 
 void recvTimeEspNow(uint32_t t) {
-  // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
+  // Process time if there is no time source set yet or if LoRa is the time source or if we are already the time source
   if(timeSource.tmNetIf <= TMIF_ESPNOW ) {
     DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
     if(timeSource.tmNetIf < TMIF_ESPNOW) {
@@ -487,7 +487,7 @@ void recvTimeEspNow(uint32_t t) {
     }
   }
   else {
-    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time master, discarding request");
+    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time source, discarding request");
   }
   return;
 }
@@ -518,12 +518,12 @@ esp_err_t sendTimeESPNow() {
 }
 
 // Send the time to a specific node
-esp_err_t sendTimeESPNow(uint8_t addr) {
+esp_err_t sendTimeESPNow(uint8_t *addr) {
   
   esp_err_t result = ESP_FAIL;
   SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
-  DBG1("Sending time to ESP-NOW address 0x" + String(addr));
-  result = sendESPNow(&addr, &sys_packet);
+  DBG1("Sending time to ESP-NOW address 0x" + String(addr[5],HEX));
+  result = sendESPNow(addr, &sys_packet);
 
   return result;
 }

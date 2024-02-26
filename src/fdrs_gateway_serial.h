@@ -168,7 +168,8 @@ void getSerial() {
     }
     else if(obj.containsKey("cmd")) { // SystemPacket
       cmd_t c = doc[0]["cmd"];
-      if(c == cmd_time) {
+      uint32_t p = doc[0]["param"];
+      if(c == cmd_time && p > MIN_TS) {
         if(timeSource.tmNetIf < TMIF_SERIAL) {
           timeSource.tmNetIf = TMIF_SERIAL;
           timeSource.tmSource = TMS_NET;
@@ -188,6 +189,9 @@ if(setTime(doc[0]["param"])) {
           // There is a local time source so we do not accept serial
           DBG2("Did not set time from incoming serial.");
         }
+      }
+      else if(c == cmd_time && p == 0) {
+        // Received a request for us to send time via serial -- not implemented yet.
       }
       else {
         DBG2("Incoming Serial: unknown cmd: " + String(c));

@@ -52,7 +52,7 @@ unsigned long lastRtcCheck = 0;
 unsigned long lastRtcTimeSetMin = 0;
 
 // function prototypes
-crcResult sendTimeLoRa();
+void sendTimeLoRa();
 void printTime();
 esp_err_t sendTimeESPNow();
 bool setTime(time_t);
@@ -274,9 +274,11 @@ void checkDST() {
 
 // Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
 void sendTime() {
-  if(validTime() && timeSource.tmSource > TMS_NONE) { // Only send time if it is valid
+  if(validTime()) { // Only send time if it is valid
     DBG1("Sending out time");
+#if defined(USE_WIFI) || defined(USE_ETHERNET)    
     sendTimeSerial();
+#endif
     sendTimeLoRa();
     sendTimeESPNow();
   }
@@ -292,7 +294,9 @@ bool setTime(time_t currentTime) {
   }
   now = currentTime;
   slewSecs = now - previousTime;
-  DBG1("Time adjust " + String(slewSecs) + " secs");
+  if(slewSecs > 2) {
+    DBG1("Time adjust " + String(slewSecs) + " secs");
+  }
 
   // time(&now);
   localtime_r(&now, &timeinfo); // write to timeinfo struct
@@ -366,7 +370,9 @@ void adjTimeforNetDelay(time_t newOffset) {
   if(newOffset < UINT32_MAX && validTime()) {
     now = now + newOffset - previousOffset;
     previousOffset = newOffset;
-    DBG1("Time adj by " + String(newOffset) + " secs");
+    if(newOffset > 2) {
+      DBG1("Time adj by " + String(newOffset) + " secs");
+    }
 }
   if(timeSource.tmSource == TMS_NET && newOffset > 10) {
     DBG("Time off by more than 10 seconds!");

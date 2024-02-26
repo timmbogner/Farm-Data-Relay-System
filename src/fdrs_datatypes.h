@@ -32,7 +32,11 @@ enum cmd_t {
   cmd_add,
   cmd_ack,
   cmd_time,     // Time is sent across the network calling cmd_time on the receiving device
-  cmd_time_req, // Device is requesting that gateway send time to it.
+};
+
+enum ping_t {
+  ping_request,
+  ping_reply
 };
 
 enum
@@ -48,7 +52,7 @@ enum
   event_lora2,
   event_internal
 };
-// Interface type that is the network master
+// Interface type that is the time source
 enum TmNetIf {
   TMIF_NONE,
   TMIF_LORA,

@@ -233,7 +233,7 @@ void fetchNtpTime() {
       delay(10);
     }
     if(i < 800) {
-      DBG("Took " + String(i * 10) + "ms to get NTP response from " + String(timeServer) + ".");
+      DBG2("Took " + String(i * 10) + "ms to get NTP response from " + String(timeServer) + ".");
       NTPFetchFail = 0;
       // We've received a packet, read the data from it
       FDRSNtp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer

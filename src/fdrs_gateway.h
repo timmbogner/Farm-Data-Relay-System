@@ -59,7 +59,7 @@ void sendESPNowNbr(uint8_t);
 void sendESPNowPeers();
 void sendESPNow(uint8_t);
 void sendTimeSerial();
-crcResult handleLoRa();
+void handleLoRa();
 void handleMQTT();
 void handleOTA();
 
@@ -162,7 +162,6 @@ void beginFDRS()
   DBG("Address:" + String(UNIT_MAC, HEX));
 #ifdef USE_LORA
   begin_lora();
-  scheduleFDRS(asyncReleaseLoRaFirst, FDRS_LORA_INTERVAL);
 #endif
 #ifdef USE_WIFI
   begin_wifi();
@@ -202,10 +201,17 @@ void handleCommands()
     break;
 
   case cmd_time:
+    if(theCmd.param > MIN_TS) {
 #ifdef USE_ESPNOW
-    recvTimeEspNow(theCmd.param);
+      recvTimeEspNow(theCmd.param);
 #endif // USE_ESPNOW
-
+    } 
+    else if(theCmd.param == 0) {
+#ifdef USE_ESPNOW
+      sendTimeESPNow(incMAC);
+#endif // USE_ESPNOW
+    }
+    
     break;
 
   case cmd_time_req:
