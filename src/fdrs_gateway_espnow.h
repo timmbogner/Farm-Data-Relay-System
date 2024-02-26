@@ -472,17 +472,17 @@ void sendESPNow(uint8_t address)
 
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
-  if(timeMaster.tmNetIf <= TMIF_ESPNOW ) {
+  if(timeSource.tmNetIf <= TMIF_ESPNOW ) {
     DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
-    if(timeMaster.tmNetIf < TMIF_ESPNOW) {
-      timeMaster.tmNetIf = TMIF_ESPNOW;
-      timeMaster.tmAddress = incMAC[4] << 8 | incMAC[5];
-      timeMaster.tmSource = TMS_NET;
+    if(timeSource.tmNetIf < TMIF_ESPNOW) {
+      timeSource.tmNetIf = TMIF_ESPNOW;
+      timeSource.tmAddress = incMAC[4] << 8 | incMAC[5];
+      timeSource.tmSource = TMS_NET;
       DBG1("ESP-NOW time source is 0x" + String(incMAC[5], HEX));
     }
-    if(timeMaster.tmAddress == incMAC[4] << 8 | incMAC[5]) {
+    if(timeSource.tmAddress == incMAC[4] << 8 | incMAC[5]) {
       if(setTime(t)) {
-        timeMaster.tmLastTimeSet = millis();
+        timeSource.tmLastTimeSet = millis();
       }
     }
   }
@@ -498,11 +498,11 @@ esp_err_t sendTimeESPNow() {
   esp_err_t result1 = ESP_OK, result2 = ESP_OK, result3 = ESP_OK;
   SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
 
-  if((timeMaster.tmAddress != (ESPNOW1[4] << 8 | ESPNOW1[5])) && ESPNOW1[5] != 0x00) {
+  if((timeSource.tmAddress != (ESPNOW1[4] << 8 | ESPNOW1[5])) && ESPNOW1[5] != 0x00) {
     DBG("Sending time to ESP-NOW Peer 1");
     result1 = sendESPNow(ESPNOW1, &sys_packet);
   }
-  if((timeMaster.tmAddress != (ESPNOW2[4] << 8 | ESPNOW2[5])) && ESPNOW2[5] != 0x00) {
+  if((timeSource.tmAddress != (ESPNOW2[4] << 8 | ESPNOW2[5])) && ESPNOW2[5] != 0x00) {
     DBG("Sending time to ESP-NOW Peer 2");
     result2 = sendESPNow(ESPNOW2, &sys_packet);
   }

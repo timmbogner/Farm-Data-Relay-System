@@ -418,16 +418,16 @@ crcResult getLoRa()
                         }
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-                        if(timeMaster.tmNetIf == TMIF_NONE || timeMaster.tmNetIf != TMIF_ESPNOW || (timeMaster.tmNetIf == TMIF_LORA && timeMaster.tmAddress == sourceMAC)) {
+                        if(timeSource.tmNetIf == TMIF_NONE || timeSource.tmNetIf != TMIF_ESPNOW || (timeSource.tmNetIf == TMIF_LORA && timeSource.tmAddress == sourceMAC)) {
                             DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
-                            if(timeMaster.tmNetIf == TMIF_NONE) {
-                                timeMaster.tmNetIf = TMIF_LORA;
-                                timeMaster.tmAddress = sourceMAC;
+                            if(timeSource.tmNetIf == TMIF_NONE) {
+                                timeSource.tmNetIf = TMIF_LORA;
+                                timeSource.tmAddress = sourceMAC;
                                 DBG("Time master is LoRa 0x" + String(sourceMAC, HEX));
                         }
                         setTime(receiveData[0].param);
                             adjTimeforNetDelay(netTimeOffset);
-                            timeMaster.tmLastTimeSet = millis();
+                            timeSource.tmLastTimeSet = millis();
                         }
                         else {
                             DBG("LoRa 0x" + String(sourceMAC, HEX) + " is not time master, discarding request");
@@ -517,7 +517,7 @@ bool pingLoRaTimeMaster() {
   // ping the time master every 5 minutes
   if(millis() - lastTimeMasterPing > (5*60*1000 + random(0,2000))) {
     time_t pingTimeMs;
-    pingTimeMs = pingFDRSLoRa(&timeMaster.tmAddress,4000);
+    pingTimeMs = pingFDRSLoRa(&timeSource.tmAddress,4000);
     if(pingTimeMs != UINT32_MAX) {
       netTimeOffset = pingTimeMs/2/1000;
       adjTimeforNetDelay(netTimeOffset);

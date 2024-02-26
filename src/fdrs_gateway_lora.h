@@ -428,17 +428,17 @@ crcResult getLoRa()
             }
           }
           else if (ln == 1 && receiveData[0].cmd == cmd_time) {
-            if(timeMaster.tmNetIf <= TMIF_LORA) {
+            if(timeSource.tmNetIf <= TMIF_LORA) {
               DBG("Time rcv from LoRa 0x" + String(sourceMAC, HEX));
-              if(timeMaster.tmNetIf == TMIF_NONE) {
-                timeMaster.tmNetIf = TMIF_LORA;
-                timeMaster.tmAddress = sourceMAC;
-                timeMaster.tmSource = TMS_NET;
+              if(timeSource.tmNetIf == TMIF_NONE) {
+                timeSource.tmNetIf = TMIF_LORA;
+                timeSource.tmAddress = sourceMAC;
+                timeSource.tmSource = TMS_NET;
                 DBG("Time source is LoRa 0x" + String(sourceMAC, HEX));
               }
-              if(timeMaster.tmAddress == sourceMAC) {
+              if(timeSource.tmAddress == sourceMAC) {
                 if(setTime(receiveData[0].param)) {
-              timeMaster.tmLastTimeSet = millis();
+              timeSource.tmLastTimeSet = millis();
 }
               }
               else {
@@ -628,7 +628,7 @@ void pingLoRaTimeMaster() {
 
   // ping the time master every 10 minutes
   if(TDIFFMIN(lastTimeMasterPing,10)) {
-    pingFDRSLoRa(timeMaster.tmAddress,4000);
+    pingFDRSLoRa(timeSource.tmAddress,4000);
     lastTimeMasterPing = millis();
   }
   return;
@@ -675,7 +675,7 @@ crcResult handleLoRa()
   if(loraPing.status == psCompleted) {
     loraPing.response = millis() - loraPing.start;
     DBG("LoRa Ping Returned: " + String(loraPing.response) + "ms.");
-    if(loraPing.address == timeMaster.tmAddress) {
+    if(loraPing.address == timeSource.tmAddress) {
       netTimeOffset = loraPing.response/2/1000;
       adjTimeforNetDelay(netTimeOffset);
     }
@@ -694,7 +694,7 @@ crcResult handleLoRa()
     loraPing.response = __UINT32_MAX__;    
   }
   // Ping LoRa time master to estimate time delay in radio link
-  if(timeMaster.tmNetIf == TMIF_LORA && netTimeOffset == UINT32_MAX) {
+  if(timeSource.tmNetIf == TMIF_LORA && netTimeOffset == UINT32_MAX) {
     pingLoRaTimeMaster();
   }
   return crcReturned;
@@ -709,13 +709,13 @@ crcResult sendTimeLoRa() {
   DBG("Sending time to LoRa broadcast");
   result1 = transmitLoRa(&loraBroadcast, &spTimeLoRa, 1);
   // Do not send to LoRa peers if their address is 0x..00
-  if(((LoRa1 & 0x00FF) != 0x0000) && (LoRa1 != timeMaster.tmAddress)) {
+  if(((LoRa1 & 0x00FF) != 0x0000) && (LoRa1 != timeSource.tmAddress)) {
     DBG("Sending time to LoRa Neighbor 1");
     spTimeLoRa.param = now;
     // add LoRa neighbor 1
     result2 = transmitLoRa(&LoRa1, &spTimeLoRa, 1);
   }
-  if(((LoRa2 & 0x00FF) != 0x0000) && (LoRa2 != timeMaster.tmAddress)) {
+  if(((LoRa2 & 0x00FF) != 0x0000) && (LoRa2 != timeSource.tmAddress)) {
     DBG("Sending time to LoRa Neighbor 2");
     spTimeLoRa.param = now;
     // add LoRa neighbor 2

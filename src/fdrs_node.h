@@ -48,7 +48,7 @@ crcResult crcReturned = CRC_NULL;
 uint8_t incMAC[6];
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
-TimeMaster timeMaster;
+TimeSource timeSource;
 
 uint8_t data_count = 0;
 
@@ -283,7 +283,7 @@ void loopFDRS()
 #ifdef USE_LORA
   handleLoRa();
 // Ping LoRa time master to estimate time delay in radio link
-  if(timeMaster.tmNetIf == TMIF_LORA && netTimeOffset == UINT32_MAX) {
+  if(timeSource.tmNetIf == TMIF_LORA && netTimeOffset == UINT32_MAX) {
     pingLoRaTimeMaster();
   }
 #endif

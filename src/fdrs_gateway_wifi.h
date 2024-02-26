@@ -216,7 +216,7 @@ void sendNTPpacket(const char * address) {
 
 void fetchNtpTime() {
 //DBG("GetTime Function");
-  if(timeMaster.tmSource <= TMS_NTP) {
+  if(timeSource.tmSource <= TMS_NTP) {
 #ifdef USE_ETHERNET
   if(eth_connected) {
 #elif defined(USE_WIFI)
@@ -255,10 +255,10 @@ void fetchNtpTime() {
       // now is epoch format - seconds since Jan 1 1970
       now = secsSince1900 - seventyYears;
       if(setTime(now)) {
-          timeMaster.tmNetIf = TMIF_LOCAL;
-          timeMaster.tmAddress = 0xFFFF;
-          timeMaster.tmSource = TMS_NTP;
-          timeMaster.tmLastTimeSet = millis();
+          timeSource.tmNetIf = TMIF_LOCAL;
+          timeSource.tmAddress = 0xFFFF;
+          timeSource.tmSource = TMS_NTP;
+          timeSource.tmLastTimeSet = millis();
           DBG1("Time source is now local NTP");
         } // UTC time
           }

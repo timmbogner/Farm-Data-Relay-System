@@ -95,18 +95,18 @@ void begin_rtc() {
     }
   }
 
-  if(validRtcFlag && timeMaster.tmSource <= TMS_RTC && validRtcFlag) {
-    if(timeMaster.tmSource < TMS_RTC) {
-      timeMaster.tmSource = TMS_RTC;
-      timeMaster.tmNetIf = TMIF_LOCAL;
-      timeMaster.tmAddress = 0xFFFF;
+  if(validRtcFlag && timeSource.tmSource <= TMS_RTC && validRtcFlag) {
+    if(timeSource.tmSource < TMS_RTC) {
+      timeSource.tmSource = TMS_RTC;
+      timeSource.tmNetIf = TMIF_LOCAL;
+      timeSource.tmAddress = 0xFFFF;
       DBG1("Time source is now local RTC");
     }
 
     // Set date and time on the system
     DBG1("Using Date and Time from RTC.");
     if(setTime(rtc.GetDateTime().Unix32Time())) {
-      timeMaster.tmLastTimeSet = millis();
+      timeSource.tmLastTimeSet = millis();
     printTime();
     }
   }
@@ -121,7 +121,7 @@ void begin_rtc() {
 #endif // USE_RTC
 
 bool validTime() {
-  if(!VALID_TS(now) || timeMaster.tmSource == TMS_NONE) {
+  if(!VALID_TS(now) || timeSource.tmSource == TMS_NONE) {
     if(validTimeFlag) {
       DBG1("Time no longer reliable.");
       validTimeFlag = false;
@@ -274,7 +274,7 @@ void checkDST() {
 
 // Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
 void sendTime() {
-  if(validTime() && timeMaster.tmSource > TMS_NONE) { // Only send time if it is valid
+  if(validTime() && timeSource.tmSource > TMS_NONE) { // Only send time if it is valid
     DBG1("Sending out time");
     sendTimeSerial();
     sendTimeLoRa();
@@ -351,11 +351,11 @@ void handleTime() {
     lastTimeSend = millis();
     sendTime();
   }
-  if(timeMaster.tmNetIf < TMIF_LOCAL && TDIFFMIN(timeMaster.tmLastTimeSet,120)) { // Reset time master to default if not heard anything for two hours
-    timeMaster.tmNetIf = TMIF_NONE;
-    timeMaster.tmAddress = 0x0000;
-    timeMaster.tmLastTimeSet = millis();
-    timeMaster.tmSource = TMS_NONE;
+  if(timeSource.tmNetIf < TMIF_LOCAL && TDIFFMIN(timeSource.tmLastTimeSet,120)) { // Reset time master to default if not heard anything for two hours
+    timeSource.tmNetIf = TMIF_NONE;
+    timeSource.tmAddress = 0x0000;
+    timeSource.tmLastTimeSet = millis();
+    timeSource.tmSource = TMS_NONE;
   }
 }
 
@@ -368,7 +368,7 @@ void adjTimeforNetDelay(time_t newOffset) {
     previousOffset = newOffset;
     DBG1("Time adj by " + String(newOffset) + " secs");
 }
-  if(timeMaster.tmSource == TMS_NET && newOffset > 10) {
+  if(timeSource.tmSource == TMS_NET && newOffset > 10) {
     DBG("Time off by more than 10 seconds!");
     // loadFDRS();
   }

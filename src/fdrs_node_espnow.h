@@ -32,16 +32,16 @@ uint32_t gtwy_timeout = 300000;
 
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
-  if(timeMaster.tmNetIf < TMIF_ESPNOW || (timeMaster.tmNetIf == TMIF_ESPNOW && timeMaster.tmAddress == (incMAC[4] << 8 | incMAC[5]))) {
+  if(timeSource.tmNetIf < TMIF_ESPNOW || (timeSource.tmNetIf == TMIF_ESPNOW && timeSource.tmAddress == (incMAC[4] << 8 | incMAC[5]))) {
     DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
-    if(timeMaster.tmNetIf < TMIF_ESPNOW) {
-      timeMaster.tmNetIf = TMIF_ESPNOW;
-timeMaster.tmSource = TMS_NET;
-      timeMaster.tmAddress = incMAC[4] << 8 & incMAC[5];
+    if(timeSource.tmNetIf < TMIF_ESPNOW) {
+      timeSource.tmNetIf = TMIF_ESPNOW;
+timeSource.tmSource = TMS_NET;
+      timeSource.tmAddress = incMAC[4] << 8 & incMAC[5];
       DBG("ESP-NOW time source is now 0x" + String(incMAC[5], HEX));
     }
     setTime(t);
-    timeMaster.tmLastTimeSet = millis();
+    timeSource.tmLastTimeSet = millis();
   }
   else {
     DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not our time source, discarding request");

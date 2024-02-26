@@ -42,7 +42,7 @@
 
 SystemPacket theCmd;
 DataReading theData[256];
-TimeMaster timeMaster;
+TimeSource timeSource;
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;

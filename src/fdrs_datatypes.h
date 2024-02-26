@@ -65,12 +65,12 @@ enum TmSource {
   TMS_GPS,
 };
 
-typedef struct TimeMaster {
+typedef struct TimeSource {
   TmNetIf tmNetIf;
   uint16_t tmAddress;
   TmSource tmSource;
   unsigned long tmLastTimeSet;
-} TimeMaster;
+} TimeSource;
 
 #ifndef ESP32
 typedef int esp_err_t;
