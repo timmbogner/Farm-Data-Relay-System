@@ -31,13 +31,22 @@ enum cmd_t {
   cmd_ping,
   cmd_add,
   cmd_ack,
-  cmd_time,     // Time is sent across the network calling cmd_time on the receiving device
+  cmd_time
 };
 
 enum ping_t {
   ping_request,
   ping_reply
 };
+
+enum state_t {
+  stReady,
+  stInProcess,
+  stCrcMismatch,
+  stCrcMatch,
+  stCompleted
+};
+
 
 enum
 {
@@ -52,6 +61,7 @@ enum
   event_lora2,
   event_internal
 };
+
 // Interface type that is the time source
 enum TmNetIf {
   TMIF_NONE,
@@ -69,38 +79,36 @@ enum TmSource {
   TMS_GPS,
 };
 
-typedef struct TimeSource {
+struct TimeSource {
   TmNetIf tmNetIf;
   uint16_t tmAddress;
   TmSource tmSource;
   unsigned long tmLastTimeSet;
-} TimeSource;
-
-enum LoRaState {
-  stReady,
-  stInProcess,
-  stCrcMismatch,
-  stCrcMatch,
-  stCompleted
 };
 
-typedef struct LoRaPing {
-  LoRaState status = stReady;
+struct DRRingBuffer {
+DataReading *dr;
+uint16_t *address;
+uint startIdx;
+uint endIdx;
+uint size;
+};
+
+struct SPRingBuffer {
+SystemPacket *sp;
+uint16_t *address;
+uint startIdx;
+uint endIdx;
+uint size;
+};
+
+struct Ping {
+  state_t status = stReady;
   unsigned long start;
   uint timeout;
   uint16_t address;
   uint32_t response = __UINT32_MAX__;
-} LoRaPing;
-
-typedef struct LoRaTaskSP {
-  SystemPacket data;
-  uint16_t dstAddress;
-} tskLoRaTaskSP;
-
-typedef struct LoRaTaskDR {
-  DataReading data;
-  uint16_t dstAddress;
-} tskLoRaTaskDR;
+};
 
 #ifndef ESP32
 typedef int esp_err_t;

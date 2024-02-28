@@ -8,13 +8,15 @@
 #define GLOBAL_LORA_RETRIES 2  // LoRa ACK automatic retries [0 - 3]
 #define GLOBAL_LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
-#define TXWINDOWMS 300
+#define TXDELAYMS 300
 #define SPBUFFSIZE 10
-#define DRBUFFSIZE lora_size
-#define DRQUEUEEMPTY ((startIdxDR == endIdxDR) ? true: false)
-#define SPQUEUEEMPTY ((startIdxSP == endIdxSP) ? true: false)
-#define DRQUEUEFULL (((startIdxDR + 1) % DRBUFFSIZE) == endIdxDR ? true: false)
-#define SPQUEUEFULL (((startIdxSP + 1) % SPBUFFSIZE) == endIdxSP ? true: false)
+#define LORASIZE (250 / sizeof(DataReading))
+#define DRBUFFSIZE LORASIZE
+#define ISBUFFEMPTY(buff) ((buff.endIdx == buff.startIdx) ? true: false)
+#define ISBUFFFULL(buff) (((buff.endIdx + 1) % buff.size) == buff.startIdx ? true: false)
+#define BUFFINCSTART(buff) (buff.startIdx = (buff.startIdx + 1) % buff.size)
+#define BUFFINCEND(buff) (buff.endIdx = (buff.endIdx + 1) % buff.size)
+#define BUFFCLEAR(buff) (buff.startIdx = buff.endIdx)
 
 // select LoRa band configuration
 #if defined(LORA_FREQUENCY)
@@ -103,18 +105,15 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
   bool ack = false;
 #endif // LORA_ACK
 
-LoRaPing loraPing;
+Ping loraPing;
 
-const uint8_t lora_size = 250 / sizeof(DataReading);
+DRRingBuffer drBuff = {.dr = (DataReading*)calloc(DRBUFFSIZE,sizeof(DataReading)), \
+                .address = (uint16_t*)calloc(DRBUFFSIZE,sizeof(uint16_t)), .startIdx = 0, .endIdx = 0, .size = DRBUFFSIZE};
+SPRingBuffer spBuff = {.sp = (SystemPacket*)calloc(SPBUFFSIZE,sizeof(SystemPacket)), \
+                .address = (uint16_t*)calloc(SPBUFFSIZE,sizeof(uint16_t)), .startIdx = 0, .endIdx = 0, .size = SPBUFFSIZE};
 
-tskLoRaTaskSP loraSPBuffTx[SPBUFFSIZE];
-tskLoRaTaskDR loraDRBuffTx[DRBUFFSIZE];
 int loraTxState = stReady;
 int loraAckState = stReady;
-int startIdxDR = 0;
-int endIdxDR = 0;
-int startIdxSP = 0;
-int endIdxSP = 0;
 
 
 #ifdef FDRS_GATEWAY
@@ -334,52 +333,62 @@ void begin_lora()
     }
 }
 
-bool transmitLoRaAsync(uint16_t *destMAC, SystemPacket *packet, uint8_t len)
+bool transmitLoRaAsync(uint16_t *destAddr, SystemPacket *sp, uint8_t len)
 {   
     for(int i=0; i < len; i++)
     {
         //check for full buffer
-        if(SPQUEUEFULL) {
+        if(ISBUFFFULL(spBuff)) {
             DBG("Lora SP Buffer Overflow!");
-            return false;
+            BUFFINCSTART(spBuff);
         }
     
         //add packet to buffer
-        loraSPBuffTx[startIdxSP].data = *(packet + i);
-        loraSPBuffTx[startIdxSP].dstAddress = *destMAC;
-        startIdxSP = (startIdxSP + 1) % SPBUFFSIZE;
+        *(spBuff.sp + spBuff.endIdx) = *(sp + i);
+        *(spBuff.address + spBuff.endIdx) = *destAddr;
+        BUFFINCEND(spBuff);
     }
-    DBG2("SP added to LoRa buffer. start: " + String(startIdxSP) + " end: " + String(endIdxSP));
+    DBG2("SP added to LoRa buffer. start: " + String(spBuff.startIdx) + " end: " + String(spBuff.endIdx));
     return true;
 }
 
 // Wrapper for transmitLoRa for DataReading type packets to handle processing Receiving CRCs and retransmitting packets
-bool transmitLoRaAsync(uint16_t *destMAC, DataReading *packet, uint8_t len)
+bool transmitLoRaAsync(uint16_t *destAddr, DataReading *dr, uint8_t len)
 {
-    // we need to prevent modifying index while waiting 
-    // for an ack
-    if(loraAckState == stReady) {
-        //add packet to buffer
-        for(int i=0; i < len; i++)
+    // Write as much as needed and just flush out the older data if too much data writing to buffer
+    //add packet to buffer
+    for(int i=0; i < len; i++)
+    {
+        if(ISBUFFFULL(drBuff))
         {
-            if(DRQUEUEFULL)
-            {
-                DBG("Lora DR Buffer Overflow!");
-                return false;
-            }
-            loraDRBuffTx[startIdxDR].data = *(packet + i);
-            loraDRBuffTx[startIdxDR].dstAddress = *destMAC;
-            startIdxDR = (startIdxDR + 1) % DRBUFFSIZE;
+            DBG("Lora DR Buffer Overflow!");
+            // We just lost one reading - the oldest reading
+            BUFFINCSTART(drBuff);
         }
-        DBG2("DR added to LoRa buffer. start: " + String(startIdxDR) + " end: " + String(endIdxDR));
-        return true;
+        *(drBuff.dr + drBuff.endIdx) = *(dr + i);
+        *(drBuff.address + drBuff.endIdx) = *destAddr;
+        BUFFINCEND(drBuff);
     }
-    else {
-        // JL - do we internally store the start index, check for space, and then
-        // adjust the index once the acks are completed???
-        DBG2("Unable to add DR to LoRa buffer due to pending ACK.");
-        return false;
+    // for(int i=drBuff.startIdx; i!=drBuff.endIdx; i = (i + 1) % drBuff.size) {
+    //     printf("id: %d, type: %d data: %f address: %X\n",(drBuff.dr + i)->id, (drBuff.dr + i)->t, (drBuff.dr + i)->d, *(drBuff.address + drBuff.startIdx));
+    // }
+    DBG2("DR added to LoRa buffer. start: " + String(drBuff.startIdx) + " end: " + String(drBuff.endIdx));
+    return true;
+}
+
+// write a function to return the number of consecutive DRs in the DR Queue that have the same destination address
+uint transmitSameAddrLoRa() {
+    uint count = 0;
+
+    for(int i=drBuff.startIdx; i!=drBuff.endIdx; i = (i + 1) % drBuff.size) {
+        if(*(drBuff.address + i) == *(drBuff.address + drBuff.startIdx))
+            count++;
+        else {
+            break;
+        }
     }
+
+    return count;
 }
 
 // Send time to LoRa broadcast and peers
@@ -417,43 +426,14 @@ void sendTimeLoRa(uint16_t addr) {
   return;
 }
 
-// FDRS Sensor pings address and listens for a defined amount of time for a reply
-bool pingRequestLoRa(uint16_t address, uint32_t timeout)
-{
-
-    if(loraPing.status == stReady) {
-        SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_request};
-
-        loraPing.timeout = timeout;
-        loraPing.status = stInProcess;
-        loraPing.address = address;
-        loraPing.start = millis();
-        if(loraTxState == stReady) {
-            transmitLoRa(&address,&sys_packet,1);
-            DBG1("LoRa ping request sent to address: 0x" + String(address, HEX));
-            return true;
-        }
-        else {
-            if(transmitLoRaAsync(&address, &sys_packet, 1))
-            {
-                DBG1("LoRa ping request queued to address: 0x" + String(address, HEX));
-                return true;
-            }
-            else {
-                DBG1("Error sending LoRa ping.");
-            }
-        }
-    }
-    return false;
-}
 // FDRS sends ping reply
 bool pingReplyLoRa(uint16_t address)
 {
         SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_reply};
 
         if(loraTxState == stReady) {
-            transmitLoRa(&address,&sys_packet,1);
             DBG1("LoRa ping reply sent to address: 0x" + String(address, HEX));
+            transmitLoRa(&address,&sys_packet,1);
             return true;
         }
         else {
@@ -644,33 +624,6 @@ crcResult receiveLoRa()
     return CRC_NULL;
 }
 
-
-// Sends packet to any node that is paired to this gateway
-void broadcastLoRa()
-{
-    DBG("Sending to LoRa broadcast buffer");
-    transmitLoRaAsync(&loraBroadcast,theData,ln);
-}
-
-// Sends packet to neighbor gateways
-void sendLoRaNbr(uint8_t interface)
-{
-  DBG("Sending to LoRa neighbor buffer");
-  switch (interface)
-  {
-    case 1:
-      {
-        transmitLoRaAsync(&LoRa1,theData,ln);
-        break;
-      }
-    case 2:
-      {
-        transmitLoRaAsync(&LoRa2,theData,ln);
-        break;
-      }
-  }
-}
-
 crcResult LoRaTxRxOperation() 
 {
     crcResult crcReturned = CRC_NULL;
@@ -707,8 +660,88 @@ crcResult LoRaTxRxOperation()
     return crcReturned;
 }
 
+// FDRS Sensor pings address and listens for a defined amount of time for a reply
+bool pingRequestLoRa(uint16_t address, uint32_t timeout)
+{
+
+    if(loraPing.status == stReady) {
+        SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_request};
+
+        loraPing.timeout = timeout;
+        loraPing.address = address;
+        if(loraTxState == stReady) {
+            loraPing.status = stInProcess;
+            loraPing.start = millis();
+            DBG1("LoRa ping request sent to address: 0x" + String(address, HEX));
+            transmitLoRa(&address,&sys_packet,1);
+            while(loraPing.status == stInProcess && (millis() - loraPing.start < loraPing.timeout)) {
+                LoRaTxRxOperation();
+            }
+            if(loraPing.status == stCompleted) {
+                loraPing.response = millis() - loraPing.start;
+                DBG1("LoRa Ping Returned: " + String(loraPing.response) + "ms.");
+                if(loraPing.address == timeSource.tmAddress) {
+                    netTimeOffset = loraPing.response/2/1000;
+                    adjTimeforNetDelay(netTimeOffset);
+                }
+            }
+            else  {
+                DBG1("No LoRa ping returned within " + String(loraPing.timeout) + "ms.");
+            }
+            loraPing.status = stReady;
+            loraPing.start = 0;
+            loraPing.timeout = 0;
+            loraPing.address = 0;
+            loraPing.response = UINT32_MAX;  
+            return true;
+        }
+        else {
+            if(transmitLoRaAsync(&address, &sys_packet, 1))
+            {
+                DBG1("LoRa ping request queued to address: 0x" + String(address, HEX));
+                return true;
+            }
+            else {
+                DBG1("Error sending LoRa ping.");
+            }
+        }
+    }
+    return false;
+}
+
+// Sends packet to any node that is paired to this gateway
+void broadcastLoRa()
+{
+    DBG("Sending to LoRa broadcast buffer");
+    transmitLoRaAsync(&loraBroadcast,theData,ln);
+}
+
+// Sends packet to neighbor gateways
+void sendLoRaNbr(uint8_t interface)
+{
+  DBG("Sending to LoRa neighbor buffer");
+  switch (interface)
+  {
+    case 1:
+      {
+        transmitLoRaAsync(&LoRa1,theData,ln);
+        break;
+      }
+    case 2:
+      {
+        transmitLoRaAsync(&LoRa2,theData,ln);
+        break;
+      }
+  }
+}
+
 void handleLoRa()
 {
+    static uint8_t len = 0;
+    static DataReading *data;
+    static uint16_t address;
+    static unsigned long lastTxtime = 0;
+    
     LoRaTxRxOperation();
 
     if(loraPing.status == stCompleted) {
@@ -735,82 +768,102 @@ void handleLoRa()
     
     static int retries = FDRS_LORA_RETRIES;
     static unsigned long loraAckTimeout = 0;
+    
     // Process any DR ACKs in progress
     if(loraTxState == stReady && loraAckState != stReady) {
         if (loraAckState == stCrcMatch)
         {
             DBG1("LoRa ACK Received! CRC OK");
             msgOkLoRa++;
-            loraAckState = stReady;
-            // reset buffer indexes so that buffer is empty
-            endIdxDR = startIdxDR;
+            free(data);
+            data = NULL;
             retries = FDRS_LORA_RETRIES;
-            if(loraTxState == stCompleted) {
-                loraTxState = stReady;
-            }
-            return; // we're done
+            len = 0;
         }
-        else if(retries == 0) {
-            DBG2("Retries Exhausted. Data is lost.");
-            loraAckState = stReady;
-            // reset buffer indexes so that buffer is empty
-            endIdxDR = startIdxDR;
+        else if(retries < 0) {
+            DBG2("Retries Exhausted.");
             retries = FDRS_LORA_RETRIES;
-            if(loraTxState == stCompleted) {
-                loraTxState = stReady;
+            if(ISBUFFFULL(drBuff)) {
+                len = 0;
+                free(data);
+                data = NULL;
             }
-            return;
+            // do we transmit ourselves to death or just drop the data?
+            // here we drop the data so we don't keep transmitting to death
+            len = 0;
+            free(data);
+            data = NULL;
+            
         }
         else if (loraAckState == stCrcMismatch)
         {
             DBG1("LoRa ACK Received! CRC BAD");
             //  Resend original packet again if retries are available
-            DBG2("Retries: " + String(retries) + " DR Index: " + String(endIdxDR) + " Address: 0x" + String(loraDRBuffTx[endIdxDR].dstAddress,HEX));
-            loraAckTimeout = millis();
-            loraAckState = stInProcess;
-            retries--;
-            transmitLoRa(&loraDRBuffTx[endIdxDR].dstAddress, &loraDRBuffTx[endIdxDR].data, (startIdxDR + DRBUFFSIZE - endIdxDR) % DRBUFFSIZE);
         }
-        else if (TDIFF(loraAckTimeout,FDRS_ACK_TIMEOUT))
-        {
-            DBG1("LoRa Timeout waiting for ACK!");
+        else if (TDIFF(loraAckTimeout,FDRS_ACK_TIMEOUT)) {
+             DBG1("LoRa Timeout waiting for ACK!");
             // resend original packet again if retries are available
-            DBG2("Retries: " + String(retries) + " DR Index: " + String(endIdxDR) + " Address: 0x" + String(loraDRBuffTx[endIdxDR].dstAddress,HEX));
-            loraAckTimeout = millis();
-            loraAckState = stInProcess;
-            retries--;
-            transmitLoRa(&loraDRBuffTx[endIdxDR].dstAddress, &loraDRBuffTx[endIdxDR].data, (startIdxDR + DRBUFFSIZE - endIdxDR) % DRBUFFSIZE);
         }
+        if(loraTxState == stCompleted) {
+            loraTxState = stReady;
+        }
+        loraAckState = stReady;
         return;
     }
 
-    static unsigned long txWindow = 0;
     // It's polite to Listen more than you talk
-    if(TDIFF(txWindow,(TXWINDOWMS + random(0,50)))) {
+    if(TDIFF(lastTxtime,(TXDELAYMS + random(0,50)))) {
         // Start Transmit data from the SystemPacket queue
-        if(!SPQUEUEEMPTY && (loraTxState == stReady)) {
-            DBG2("SP Index: start: " + String(startIdxSP) + " end: " + String(endIdxSP) + " Address: 0x" + String(loraSPBuffTx[endIdxSP].dstAddress,HEX));
-            transmitLoRa(&loraSPBuffTx[endIdxSP].dstAddress, &loraSPBuffTx[endIdxSP].data, 1);
-            endIdxSP = (endIdxSP + 1) % SPBUFFSIZE;
+        if(!ISBUFFEMPTY(spBuff) && (loraTxState == stReady)) {
+            DBG2("SP Index: start: " + String(spBuff.startIdx) + " end: " + String(spBuff.endIdx) + " Address: 0x" + String(address,HEX) + " Cmd: " + String(spBuff.sp->cmd));
+            // Lora ping request stuff here
+            if((spBuff.sp + spBuff.startIdx)->cmd == cmd_ping && (spBuff.sp + spBuff.startIdx)->param == ping_request) {
+                loraPing.status = stInProcess;
+                loraPing.start = millis();
+                DBG1("LoRa ping request sent to address: 0x" + String(*(spBuff.address + spBuff.startIdx), HEX));
+            }
+            transmitLoRa((spBuff.address + spBuff.startIdx), (spBuff.sp + spBuff.startIdx), 1);
+            BUFFINCSTART(spBuff);
         }
 
         // Start Transmit data from the DataReading queue
-        if(!DRQUEUEEMPTY && loraTxState == stReady && loraAckState == stReady) 
+        if((!ISBUFFEMPTY(drBuff) || (data != NULL)) && loraTxState == stReady && loraAckState == stReady) 
         {
-            if(!ack) 
-            {
-                DBG2("DR Index: start: " + String(startIdxDR) + " end: " + String(endIdxDR) + " Address: 0x" + String(loraDRBuffTx[endIdxDR].dstAddress,HEX));
-                transmitLoRa(&loraDRBuffTx[endIdxDR].dstAddress, &loraDRBuffTx[endIdxDR].data, (startIdxDR + DRBUFFSIZE - endIdxDR) % DRBUFFSIZE);
-                endIdxDR = startIdxDR;
+            // for(int i=drBuff.startIdx; i!=drBuff.endIdx; i = (i + 1) % drBuff.size) {
+            //     printf("id: %d, type: %d data: %f address: %X\n",(drBuff.dr + i)->id, (drBuff.dr + i)->t, (drBuff.dr + i)->d, *(spBuff.address + spBuff.startIdx));
+            // }
+
+            // data memory is not freed when retries are exhausted and DataReading queue is not full
+            if(data == NULL) {
+                // Get number of DRs going to same destination address
+                len = transmitSameAddrLoRa();
+                // TransmitLoRa cannot handle a circular buffer so need data in one contiguous segment of memory
+                data = (DataReading *)malloc(len * sizeof(DataReading));
+                // Transfer data readings from the ring buffer to our local buffer
+                for(int i=0; i < len; i++) {
+                    *(data + i) = *(drBuff.dr + ((drBuff.startIdx + i) % drBuff.size));
+                }
+                address = *(drBuff.address + drBuff.startIdx);
+                // now we have the data, we can release it from the ring buffer
+                drBuff.startIdx = (drBuff.startIdx + len) % drBuff.size;
             }
-            else
+            DBG2("Length: " + String(len) + " Address: 0x" + String(address,HEX) + " Data:");
+            // for(int i=0; i< len; i++) {
+            //     printf("id: %d, type: %d data: %f\n",(data + i)->id, (data + i)->t, (data + i)->d);
+            // }
+            if(!ack && data != NULL) 
             {
-                DBG2("Retries: " + String(retries) + " DR Index: " + String(endIdxDR) + " Address: 0x" + String(loraDRBuffTx[endIdxDR].dstAddress,HEX));
+                transmitLoRa(&address, data, len);
+                free(data);
+                data = NULL;
+                len = 0;
+            }
+            else if(data != NULL)
+            {   
                 retries--;
                 loraAckState = stInProcess;
                 loraAckTimeout = millis();
-                transmitLoRa(&loraDRBuffTx[endIdxDR].dstAddress, &loraDRBuffTx[endIdxDR].data, (startIdxDR + DRBUFFSIZE - endIdxDR) % DRBUFFSIZE); 
-                // Don't reset queue indexes here.  We will reset them in the routine that checks for acks
+                transmitLoRa(&address, data, len);
             }
         }
 
@@ -824,7 +877,7 @@ void handleLoRa()
                 lastTimeSourcePing = millis();
             }
         }
-        txWindow = millis();
+        lastTxtime = millis();
     }
     
     // Change to ready at the end so only one transmit happens per function call

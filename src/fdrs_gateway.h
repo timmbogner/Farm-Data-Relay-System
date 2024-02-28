@@ -50,6 +50,8 @@ uint8_t newCmd = cmd_clear;
 DataReading fdrsData[256]; // buffer for loadFDRS()
 uint8_t data_count = 0;
 
+TimeSource timeSource;
+
 // Function Prototypes needed due to #ifdefs being moved outside of function definitions in header files 
 void broadcastLoRa();
 void sendLoRaNbr(uint8_t);
@@ -88,7 +90,7 @@ void printFDRS(DataReading*, int);
 #ifdef USE_WIFI
   #include "fdrs_gateway_wifi.h"
   #include "fdrs_gateway_mqtt.h"
-  #include "fdrs_gateway_ota.h"
+#include "fdrs_gateway_ota.h"
 #endif
 
 #ifdef DEBUG_CONFIG
@@ -124,7 +126,7 @@ void sendFDRS()
 
 void loadFDRS(float d, uint8_t t, uint16_t id)
 {
-// guard against buffer overflow
+  // guard against buffer overflow
   if(data_count > 253) {
     sendFDRS();
   }
@@ -162,7 +164,7 @@ void beginFDRS()
   DBG("Address:" + String(UNIT_MAC, HEX));
 #ifdef USE_LORA
   begin_lora();
-#endif
+  #endif
 #ifdef USE_WIFI
   begin_wifi();
   DBG("Connected.");
@@ -205,7 +207,7 @@ void handleCommands()
 #ifdef USE_ESPNOW
       recvTimeEspNow(theCmd.param);
 #endif // USE_ESPNOW
-    } 
+    }
     else if(theCmd.param == 0) {
 #ifdef USE_ESPNOW
       sendTimeESPNow(incMAC);
@@ -278,7 +280,7 @@ void loopFDRS()
   void timeFDRSLoRa(uint8_t *address) {}  // fdrs_gateway_lora.h
   void sendTimeLoRa() { return; }                  // fdrs_gateway_time.h
   void handleLoRa() { return; }                    // fdrs_gateway_lora.h
-  bool pingLoRaTimeMaster() { return false; } //fdrs_gateway_lora.h
+  bool pingLoRaTimeSource() { return false; } //fdrs_gateway_lora.h
 #endif
 #ifndef USE_ESPNOW
   void sendESPNowNbr(uint8_t interface) { }

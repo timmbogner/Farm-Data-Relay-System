@@ -1,6 +1,6 @@
 #include <sys/time.h>
 
-#define MIN_TS 1707000000 // Time in Unit timestamp format should be greater than this number to be valid
+#define MIN_TS 1709000000 // Time in Unit timestamp format should be greater than this number to be valid
 #define MAX_TS 3318000000 // time in Unit timestamp format should be less than this number to be valid
 #define VALID_TS(_unixts) ( (_unixts > MIN_TS && _unixts < MAX_TS) ? true : false )
 
@@ -106,7 +106,7 @@ void begin_rtc() {
     DBG1("Using Date and Time from RTC.");
     if(setTime(rtc.GetDateTime().Unix32Time())) {
       timeSource.tmLastTimeSet = millis();
-    printTime();
+      printTime();
     }
   }
   
@@ -277,7 +277,7 @@ void sendTime() {
     DBG1("Sending out time");
 #if defined(USE_WIFI) || defined(USE_ETHERNET)    
     sendTimeSerial();
-#endif
+#endif    
     sendTimeLoRa();
     sendTimeESPNow();
   }
@@ -309,10 +309,10 @@ bool setTime(time_t currentTime) {
 #ifdef USE_RTC
 // Only set the RTC time every 60 minutes in order to prevent flash wear
   if(TDIFFMIN(lastRtcTimeSetMin,60)) {
-  RtcDateTime rtcNow;
-  rtcNow.InitWithUnix32Time(now);
-  rtc.SetDateTime(rtcNow);
-}
+    RtcDateTime rtcNow;
+    rtcNow.InitWithUnix32Time(now);
+    rtc.SetDateTime(rtcNow);
+  }
 #endif
   // Uncomment below to send time and slew rate to the MQTT server
   // loadFDRS(now, TIME_T, 111);
@@ -354,7 +354,7 @@ void handleTime() {
     lastTimeSend = millis();
     sendTime();
   }
-  if(timeSource.tmNetIf < TMIF_LOCAL && TDIFFMIN(timeSource.tmLastTimeSet,120)) { // Reset time master to default if not heard anything for two hours
+  if(timeSource.tmNetIf < TMIF_LOCAL && TDIFFMIN(timeSource.tmLastTimeSet,120)) { // Reset time source to default if not heard anything for two hours
     timeSource.tmNetIf = TMIF_NONE;
     timeSource.tmAddress = 0x0000;
     timeSource.tmLastTimeSet = millis();
@@ -364,7 +364,7 @@ void handleTime() {
 
 void adjTimeforNetDelay(time_t newOffset) {
   static time_t previousOffset = 0;
-  
+
   // check to see if offset and current time are valid
   if(newOffset < UINT32_MAX && validTime()) {
     now = now + newOffset - previousOffset;
@@ -372,7 +372,7 @@ void adjTimeforNetDelay(time_t newOffset) {
     if(newOffset > 2) {
       DBG1("Time adj by " + String(newOffset) + " secs");
     }
-}
+  }
   if(timeSource.tmSource == TMS_NET && newOffset > 10) {
     DBG("Time off by more than 10 seconds!");
     // loadFDRS();

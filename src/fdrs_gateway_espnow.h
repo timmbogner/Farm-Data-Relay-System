@@ -14,6 +14,7 @@ const uint8_t espnow_size = 250 / sizeof(DataReading);
 #ifdef ESP32
 esp_now_peer_info_t peerInfo;
 #endif
+
 bool esp_now_sent_flag;
 const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -31,14 +32,14 @@ bool pingFlagEspNow = false;
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
 {
-  esp_now_sent_flag = true;
+esp_now_sent_flag = true;
 }
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 {
 #elif defined(ESP32)
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
-    esp_now_sent_flag = true;
+esp_now_sent_flag = true;
 }
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
@@ -205,7 +206,7 @@ if(validTimeFlag){
 // Sends ping reply to sender
 void pingback_espnow()
 {
-  DBG("Ping back to sender");
+  DBG("Sending ESP-NOW Ping Reply");
   SystemPacket sys_packet;
   sys_packet = { .cmd = cmd_ping, .param = ping_reply };
   if (!esp_now_is_peer_exist(incMAC))
@@ -240,7 +241,7 @@ void sendESPNowNbr(uint8_t interface)
   {
     case 1:
     { // These brackets are required!
-      DBG("Sending to ESP-NOW Neighbor #1");
+      DBG("Sending DR to ESP-NOW Neighbor #1");
 #if defined(ESP32)
       esp_now_peer_info_t peerInfo;
       peerInfo.ifidx = WIFI_IF_STA;
@@ -273,7 +274,7 @@ void sendESPNowNbr(uint8_t interface)
     } // These brackets are required!
     case 2:
     {
-      DBG("Sending to ESP-NOW Neighbor #2");
+      DBG("Sending DR to ESP-NOW Neighbor #2");
 #if defined(ESP32)
       esp_now_peer_info_t peerInfo;
       peerInfo.ifidx = WIFI_IF_STA;
@@ -308,7 +309,7 @@ void sendESPNowNbr(uint8_t interface)
 
 void sendESPNowPeers()
 {
-  DBG("Sending to ESP-NOW peers.");
+  DBG("Sending DR to ESP-NOW peers.");
   DataReading thePacket[ln];
   int j = 0;
   for (int i = 0; i < ln; i++)
@@ -438,7 +439,7 @@ esp_err_t sendESPNow(uint8_t *dest, DataReading *data) {
 
 void sendESPNow(uint8_t address)
 {
-  DBG("Sending ESP-NOW.");
+  DBG("Sending ESP-NOW DR.");
   uint8_t temp_peer[] = {MAC_PREFIX, address};
 #if defined(ESP32)
   esp_now_peer_info_t peerInfo;
@@ -473,7 +474,7 @@ void sendESPNow(uint8_t address)
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no time source set yet or if LoRa is the time source or if we are already the time source
   if(timeSource.tmNetIf <= TMIF_ESPNOW ) {
-    DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
+    DBG1("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
     if(timeSource.tmNetIf < TMIF_ESPNOW) {
       timeSource.tmNetIf = TMIF_ESPNOW;
       timeSource.tmAddress = incMAC[4] << 8 | incMAC[5];
@@ -487,7 +488,7 @@ void recvTimeEspNow(uint32_t t) {
     }
   }
   else {
-    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time source, discarding request");
+    DBG2("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time source, discarding request");
   }
   return;
 }
@@ -499,14 +500,14 @@ esp_err_t sendTimeESPNow() {
   SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
 
   if((timeSource.tmAddress != (ESPNOW1[4] << 8 | ESPNOW1[5])) && ESPNOW1[5] != 0x00) {
-    DBG("Sending time to ESP-NOW Peer 1");
+    DBG1("Sending time to ESP-NOW Peer 1");
     result1 = sendESPNow(ESPNOW1, &sys_packet);
   }
   if((timeSource.tmAddress != (ESPNOW2[4] << 8 | ESPNOW2[5])) && ESPNOW2[5] != 0x00) {
-    DBG("Sending time to ESP-NOW Peer 2");
+    DBG1("Sending time to ESP-NOW Peer 2");
     result2 = sendESPNow(ESPNOW2, &sys_packet);
   }
-  DBG("Sending time to ESP-NOW registered peers");
+  DBG1("Sending time to ESP-NOW registered peers");
   result3 = sendESPNow(nullptr, &sys_packet);
 
   if(result1 != ESP_OK || result2 != ESP_OK || result3 != ESP_OK){

@@ -6,21 +6,24 @@
 #ifndef __FDRS_GLOBALS_h__
 #define __FDRS_GLOBALS_h__
 
-#define GLOBAL_WIFI_SSID "Your SSID"
-#define GLOBAL_WIFI_PASS "Password"
+#define GLOBAL_DBG_LEVEL 0
+
+#define GLOBAL_WIFI_SSID        "Your SSID"
+#define GLOBAL_WIFI_PASS        "Password"
 #define GLOBAL_DNS1_IPADDRESS    "8.8.8.8"   // Default to Google Primary DNS
 #define GLOBAL_DNS2_IPADDRESS    "8.8.4.4"   // Default to Google Secondary DNS
 
 #define GLOBAL_MQTT_ADDR "192.168.0.8"
 #define GLOBAL_MQTT_PORT 1883
 
-//#define GLOBAL_MQTT_AUTH   //uncomment to enable MQTT authentication
+//#define GLOBAL_MQTT_AUTH   //uncomment to enable MQTT authentication  
 #define GLOBAL_MQTT_USER   "Your MQTT Username"
 #define GLOBAL_MQTT_PASS   "Your MQTT Password"
 // MQTT Topics
 #define TOPIC_DATA    "fdrs/data"
 #define TOPIC_STATUS  "fdrs/status"
 #define TOPIC_COMMAND "fdrs/command"
+#define TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
 
 // NTP Time Server
 #define GLOBAL_TIME_SERVER      "0.us.pool.ntp.org"
@@ -28,6 +31,7 @@
 #define GLOBAL_TIME_FETCHNTP    60      // Time in minutes between fetching time from NTP server
 #define GLOBAL_TIME_PRINTTIME   15      // Time in minutes between printing local time
 #define GLOBAL_TIME_SEND_INTERVAL 60    // Time in minutes between sending out time
+
 
 #define GLOBAL_LORA_FREQUENCY 915.0   // Carrier frequency in MHz. Allowed values range from 137.0 MHz to 1020.0 MHz (varies by chip).
 #define GLOBAL_LORA_SF 7     // LoRa link spreading factor. Allowed values range from 6 to 12.
