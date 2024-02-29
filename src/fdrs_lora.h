@@ -99,7 +99,7 @@ RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI);
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
 #endif  // CUSTOM_SPI
 
-#ifdef LORA_ACK
+#ifdef FDRS_LORA_ACK
   bool ack = true;
 #else
   bool ack = false;

@@ -23,10 +23,9 @@ typedef struct EspNowPing {
 
 EspNowPing espNowPing;
 
-uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
-bool pingFlag = false;
 uint32_t last_refresh = 0;
 uint32_t gtwy_timeout = 300000;
 
@@ -51,18 +50,18 @@ bool reqTimeEspNow() {
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no master set yet or if LoRa is the master or if we are already the time master
   if(timeSource.tmNetIf < TMIF_ESPNOW || (timeSource.tmNetIf == TMIF_ESPNOW && timeSource.tmAddress == (incMAC[4] << 8 | incMAC[5]))) {
-    DBG("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
+    DBG1("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
     if(timeSource.tmNetIf < TMIF_ESPNOW) {
-        timeSource.tmNetIf = TMIF_ESPNOW;
-        timeSource.tmSource = TMS_NET;
-        timeSource.tmAddress = incMAC[4] << 8 & incMAC[5];
-        DBG("ESP-NOW time source is now 0x" + String(incMAC[5], HEX));
+      timeSource.tmNetIf = TMIF_ESPNOW;
+      timeSource.tmSource = TMS_NET;
+      timeSource.tmAddress = (incMAC[4] << 8 | incMAC[5]);
+      DBG1("ESP-NOW time source is now 0x" + String(incMAC[5], HEX));
     }
     setTime(t);
     timeSource.tmLastTimeSet = millis();
   }
   else {
-    DBG("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not our time source, discarding request");
+    DBG2("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not our time source, discarding request");
   }
   return;
 }
@@ -125,7 +124,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
 #endif
-memcpy(&incMAC, mac, sizeof(incMAC));
+    memcpy(&incMAC, mac, sizeof(incMAC));
     if (len == sizeof(SystemPacket))
     {
         SystemPacket command;
@@ -166,8 +165,8 @@ memcpy(&incMAC, mac, sizeof(incMAC));
 // Asynchonous call so does not wait for a reply so we do not know how long the ping takes
 // ESP-NOW is on the order of 10 milliseconds so happens very quickly.  Not sure Async is warranted.
 void pingFDRSEspNow(uint8_t *dstaddr, uint32_t timeout) {
-    SystemPacket sys_packet = {.cmd = cmd_ping, .param = 0};
-    
+    SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_request};
+
     // ping function called again after previous ping not received for some reason
     if(espNowPing.status == psWaiting) {
         espNowPing.status = psNotStarted;

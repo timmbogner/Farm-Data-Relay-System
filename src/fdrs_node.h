@@ -11,7 +11,7 @@
 bool is_controller = false;
 DataReading theData[256];
 uint8_t ln;
-uint8_t newData; = event_clear;
+uint8_t newData = event_clear;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
 const uint16_t espnow_size = 250 / sizeof(DataReading);
 crcResult crcReturned = CRC_NULL;
@@ -51,6 +51,7 @@ void sendTimeSerial();
 
 void beginFDRS()
 {
+  delay(10000);
   Serial.begin(115200);
   // // find out the reset reason
   // esp_reset_reason_t resetReason;
@@ -186,8 +187,22 @@ bool sendFDRS()
 #ifdef USE_LORA
   transmitLoRaAsync(&gtwyAddress, fdrsData, data_count);
   // DBG(" LoRa sent.");
+#ifdef LORA_ACK
+  if(crcReturned == CRC_OK) {
   data_count = 0;
+    return true;
+  }
+#endif
+#ifndef LORA_ACK
+  if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
+    data_count = 0;
   return true;
+}
+#endif
+  else {
+    data_count = 0;
+    return false;
+  }
 #endif
 }
 
@@ -229,7 +244,7 @@ void sleepFDRS(uint32_t sleep_time)
 #endif
 #endif
   DBG(" Delaying.");
-  delay(sleep_time * 1000);
+    delay(sleep_time * 1000);
 }
 
 
@@ -239,10 +254,6 @@ void loopFDRS()
   handleTime();
 #ifdef USE_LORA
   handleLoRa();
-// Ping LoRa time master to estimate time delay in radio link
-  if(timeSource.tmNetIf == TMIF_LORA && netTimeOffset == UINT32_MAX) {
-    pingLoRaTimeMaster();
-  }
 #endif
 if (is_controller){
   handleIncoming();
@@ -254,7 +265,7 @@ if (is_controller){
     }
 #endif 
   }
-// Output time to display if time is valid
+  // Output time to display if time is valid
   if(TDIFFMIN(lastTimePrint,FDRS_TIME_PRINTTIME)) {
     lastTimePrint = millis();
     printTime();
@@ -356,11 +367,10 @@ bool unsubscribeFDRS(uint16_t sub_id)
 void pingFDRS(uint32_t timeout)
 {
 #ifdef USE_ESPNOW
-  // pingFDRSEspNow is now asynchronous so cannot return a value directly
   pingFDRSEspNow(gatewayAddress, timeout);
 #endif
 #ifdef USE_LORA
-  pingRequestLoRa(&gtwyAddress, timeout);
+  pingRequestLoRa(gtwyAddress, timeout);
 #endif
   return;
 }

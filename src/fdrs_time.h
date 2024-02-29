@@ -9,6 +9,14 @@
 #define TDIFFSEC(prevMs,durationSec) (millis() - prevMs > (durationSec * 1000))
 #define TDIFFMIN(prevMs,durationMin) (millis() - prevMs > (durationMin * 60 * 1000))
 
+// select Time, in minutes, between sending out time
+#if defined(TIME_SEND_INTERVAL)
+#define FDRS_TIME_SEND_INTERVAL TIME_SEND_INTERVAL
+#else
+#define FDRS_TIME_SEND_INTERVAL GLOBAL_TIME_SEND_INTERVAL
+#endif // TIME_PRINTTIME
+
+
 // select Time, in minutes, between time printed configuration
 #if defined(TIME_PRINTTIME)
 #define FDRS_TIME_PRINTTIME TIME_PRINTTIME
@@ -319,7 +327,7 @@ bool setTime(time_t currentTime) {
   // loadFDRS(slewSecs, TIME_T, 111);
   // Do not call sendFDRS here.  It will not work for some reason.
   if(validTime()) {
-    if(TIME_SEND_INTERVAL == 0 && (TDIFF(lastTimeSend,5000) || lastTimeSend == 0)) { // avoid sending twice on start with RTC and WiFi
+    if(FDRS_TIME_SEND_INTERVAL == 0 && (TDIFF(lastTimeSend,5000) || lastTimeSend == 0)) { // avoid sending twice on start with RTC and WiFi
       sendTime();
       lastTimeSend = millis();
     }
@@ -350,7 +358,7 @@ void handleTime() {
 #endif // USE_RTC
 
   // Send out time to other devices if we have exceeded the time send interval
-  if(validTimeFlag && (TIME_SEND_INTERVAL != 0) && TDIFFMIN(lastTimeSend,TIME_SEND_INTERVAL)) {
+  if(validTimeFlag && (FDRS_TIME_SEND_INTERVAL != 0) && TDIFFMIN(lastTimeSend,FDRS_TIME_SEND_INTERVAL)) {
     lastTimeSend = millis();
     sendTime();
   }
