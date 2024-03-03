@@ -604,8 +604,8 @@ crcResult receiveLoRa()
             }
         }
         else
-        {
-            DBG2("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
+        {   // Uncommenting below will print out packets from other LoRa controllers being sent.
+            // DBG2("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
             // printLoraPacket(packet,sizeof(packet));
             return CRC_NULL;
         }
@@ -815,7 +815,7 @@ void handleLoRa()
     if(TDIFF(lastTxtime,(TXDELAYMS + random(0,50)))) {
         // Start Transmit data from the SystemPacket queue
         if(!ISBUFFEMPTY(spBuff) && (loraTxState == stReady)) {
-            DBG2("SP Index: start: " + String(spBuff.startIdx) + " end: " + String(spBuff.endIdx) + " Address: 0x" + String(address,HEX) + " Cmd: " + String(spBuff.sp->cmd));
+            DBG2("SP Index: start: " + String(spBuff.startIdx) + " end: " + String(spBuff.endIdx) + " Address: 0x" + String(*(spBuff.address + spBuff.startIdx),HEX) + " Cmd: " + String(spBuff.sp->cmd));
             // Lora ping request stuff here
             if((spBuff.sp + spBuff.startIdx)->cmd == cmd_ping && (spBuff.sp + spBuff.startIdx)->param == ping_request) {
                 loraPing.status = stInProcess;

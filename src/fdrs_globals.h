@@ -58,7 +58,7 @@
   #error "Ethernet only supported for ESP32."
 #endif
 
-#if defined(USE_OLED) && (!defined(ESP32) || !defined(ESP8266))
+#if defined(USE_OLED) && (!defined(ESP32) && !defined(ESP8266))
   #warning "OLED current supported for only ESP32 or ESP8266."
   #undef USE_OLED
 #endif

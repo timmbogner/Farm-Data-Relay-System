@@ -14,8 +14,7 @@
 #define FDRS_TIME_SEND_INTERVAL TIME_SEND_INTERVAL
 #else
 #define FDRS_TIME_SEND_INTERVAL GLOBAL_TIME_SEND_INTERVAL
-#endif // TIME_PRINTTIME
-
+#endif // TIME_SEND_INTERVAL
 
 // select Time, in minutes, between time printed configuration
 #if defined(TIME_PRINTTIME)

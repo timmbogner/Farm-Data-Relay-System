@@ -35,9 +35,11 @@ bool reqTimeEspNow() {
     SystemPacket sys_packet = {.cmd = cmd_time, .param = 0};
     DBG1("Requesting time from gateway 0x" + String(gatewayAddress[5],HEX));
     esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-    while(timeSource.tmNetIf < TMIF_ESPNOW && (millis() - pingStart < 1000)) {
+    while(timeSource.tmNetIf < TMIF_ESPNOW && (millis() - pingStart < 300)) {
         // wait for time to be set
         // magic happens here :)
+        yield();
+        delay(0);
     }
     if(timeSource.tmNetIf == TMIF_ESPNOW) {
         return true;

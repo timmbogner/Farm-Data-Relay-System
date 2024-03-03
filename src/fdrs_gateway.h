@@ -50,8 +50,6 @@ uint8_t newCmd = cmd_clear;
 DataReading fdrsData[256]; // buffer for loadFDRS()
 uint8_t data_count = 0;
 
-TimeSource timeSource;
-
 // Function Prototypes needed due to #ifdefs being moved outside of function definitions in header files 
 void broadcastLoRa();
 void sendLoRaNbr(uint8_t);
