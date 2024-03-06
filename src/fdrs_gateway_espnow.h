@@ -54,7 +54,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   }
   else {
     memcpy(&theData, incomingData, sizeof(theData));
-    DBG("Incoming ESP-NOW Data Reading from 0x" + String(incMAC[5], HEX));
+    DBG("Incoming ESP-NOW DataReading from 0x" + String(incMAC[5], HEX));
     ln = len / sizeof(DataReading);
     if (memcmp(&incMAC, &ESPNOW1, 6) == 0)
     {

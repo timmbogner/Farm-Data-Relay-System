@@ -2,12 +2,16 @@
 
 #if defined (ESP32)
   #define UART_IF Serial1
-  #define GPS_IF Serial2
+  #ifdef USE_GPS
+    #define GPS_IF Serial2
+  #endif
 #elif defined (ESP8266)
   #define UART_IF Serial
 #else
   #define UART_IF Serial
-  #define GPS_IF Serial1
+  #ifdef USE_GPS
+    #define GPS_IF Serial1
+  #endif
 #endif
 
 #if defined(ESP32)
@@ -166,10 +170,10 @@ void getSerial() {
     }
     ln = s;
     newData = event_serial;
-    DBG1("Incoming Serial: DR");
+    DBG("Incoming Serial");
       String data;
       serializeJson(doc, data);
-      DBG1("Serial data: " + data);
+      DBG1("DR data: " + data);
     }
     else if(obj.containsKey("cmd")) { // SystemPacket
       cmd_t c = doc[0]["cmd"];

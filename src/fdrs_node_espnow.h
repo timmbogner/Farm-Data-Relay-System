@@ -154,7 +154,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
     {
         memcpy(&theData, incomingData, len);
         ln = len / sizeof(DataReading);
-        DBG2("Incoming ESP-NOW Data Reading from 0x" + String(incMAC[5], HEX));
+        DBG2("Incoming ESP-NOW DataReading from 0x" + String(incMAC[5], HEX));
         newData = event_espnowg;
         // Processing done by handleIncoming() in fdrs_node.h
     }

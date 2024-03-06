@@ -127,7 +127,7 @@ void begin_rtc() {
 #endif // USE_RTC
 
 bool validTime() {
-  if(!VALID_TS(now) || timeSource.tmSource == TMS_NONE) {
+  if(!VALID_TS(now)) {
     if(validTimeFlag) {
       DBG1("Time no longer reliable.");
       validTimeFlag = false;
