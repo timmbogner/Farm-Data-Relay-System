@@ -7,27 +7,12 @@
     #include <esp_wifi.h>
 #endif
 
-enum PingStatusEspNow {
-  psNotStarted,
-  psWaiting,
-  psCompleted,
-};
-
-typedef struct EspNowPing {
-  PingStatusEspNow status = psNotStarted;
-  unsigned long start;
-  uint timeout;
-  uint8_t address[6];
-  uint32_t response = __UINT32_MAX__;
-} EspNowPing;
-
-EspNowPing espNowPing;
-
 const uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 crcResult esp_now_ack_flag;
 bool is_added = false;
 uint32_t last_refresh = 0;
 uint32_t gtwy_timeout = 300000;
+bool pingFlag = false;
 
 // Request time from gateway - Optionally used in sensors
 bool reqTimeEspNow() {
@@ -66,34 +51,6 @@ void recvTimeEspNow(uint32_t t) {
     DBG2("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not our time source, discarding request");
   }
   return;
-}
-
-uint32_t recvPingEspNow(uint8_t *srcAddr) {
-    uint32_t response = UINT32_MAX;
-
-    if(memcmp(espNowPing.address, srcAddr, sizeof(espNowPing.address)) == 0) {
-
-        if(TDIFF(espNowPing.start,espNowPing.timeout)) {
-            DBG1("No ESP-NOW ping returned within " + String(espNowPing.timeout) + "ms.");
-        }
-        else {
-            espNowPing.response = millis() - espNowPing.start;
-            DBG1("ESP-NOW Ping Reply in " + String(espNowPing.response) + "ms from 0x" + String(espNowPing.address[5], HEX));
-            response = espNowPing.response;
-        }
-    }
-    else {
-        DBG1("ESP-NOW ping reply from unexpected source 0x" + String(*(srcAddr + 5),HEX));
-    }
-
-    // reset status
-    espNowPing.status = psNotStarted;
-    espNowPing.timeout = 0;
-    espNowPing.start = 0;
-    memcpy(espNowPing.address, broadcast_mac, sizeof(espNowPing.address));
-    espNowPing.response = 0;
-
-    return response;
 }
 
 // Set ESP-NOW send and receive callbacks for either ESP8266 or ESP32
@@ -136,7 +93,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
         {
         case cmd_ping:
             if(command.param == ping_reply) {
-                recvPingEspNow(incMAC);
+                pingFlag = true;
             }
             break;
         case cmd_add:
@@ -166,25 +123,29 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 // FDRS node pings gateway and listens for a defined amount of time for a reply
 // Asynchonous call so does not wait for a reply so we do not know how long the ping takes
 // ESP-NOW is on the order of 10 milliseconds so happens very quickly.  Not sure Async is warranted.
-void pingFDRSEspNow(uint8_t *dstaddr, uint32_t timeout) {
+int pingFDRSEspNow(uint8_t *dstaddr, uint32_t timeout) {
     SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_request};
+    unsigned long pingTime = 0;
 
-    // ping function called again after previous ping not received for some reason
-    if(espNowPing.status == psWaiting) {
-        espNowPing.status = psNotStarted;
-        espNowPing.timeout = 0;
-        espNowPing.start = 0;
-        espNowPing.response = 0;
-        memcpy(espNowPing.address, broadcast_mac, sizeof(espNowPing.address));
-    }
-
-    espNowPing.status = psWaiting;
-    espNowPing.timeout = timeout;
-    espNowPing.start = millis();
-    espNowPing.response = 0;
-    memcpy(espNowPing.address, dstaddr, sizeof(espNowPing.address));
+    pingFlag = false;
+    pingTime = millis();
     DBG1("ESP-NOW ping sent to 0x" + String(*(espNowPing.address + 5),HEX));
     esp_now_send(dstaddr, (uint8_t *)&sys_packet, sizeof(SystemPacket));
+    while(pingFlag == false && (millis() - pingTime < timeout)) {
+        yield();
+        delay(0);
+    }
+    if(pingFlag == true) {
+        
+        pingTime = millis() - pingTime;
+        DBG1("ESP-NOW Ping Reply in " + String(pingTime) + "ms from 0x" + String(espNowPing.address[5], HEX));
+    }
+    else {
+        DBG1("No ESP-NOW ping returned within " + String(espNowPing.timeout) + "ms.");
+        pingTime = -1;
+    }
+    pingFlag = false;
+    return pingTime;  
     
 }
 

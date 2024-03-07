@@ -11,7 +11,7 @@
 #define TXDELAYMS 300
 #define SPBUFFSIZE 10
 #define LORASIZE (250 / sizeof(DataReading))
-#define DRBUFFSIZE LORASIZE
+#define DRBUFFSIZE 100
 #define ISBUFFEMPTY(buff) ((buff.endIdx == buff.startIdx) ? true: false)
 #define ISBUFFFULL(buff) (((buff.endIdx + 1) % buff.size) == buff.startIdx ? true: false)
 #define BUFFINCSTART(buff) (buff.startIdx = (buff.startIdx + 1) % buff.size)
@@ -387,8 +387,13 @@ uint transmitSameAddrLoRa() {
             break;
         }
     }
-
-    return count;
+    // check for data size greater than what can be sent via LoRa packets
+    if(count > LORASIZE) {
+        return LORASIZE;
+    }
+    else {
+        return count;
+    }
 }
 
 // Send time to LoRa broadcast and peers
@@ -417,7 +422,7 @@ void sendTimeLoRa() {
   return;
 }
 
-// Send time to LoRa node at specific address
+// Send time to LoRa node at specific address - gateway
 void sendTimeLoRa(uint16_t addr) {
   
   SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
@@ -426,7 +431,7 @@ void sendTimeLoRa(uint16_t addr) {
   return;
 }
 
-// FDRS sends ping reply
+// FDRS sends ping reply - gateway
 bool pingReplyLoRa(uint16_t address)
 {
         SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_reply};
@@ -661,14 +666,17 @@ crcResult LoRaTxRxOperation()
 }
 
 // FDRS Sensor pings address and listens for a defined amount of time for a reply
-bool pingRequestLoRa(uint16_t address, uint32_t timeout)
+int pingRequestLoRa(uint16_t address, uint32_t timeout)
 {
+    int pingResult = -1;
 
+    // Check if a previous ping is already in process
     if(loraPing.status == stReady) {
         SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_request};
 
         loraPing.timeout = timeout;
         loraPing.address = address;
+        // Perform blocking ping if nothing else is in process
         if(loraTxState == stReady) {
             loraPing.status = stInProcess;
             loraPing.start = millis();
@@ -679,6 +687,7 @@ bool pingRequestLoRa(uint16_t address, uint32_t timeout)
             }
             if(loraPing.status == stCompleted) {
                 loraPing.response = millis() - loraPing.start;
+                pingResult = loraPing.response;
                 DBG1("LoRa Ping Returned: " + String(loraPing.response) + "ms.");
                 if(loraPing.address == timeSource.tmAddress) {
                     netTimeOffset = loraPing.response/2/1000;
@@ -693,8 +702,8 @@ bool pingRequestLoRa(uint16_t address, uint32_t timeout)
             loraPing.timeout = 0;
             loraPing.address = 0;
             loraPing.response = UINT32_MAX;  
-            return true;
         }
+        // Something else is in process, Most likely LoRa ACK, so queue up the ping
         else {
             if(transmitLoRaAsync(&address, &sys_packet, 1))
             {
@@ -706,7 +715,7 @@ bool pingRequestLoRa(uint16_t address, uint32_t timeout)
             }
         }
     }
-    return false;
+    return pingResult;
 }
 
 // Sends packet to any node that is paired to this gateway
@@ -744,6 +753,7 @@ void handleLoRa()
     
     LoRaTxRxOperation();
 
+    // check for result of any ongoing async ping operations
     if(loraPing.status == stCompleted) {
         loraPing.response = millis() - loraPing.start;
         DBG1("LoRa Ping Returned: " + String(loraPing.response) + "ms.");

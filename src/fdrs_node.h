@@ -364,15 +364,16 @@ bool unsubscribeFDRS(uint16_t sub_id)
 
 
 
-void pingFDRS(uint32_t timeout)
+int pingFDRS(uint32_t timeout)
 {
+  int pingResult = -1;
 #ifdef USE_ESPNOW
-  pingFDRSEspNow(gatewayAddress, timeout);
+  pingResult = pingFDRSEspNow(gatewayAddress, timeout);
 #endif
 #ifdef USE_LORA
-  pingRequestLoRa(gtwyAddress, timeout);
+  pingResult = pingRequestLoRa(gtwyAddress, timeout);
 #endif
-  return;
+  return pingResult;
 }
 
 bool reqTimeFDRS() {
