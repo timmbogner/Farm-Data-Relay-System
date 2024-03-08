@@ -137,11 +137,13 @@ int loraAckState = stReady;
 volatile bool transmitFlag = false;            // flag to indicate transmission or reception state
 volatile bool enableInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
-unsigned long receivedLoRaMsg = 0; // Number of total LoRa packets destined for us and of valid size
-unsigned long ackOkLoRaMsg = 0;    // Number of total LoRa packets with valid CRC
+unsigned long loraAckTimeout = 0;
+unsigned long rxCountDR = 0;              // Number of total LoRa DR packets destined for us and of valid size
+unsigned long rxCountSP = 0;               // Number of total LoRa SP packets destined for us and of valid size
+unsigned long rxCountCrcOk = 0;             // Number of total Lora packets with valid CRC
+unsigned long txCountDR = 0;                // Number of total LoRa DR packets transmitted
+unsigned long txCountSP = 0;                // Number of total LoRa SP packets transmitted
 extern time_t now;
-unsigned long transmitLoRaMsgwAck = 0; // Number of total LoRa packets destined for us and of valid size
-unsigned long msgOkLoRa = 0;           // Number of total LoRa packets with valid CRC
 time_t netTimeOffset = UINT32_MAX;  // One direction of LoRa Ping time in units of seconds (1/2 full ping time)
 unsigned long tx_start_time = 0;
 
@@ -239,6 +241,7 @@ void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
         while (true)
             ;
     }
+    txCountDR++;
     return;
 }
 
@@ -279,6 +282,7 @@ void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
         while (true)
             ;
     }
+    txCountSP++;
     return;
 }
 
@@ -487,15 +491,7 @@ crcResult receiveLoRa()
 #endif
         { // Check if addressed to this device or broadcast
             // printLoraPacket(packet,sizeof(packet));
-            if (receivedLoRaMsg != 0)
-            { // Avoid divide by 0
-                DBG1("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg) + ", CRC Ok Pct " + String((float)ackOkLoRaMsg / receivedLoRaMsg * 100) + "%");
-            }
-            else
-            {
-                DBG1("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX) + ", Total LoRa received: " + String(receivedLoRaMsg));
-            }
-            receivedLoRaMsg++;
+            DBG1("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX));
             // Evaluate CRC
             for (int i = 0; i < (packetSize - 2); i++)
             { // Last 2 bytes of packet are the CRC so do not include them in calculation
@@ -504,6 +500,7 @@ crcResult receiveLoRa()
             }
             if ((packetSize - 6) % sizeof(DataReading) == 0)
             { // DataReading type packet
+                rxCountDR++;
                 if (calcCRC == packetCRC)
                 {   // We've received a DR and sending an ACK 
                     SystemPacket ACK = {.cmd = cmd_ack, .param = CRC_OK};
@@ -523,27 +520,29 @@ crcResult receiveLoRa()
                     newData = event_clear;             // do not process data as data may be corrupt
                     return CRC_BAD;                    // Exit function and do not update newData to send invalid data further on
                 }
+                rxCountCrcOk++;
                 memcpy(&theData, &packet[4], packetSize - 6); // Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
                 ln = (packetSize - 6) / sizeof(DataReading);
-                ackOkLoRaMsg++;
                 if (memcmp(&sourceMAC, &LoRa1, 2) == 0)
                 { // Check if it is from a registered sender
                     newData = event_lora1;
                     return CRC_OK;
                 }
-                if (memcmp(&sourceMAC, &LoRa2, 2) == 0)
+                else if (memcmp(&sourceMAC, &LoRa2, 2) == 0)
                 {
                     newData = event_lora2;
                     return CRC_OK;
                 }
-                newData = event_lorag;
-                return CRC_OK;
+                else {
+                    newData = event_lorag;
+                    return CRC_OK;
+                }
             }
             else if ((packetSize - 6) == sizeof(SystemPacket))
             {
                 unsigned int ln = (packetSize - 6) / sizeof(SystemPacket);
                 SystemPacket receiveData[ln];
-
+                rxCountSP++;
                 if ((packetCRC == calcCRC) || (packetCRC == crc16_update(calcCRC, 0xA1)))
                 {
                     memcpy(receiveData, &packet[4], packetSize - 6); // Split off data portion of packet (N bytes)
@@ -595,7 +594,7 @@ crcResult receiveLoRa()
                         DBG2("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
                         DBG2("ln: " + String(ln) + "data type: " + String(receiveData[0].cmd));
                     }
-                    ackOkLoRaMsg++;
+                    rxCountCrcOk++;
                     return CRC_OK;
                 }
                 else
@@ -647,6 +646,10 @@ crcResult LoRaTxRxOperation()
             loraTxState = stCompleted;                      
             DBG1("LoRa airtime: " + String(millis() - tx_start_time) + "ms");
             radio.startReceive(); // return to listen mode
+            // Start ACK timeout after transmission is completed.
+            if(loraAckState == stInProcess) {
+                loraAckTimeout = millis();
+            }
             transmitFlag = false;
             // Serial.println("TxINT!");
         }
@@ -750,6 +753,7 @@ void handleLoRa()
     static DataReading *data;
     static uint16_t address;
     static unsigned long lastTxtime = 0;
+    static unsigned long statsTime = 0;
     
     LoRaTxRxOperation();
 
@@ -777,21 +781,20 @@ void handleLoRa()
     } 
     
     static int retries = FDRS_LORA_RETRIES;
-    static unsigned long loraAckTimeout = 0;
     
     // Process any DR ACKs in progress
     if(loraTxState == stReady && loraAckState != stReady) {
         if (loraAckState == stCrcMatch)
         {
             DBG1("LoRa ACK Received! CRC OK");
-            msgOkLoRa++;
             free(data);
             data = NULL;
             retries = FDRS_LORA_RETRIES;
             len = 0;
+            loraAckState = stReady;
         }
         else if(retries < 0) {
-            DBG2("Retries Exhausted.");
+            DBG1("Retries Exhausted.");
             retries = FDRS_LORA_RETRIES;
             if(ISBUFFFULL(drBuff)) {
                 len = 0;
@@ -803,39 +806,41 @@ void handleLoRa()
             len = 0;
             free(data);
             data = NULL;
-            
+            loraAckState = stReady;            
         }
         else if (loraAckState == stCrcMismatch)
         {
             DBG1("LoRa ACK Received! CRC BAD");
             //  Resend original packet again if retries are available
+            loraAckState = stReady;
         }
         else if (TDIFF(loraAckTimeout,FDRS_ACK_TIMEOUT)) {
              DBG1("LoRa Timeout waiting for ACK!");
             // resend original packet again if retries are available
+            loraAckState = stReady;
         }
         if(loraTxState == stCompleted) {
             loraTxState = stReady;
         }
-        loraAckState = stReady;
         return;
     }
 
+    // Start Transmit data from the SystemPacket queue
+    if(!ISBUFFEMPTY(spBuff) && (loraTxState == stReady)) {
+        DBG2("SP Index: start: " + String(spBuff.startIdx) + " end: " + String(spBuff.endIdx) + " Address: 0x" + String(*(spBuff.address + spBuff.startIdx),HEX) + " Cmd: " + String(spBuff.sp->cmd));
+        // Lora ping request stuff here
+        if((spBuff.sp + spBuff.startIdx)->cmd == cmd_ping && (spBuff.sp + spBuff.startIdx)->param == ping_request) {
+            loraPing.status = stInProcess;
+            loraPing.start = millis();
+            DBG1("LoRa ping request sent to address: 0x" + String(*(spBuff.address + spBuff.startIdx), HEX));
+        }
+        transmitLoRa((spBuff.address + spBuff.startIdx), (spBuff.sp + spBuff.startIdx), 1);
+        BUFFINCSTART(spBuff);
+    }
+
+
     // It's polite to Listen more than you talk
     if(TDIFF(lastTxtime,(TXDELAYMS + random(0,50)))) {
-        // Start Transmit data from the SystemPacket queue
-        if(!ISBUFFEMPTY(spBuff) && (loraTxState == stReady)) {
-            DBG2("SP Index: start: " + String(spBuff.startIdx) + " end: " + String(spBuff.endIdx) + " Address: 0x" + String(*(spBuff.address + spBuff.startIdx),HEX) + " Cmd: " + String(spBuff.sp->cmd));
-            // Lora ping request stuff here
-            if((spBuff.sp + spBuff.startIdx)->cmd == cmd_ping && (spBuff.sp + spBuff.startIdx)->param == ping_request) {
-                loraPing.status = stInProcess;
-                loraPing.start = millis();
-                DBG1("LoRa ping request sent to address: 0x" + String(*(spBuff.address + spBuff.startIdx), HEX));
-            }
-            transmitLoRa((spBuff.address + spBuff.startIdx), (spBuff.sp + spBuff.startIdx), 1);
-            BUFFINCSTART(spBuff);
-        }
-
         // Start Transmit data from the DataReading queue
         if((!ISBUFFEMPTY(drBuff) || (data != NULL)) && loraTxState == stReady && loraAckState == stReady) 
         {
@@ -872,7 +877,6 @@ void handleLoRa()
             {   
                 retries--;
                 loraAckState = stInProcess;
-                loraAckTimeout = millis();
                 transmitLoRa(&address, data, len);
             }
         }
@@ -889,7 +893,12 @@ void handleLoRa()
         }
         lastTxtime = millis();
     }
-    
+    // Print LoRa statistics
+    if(TDIFFSEC(statsTime,65) && (rxCountDR + rxCountSP) > 0) {
+        statsTime = millis();
+        DBG1("LoRa Stats - Rx DR:" + String(rxCountDR) + " SP:" + String(rxCountSP) + " Tx DR:" + String(txCountDR) + " SP:" + String(txCountSP) + " CRC OK: " + String(rxCountCrcOk/(rxCountDR + rxCountSP) * 100) + "%");
+    }
+
     // Change to ready at the end so only one transmit happens per function call
     if(loraTxState == stCompleted) {
         loraTxState = stReady;
