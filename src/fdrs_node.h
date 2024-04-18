@@ -51,7 +51,6 @@ void sendTimeSerial();
 
 void beginFDRS()
 {
-  delay(10000);
   Serial.begin(115200);
   // // find out the reset reason
   // esp_reset_reason_t resetReason;
