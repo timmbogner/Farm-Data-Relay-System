@@ -8,8 +8,10 @@
 
 #define GLOBAL_DBG_LEVEL 0
 
+
 #define GLOBAL_WIFI_SSID        "Your SSID"
 #define GLOBAL_WIFI_PASS        "Password"
+
 #define GLOBAL_DNS1_IPADDRESS    "8.8.8.8"   // Default to Google Primary DNS
 #define GLOBAL_DNS2_IPADDRESS    "8.8.4.4"   // Default to Google Secondary DNS
 

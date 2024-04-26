@@ -154,12 +154,25 @@ void beginFDRS()
 #ifdef USE_RTC
   begin_rtc();
 #endif
+
 #ifdef USE_OLED
   init_oled();
   DBG("Display initialized!");
   DBG("Hello, World!");
 #endif
-  DBG("Address:" + String(UNIT_MAC, HEX));
+  DBG("");
+  DBG("Initializing FDRS Gateway!");
+  DBG("Address: " + String(UNIT_MAC, HEX));
+#ifdef USE_ESPNOW
+  DBG1("ESPNOW_NEIGHBOR_1: " + String(ESPNOW_NEIGHBOR_1, HEX));
+  DBG1("ESPNOW_NEIGHBOR_2: " + String(ESPNOW_NEIGHBOR_2, HEX));
+#endif // USE_ESPNOW
+#ifdef USE_LORA
+  DBG1("LORA_NEIGHBOR_1: " + String(LORA_NEIGHBOR_1, HEX));
+  DBG1("LORA_NEIGHBOR_2: " + String(LORA_NEIGHBOR_2, HEX));
+#endif // USE_LORA
+  DBG("Debugging verbosity level: " + String(DBG_LEVEL));
+
 #ifdef USE_LORA
   begin_lora();
   #endif

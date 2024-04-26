@@ -47,7 +47,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   memcpy(&incMAC, mac, sizeof(incMAC));
   if (len < sizeof(DataReading))
   {
-    DBG("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
+    DBG1("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
     memcpy(&theCmd, incomingData, sizeof(theCmd));
     // processing is handled in the handlecommands() function in gateway.h - do not process here
     return;
@@ -124,7 +124,7 @@ int find_espnow_peer()
   {
     if (peer_list[i].last_seen == 0)
     {
-      // DBG("Using peer entry " + String(i));
+      DBG1("Using peer entry " + String(i));
       return i;
     }
   }
@@ -132,7 +132,7 @@ int find_espnow_peer()
   {
     if (TDIFF(peer_list[i].last_seen,PEER_TIMEOUT))
     {
-      // DBG("Recycling peer entry " + String(i));
+      DBG1("Recycling peer entry " + String(i));
       esp_now_del_peer(peer_list[i].mac);
 
       return i;
@@ -145,29 +145,29 @@ int find_espnow_peer()
 // Returns the index of the peer list array element that contains the provided MAC address, -1 if not found
 int getFDRSPeer(uint8_t *mac)
 {
-  // DBG("Getting peer #");
+  DBG2("Getting peer #");
 
   for (int i = 0; i < 16; i++)
   {
     if (memcmp(mac, &peer_list[i].mac, 6) == 0)
     {
-      DBG("Peer is entry #" + String(i));
+      DBG1("Peer is entry #" + String(i));
       return i;
     }
   }
 
-  // DBG("Couldn't find peer");
+  DBG1("Couldn't find peer");
   return -1;
 }
 
 void add_espnow_peer()
 {
-  DBG("Device requesting peer registration");
+  DBG1("Device requesting peer registration");
   int peer_num = getFDRSPeer(&incMAC[0]);
   if (peer_num == -1) // if the device isn't registered
   {
     int open_peer = find_espnow_peer();            // find open spot in peer_list
-    DBG("New device will be registered as " + String(open_peer));
+    DBG("Registering new peer. Slot: " + String(open_peer));
     memcpy(&peer_list[open_peer].mac, &incMAC, 6); // save MAC to open spot
     peer_list[open_peer].last_seen = millis();
 #if defined(ESP32)
@@ -191,7 +191,7 @@ void add_espnow_peer()
   }
   else
   {
-    DBG("Refreshing existing peer registration");
+    DBG1("Refreshing existing peer registration");
     peer_list[peer_num].last_seen = millis();
 
     SystemPacket sys_packet = {.cmd = cmd_add, .param = PEER_TIMEOUT};
