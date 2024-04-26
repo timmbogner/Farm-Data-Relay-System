@@ -558,11 +558,11 @@ crcResult receiveLoRa()
                         if (receiveData[0].param == ping_reply)
                         { // This is a reply to our ping request
                             loraPing.status = stCompleted;
-                            DBG1("We have received a ping reply via LoRa from address 0x" + String(sourceMAC, HEX));
+                            DBG1("Ping reply via LoRa from address 0x" + String(sourceMAC, HEX));
                         }
                         else if (receiveData[0].param == ping_request)
                         {
-                            DBG1("We have received a ping request from 0x" + String(sourceMAC, HEX) + ", Replying.");
+                            DBG1("Ping request from 0x" + String(sourceMAC, HEX) + ", Replying.");
                             pingReplyLoRa(sourceMAC);
                         }
                     }
@@ -691,14 +691,14 @@ int pingRequestLoRa(uint16_t address, uint32_t timeout)
             if(loraPing.status == stCompleted) {
                 loraPing.response = millis() - loraPing.start;
                 pingResult = loraPing.response;
-                DBG1("LoRa Ping Returned: " + String(loraPing.response) + "ms.");
+                DBG("LoRa Ping Returned: " + String(loraPing.response) + "ms.");
                 if(loraPing.address == timeSource.tmAddress) {
                     netTimeOffset = loraPing.response/2/1000;
                     adjTimeforNetDelay(netTimeOffset);
                 }
             }
             else  {
-                DBG1("No LoRa ping returned within " + String(loraPing.timeout) + "ms.");
+                DBG("No LoRa ping returned within " + String(loraPing.timeout) + "ms.");
             }
             loraPing.status = stReady;
             loraPing.start = 0;
