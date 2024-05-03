@@ -121,15 +121,14 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 }
 
 // FDRS node pings gateway and listens for a defined amount of time for a reply
-// Asynchonous call so does not wait for a reply so we do not know how long the ping takes
-// ESP-NOW is on the order of 10 milliseconds so happens very quickly.  Not sure Async is warranted.
+// ESP-NOW is on the order of 10 milliseconds so happens very quickly.
 int pingFDRSEspNow(uint8_t *dstaddr, uint32_t timeout) {
     SystemPacket sys_packet = {.cmd = cmd_ping, .param = ping_request};
     unsigned long pingTime = 0;
 
     pingFlag = false;
     pingTime = millis();
-    DBG1("ESP-NOW ping sent to 0x" + String(*(espNowPing.address + 5),HEX));
+    DBG1("ESP-NOW ping sent to 0x" + String(*(dstaddr + 5),HEX));
     esp_now_send(dstaddr, (uint8_t *)&sys_packet, sizeof(SystemPacket));
     while(pingFlag == false && (millis() - pingTime < timeout)) {
         yield();
@@ -138,10 +137,10 @@ int pingFDRSEspNow(uint8_t *dstaddr, uint32_t timeout) {
     if(pingFlag == true) {
         
         pingTime = millis() - pingTime;
-        DBG1("ESP-NOW Ping Reply in " + String(pingTime) + "ms from 0x" + String(espNowPing.address[5], HEX));
+        DBG1("ESP-NOW Ping Reply in " + String(pingTime) + "ms from 0x" + String(*(dstaddr + 5), HEX));
     }
     else {
-        DBG1("No ESP-NOW ping returned within " + String(espNowPing.timeout) + "ms.");
+        DBG1("No ESP-NOW ping returned within " + String(timeout) + "ms.");
         pingTime = -1;
     }
     pingFlag = false;

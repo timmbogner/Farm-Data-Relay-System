@@ -1,6 +1,6 @@
 #include <sys/time.h>
 
-#define MIN_TS 1709000000 // Time in Unit timestamp format should be greater than this number to be valid
+#define MIN_TS 1714000000 // Time in Unit timestamp format should be greater than this number to be valid
 #define MAX_TS 3318000000 // time in Unit timestamp format should be less than this number to be valid
 #define VALID_TS(_unixts) ( (_unixts > MIN_TS && _unixts < MAX_TS) ? true : false )
 

@@ -380,7 +380,7 @@ bool transmitLoRaAsync(uint16_t *destAddr, DataReading *dr, uint8_t len)
     return true;
 }
 
-// write a function to return the number of consecutive DRs in the DR Queue that have the same destination address
+// return the number of consecutive DRs in the DR Queue that have the same destination address
 uint transmitSameAddrLoRa() {
     uint count = 0;
 
@@ -668,7 +668,8 @@ crcResult LoRaTxRxOperation()
     return crcReturned;
 }
 
-// FDRS Sensor pings address and listens for a defined amount of time for a reply
+// FDRS Sensor pings address and listens for a defined amount of time for a reply if no tx in process
+// otherwise queues up a ping in the SP Buffer.
 int pingRequestLoRa(uint16_t address, uint32_t timeout)
 {
     int pingResult = -1;
