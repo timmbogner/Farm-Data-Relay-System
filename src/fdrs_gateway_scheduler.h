@@ -1,4 +1,4 @@
-
+#define NUMSCHEDULES 16
 
 typedef struct ScheduleItem
 {
@@ -8,12 +8,12 @@ typedef struct ScheduleItem
     bool active;
 } ScheduleItem;
 
-ScheduleItem theSchedule[16];
+ScheduleItem theSchedule[NUMSCHEDULES];
 
 bool scheduleFDRS(void (*added_func)(), uint32_t added_interval)
 {
     ScheduleItem arg = {.interval = added_interval, .start = millis(), .functionName = added_func, .active = true};
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < NUMSCHEDULES; i++)
     {
         if (!theSchedule[i].active)
         {
@@ -26,7 +26,7 @@ bool scheduleFDRS(void (*added_func)(), uint32_t added_interval)
 }
 void handle_schedule()
 {
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < NUMSCHEDULES; i++)
     {
         if (theSchedule[i].active && (millis() - theSchedule[i].start > theSchedule[i].interval))
         {
