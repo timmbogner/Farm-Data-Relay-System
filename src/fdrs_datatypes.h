@@ -26,12 +26,27 @@ enum crcResult {
   CRC_BAD,
 } returnCRC;
 
-enum {
+enum cmd_t {
   cmd_clear,
   cmd_ping,
   cmd_add,
   cmd_ack,
+  cmd_time
 };
+
+enum ping_t {
+  ping_request,
+  ping_reply
+};
+
+enum pingstate_t {
+  stReady,
+  stInProcess,
+  stCrcMismatch,
+  stCrcMatch,
+  stCompleted
+};
+
 
 enum
 {
@@ -46,6 +61,61 @@ enum
   event_lora2,
   event_internal
 };
+
+// Interface type that is the time source
+enum TmNetIf {
+  TMIF_NONE,
+  TMIF_LORA,
+  TMIF_ESPNOW,
+  TMIF_SERIAL,
+  TMIF_LOCAL,
+};
+// Local time source that is setting the time
+enum TmSource {
+  TMS_NONE,
+  TMS_NET,
+  TMS_RTC,
+  TMS_NTP,
+  TMS_GPS,
+};
+
+struct TimeSource {
+  TmNetIf tmNetIf;
+  uint16_t tmAddress;
+  TmSource tmSource;
+  unsigned long tmLastTimeSet;
+};
+
+struct DRRingBuffer {
+DataReading *dr;
+uint16_t *address;
+uint startIdx;
+uint endIdx;
+uint size;
+};
+
+struct SPRingBuffer {
+SystemPacket *sp;
+uint16_t *address;
+uint startIdx;
+uint endIdx;
+uint size;
+};
+
+struct Ping {
+  pingstate_t status = stReady;
+  unsigned long start;
+  uint timeout;
+  uint16_t address;
+  uint32_t response = __UINT32_MAX__;
+};
+
+#ifndef ESP32
+typedef int esp_err_t;
+#define ESP_FAIL 0
+#define ESP_OK 1
+#endif
+
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 

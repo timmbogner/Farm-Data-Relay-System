@@ -42,6 +42,7 @@
 
 SystemPacket theCmd;
 DataReading theData[256];
+TimeSource timeSource;
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t newCmd = cmd_clear;
@@ -53,54 +54,80 @@ uint8_t data_count = 0;
 void broadcastLoRa();
 void sendLoRaNbr(uint8_t);
 void timeFDRSLoRa(uint8_t *);
-static uint16_t crc16_update(uint16_t, uint8_t);
+//static uint16_t crc16_update(uint16_t, uint8_t);
 void sendESPNowNbr(uint8_t);
 void sendESPNowPeers();
 void sendESPNow(uint8_t);
+void sendTimeSerial();
+void handleLoRa();
+void handleMQTT();
+void handleOTA();
 
 void sendMQTT();
 void sendLog();
 void resendLog();
 void releaseLogBuffer();
+void printFDRS(DataReading*, int);
 
+#ifdef USE_I2C
+  #include <Wire.h>
+#endif
 #ifdef USE_OLED
   #include "fdrs_oled.h"
 #endif
 #include "fdrs_debug.h"
+#include "fdrs_time.h"
 #include "fdrs_gateway_serial.h"
 #include "fdrs_gateway_scheduler.h"
 #ifdef USE_ESPNOW
   #include "fdrs_gateway_espnow.h"
 #endif
 #ifdef USE_LORA
-  #include "fdrs_gateway_lora.h"
+  #include "fdrs_lora.h"
 #endif
 #ifdef USE_WIFI
   #include "fdrs_gateway_wifi.h"
   #include "fdrs_gateway_mqtt.h"
-  #include "fdrs_gateway_ota.h"
+#include "fdrs_gateway_ota.h"
 #endif
 
 #ifdef DEBUG_CONFIG
   #include "fdrs_checkConfig.h"
 #endif
 
+
+// Print type DataReading for debugging purposes
+void printFDRS(DataReading * dr, int len) {
+  DBG("----- printFDRS: " + String(len) + " records -----");
+  for(int i = 0; i < len; i++) {
+    DBG("Index: " + String(i) + "| id: " + String(dr[i].id) + "| type: " + String(dr[i].t) + "| data: " + String(dr[i].d));
+  }
+  DBG("----- End printFDRS -----");
+
+}
+
 void sendFDRS()
 {
-  for (int i = 0; i < data_count; i++)
-  {
-    theData[i].id = fdrsData[i].id;
-    theData[i].t = fdrsData[i].t;
-    theData[i].d = fdrsData[i].d;
+  if(data_count > 0) {
+    for (int i = 0; i < data_count; i++)
+    {
+      theData[i].id = fdrsData[i].id;
+      theData[i].t = fdrsData[i].t;
+      theData[i].d = fdrsData[i].d;
+    }
+    ln = data_count;
+    data_count = 0;
+    newData = event_internal;
+    DBG("Entered internal data.");
   }
-  ln = data_count;
-  data_count = 0;
-  newData = event_internal;
-  DBG("Entered internal data.");
 }
 
 void loadFDRS(float d, uint8_t t, uint16_t id)
 {
+  // guard against buffer overflow
+  if(data_count > 253) {
+    sendFDRS();
+  }
   DBG("Id: " + String(id) + " - Type: " + String(t) + " - Data loaded: " + String(d));
   DataReading dr;
   dr.id = id;
@@ -117,6 +144,15 @@ void beginFDRS()
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
+#endif
+#ifdef USE_GPS
+  begin_gps();
+#endif
+#ifdef USE_I2C
+  Wire.begin(I2C_SDA, I2C_SCL);
+#endif
+#ifdef USE_RTC
+  begin_rtc();
 #endif
 
 #ifdef USE_OLED
@@ -139,12 +175,12 @@ void beginFDRS()
 
 #ifdef USE_LORA
   begin_lora();
-  scheduleFDRS(asyncReleaseLoRaFirst, FDRS_LORA_INTERVAL);
-#endif
+  #endif
 #ifdef USE_WIFI
   begin_wifi();
   DBG("Connected.");
   begin_mqtt();
+  begin_ntp();
   begin_OTA();
 #endif
 #ifdef USE_ESPNOW
@@ -154,7 +190,9 @@ void beginFDRS()
 
 #ifdef USE_WIFI
   client.publish(TOPIC_STATUS, "FDRS initialized");
+  scheduleFDRS(fetchNtpTime,1000*60*FDRS_TIME_FETCHNTP);
 #endif
+scheduleFDRS(printTime,1000*60*FDRS_TIME_PRINTTIME);
 }
 
 void handleCommands()
@@ -174,26 +212,26 @@ void handleCommands()
 #endif // USE_ESPNOW
 
     break;
+
+  case cmd_time:
+    if(theCmd.param > MIN_TS) {
+#ifdef USE_ESPNOW
+      recvTimeEspNow(theCmd.param);
+#endif // USE_ESPNOW
+    }
+    else if(theCmd.param == 0) {
+#ifdef USE_ESPNOW
+      sendTimeESPNow(incMAC);
+#endif // USE_ESPNOW
+    }
+    
+    break;  
   }
   theCmd.cmd = cmd_clear;
   theCmd.param = 0;
 }
 
-void loopFDRS()
-{
-  handle_schedule();
-  handleCommands();
-  handleSerial();
-#ifdef USE_LORA
-  handleLoRa();
-#endif
-#ifdef USE_WIFI
-  handleMQTT();
-  handleOTA();
-#endif
-#ifdef USE_OLED
-  drawPageOLED(true);
-#endif
+void handleActions() {
   if (newData != event_clear)
   {
     switch (newData)
@@ -230,17 +268,39 @@ void loopFDRS()
   }
 }
 
+
+void loopFDRS()
+{
+  handleTime();
+  handle_schedule();
+  handleCommands();
+  handleSerial();
+  handleLoRa();
+  handleMQTT();
+  handleOTA();
+#ifdef USE_OLED
+  drawPageOLED(true);
+#endif
+  handleActions();
+}
+
 // "Skeleton Functions related to FDRS Actions"
 #ifndef USE_LORA
   void broadcastLoRa() {}
   void sendLoRaNbr(uint8_t address) {}
-  void timeFDRSLoRa(uint8_t *address) {}
+  void timeFDRSLoRa(uint8_t *address) {}  // fdrs_gateway_lora.h
+  void sendTimeLoRa() { return; }                  // fdrs_gateway_time.h
+  void handleLoRa() { return; }                    // fdrs_gateway_lora.h
+  bool pingLoRaTimeSource() { return false; } //fdrs_gateway_lora.h
 #endif
 #ifndef USE_ESPNOW
-  void sendESPNowNbr(uint8_t interface) {}
-  void sendESPNowPeers() {}
-  void sendESPNow(uint8_t address) {}
+  void sendESPNowNbr(uint8_t interface) { }
+  void sendESPNowPeers() { }
+  void sendESPnow(uint8_t address) { }
+  esp_err_t sendTimeESPNow() { return ESP_OK; }                  // fdrs_gateway_time.h
 #endif
 #ifndef USE_WIFI
   void sendMQTT() {}
+  void handleMQTT() {}
+  void handleOTA() {}
 #endif
