@@ -175,18 +175,16 @@ void begin_wifi()
   WiFi.config(hostIpAddress, gatewayAddress, subnetAddress, dns1Address, dns2Address);
 #endif
   WiFi.begin(ssid, password);
-int connectTries = 0;
+  DBG("Connecting to WiFi SSID: " + String(FDRS_WIFI_SSID));
+  int connectTries = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
     connectTries++;
-    DBG("Connecting to WiFi SSID: " + String(FDRS_WIFI_SSID) + " try number " + String(connectTries));
     delay(1000);
-    WiFi.reconnect();
-    if(connectTries >= 15) {
-        DBG("Restarting ESP32: WiFi issues\n");
-        delay(5000);  
-        ESP.restart();
-}
+    if(connectTries >= 10) {
+      DBG("Couldn't connect! Retrying...");
+      WiFi.reconnect();
+    }
   }
 #endif // USE_ETHERNET
 }
