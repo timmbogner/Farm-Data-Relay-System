@@ -32,19 +32,20 @@ bool pingFlagEspNow = false;
 #if defined(ESP8266)
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
 {
-esp_now_sent_flag = true;
+  esp_now_sent_flag = true;
 }
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 {
+  memcpy(&incMAC, mac, sizeof(incMAC));
 #elif defined(ESP32)
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
-esp_now_sent_flag = true;
+  esp_now_sent_flag = true;
 }
-void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
+void OnDataRecv(const esp_now_recv_info *pkt_info, const uint8_t *incomingData, int len)
 {
-#endif
-  memcpy(&incMAC, mac, sizeof(incMAC));
+  memcpy(&incMAC, pkt_info->src_addr, sizeof(incMAC));
+  #endif
   if (len < sizeof(DataReading))
   {
     DBG1("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
