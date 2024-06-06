@@ -135,7 +135,7 @@ int loraAckState = stReady;
 #endif // FDRS_GATEWAY
 
 volatile bool transmitFlag = false;            // flag to indicate transmission or reception state
-volatile bool enableInterrupt = true; // disable interrupt when it's not needed
+volatile bool enableFDRSInterrupt = true; // disable interrupt when it's not needed
 volatile bool operationDone = false;  // flag to indicate that a packet was sent or received
 unsigned long loraAckTimeout = 0;
 unsigned long rxCountDR = 0;              // Number of total LoRa DR packets destined for us and of valid size
@@ -153,7 +153,7 @@ ICACHE_RAM_ATTR
 void setFlag(void)
 {
     // check if the interrupt is enabled
-    if (!enableInterrupt)
+    if (!enableFDRSInterrupt)
     {
         return;
     }
@@ -638,7 +638,7 @@ crcResult LoRaTxRxOperation()
     // DBG("TxFlag: " + String(transmitFlag));
     // DBG("TxStatus: " + String(TxStatus));
 
-        enableInterrupt = false;
+        enableFDRSInterrupt = false;
         operationDone = false;
         if (transmitFlag)  // the previous operation was transmission
         {   
@@ -663,7 +663,7 @@ crcResult LoRaTxRxOperation()
             // Serial.println("RxINT!");
         }
         delay(10);
-        enableInterrupt = true;
+        enableFDRSInterrupt = true;
     }
     return crcReturned;
 }
