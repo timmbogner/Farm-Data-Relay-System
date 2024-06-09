@@ -170,7 +170,7 @@ void handleIncoming()
   }
 }
 
-bool sendFDRS()
+bool sendFDRSinternal()
 {
   if(data_count == 0) {
     return false;
@@ -216,6 +216,27 @@ bool sendFDRS()
   }
 #endif
 }
+
+bool sendFDRS(bool is_async)
+{
+  bool ret = sendFDRSinternal();
+  if (!is_async)
+  {
+    unsigned long timeout = millis() + 1000;
+    while (millis() < timeout && (!ISBUFFEMPTY(drBuff) || !ISBUFFEMPTY(spBuff)))
+    {
+      handleLoRa();
+      yield();
+    }
+  }
+  return ret;
+}
+
+bool sendFDRS()
+{
+  return sendFDRS(false);
+}
+
 
 void loadFDRS(float d, uint8_t t)
 {
