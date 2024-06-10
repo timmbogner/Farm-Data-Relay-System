@@ -220,6 +220,7 @@ bool sendFDRSinternal()
 bool sendFDRS(bool is_async)
 {
   bool ret = sendFDRSinternal();
+#ifdef USE_LORA
   if (!is_async)
   {
     unsigned long timeout = millis() + 1000;
@@ -229,6 +230,7 @@ bool sendFDRS(bool is_async)
       yield();
     }
   }
+#endif //USE_LORA
   return ret;
 }
 
