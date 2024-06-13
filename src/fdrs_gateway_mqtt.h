@@ -44,6 +44,7 @@
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+unsigned long lastMqttConnectAttempt = 0;
 
 const char *mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
@@ -102,7 +103,10 @@ void handleMQTT()
 {
     if (!client.connected())
     {
-        reconnect_mqtt(1, true);
+        if(TDIFF(lastMqttConnectAttempt,5000)) {
+            reconnect_mqtt(1, true);
+            lastMqttConnectAttempt = millis();
+        }
     }
     client.loop(); // for recieving incoming messages and maintaining connection
 }
@@ -119,8 +123,8 @@ void mqtt_callback(char *topic, byte *message, unsigned int length)
     DeserializationError error = deserializeJson(doc, incomingString);
     if (error)
     { // Test if parsing succeeds.
-        DBG("json parse err");
-        DBG1(incomingString);
+        DBG2("json parse err");
+        DBG2(incomingString);
         return;
     }
     else
