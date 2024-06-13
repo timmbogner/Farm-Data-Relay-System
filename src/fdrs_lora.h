@@ -203,8 +203,9 @@ void printLoraPacket(uint8_t *p, int size)
 }
 
 // Do not call this function directly, instead call transmitLoRaAsync(...)
+// or transmitLoRaSync(....)
 // Transmits Lora data by calling RadioLib library function
-// Returns void becuase function is Async and does not receive any data
+// No return data.  Use transmitLoRaSync(...) if status is important
 void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
 {
     uint8_t pkt[6 + (len * sizeof(DataReading))];
@@ -245,8 +246,10 @@ void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
     return;
 }
 
-// For now SystemPackets will not use ACK but will calculate CRC
-// Returns CRC_NULL as SystemPackets do not use ACKS at current time
+// Transmits LoRa SystemPacket Data.  
+// Before calling this function directly please check for (loraTxState == stReady)
+// to make sure another Async operation is not already in progress otherwise we might be 
+// waiting for ACKs from a gateway and transmit over the top
 void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
 {
     uint8_t pkt[6 + (len * sizeof(SystemPacket))];
@@ -284,6 +287,52 @@ void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
     }
     txCountSP++;
     return;
+}
+
+// Synchronously Transmits LoRa data and, if configured, listens for ACKs
+// Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
+crcResult transmitLoRaSync(uint16_t *destMac, DataReading *packet, uint8_t len)
+{
+    crcResult crcReturned = CRC_NULL;
+    // Do we check to see if another Async operation is in progress first???
+    // If Yes, what do we do if another operation is in progress?  Return and rely on retransmit retry?
+    // if(loraTxState == stReady) { }
+    transmitLoRa(destMac, packet, len);
+    
+    // if LORA_ACK is defined
+    if(ack) {
+        int retries = FDRS_LORA_RETRIES + 1;
+        while (retries != 0)
+        {
+            unsigned long loraAckTimeout = millis() + FDRS_ACK_TIMEOUT;
+            retries--;
+            delay(10);
+            while (crcReturned == CRC_NULL && (millis() < loraAckTimeout))
+            {
+                crcReturned = LoRaTxRxOperation();
+                yield();
+            }
+            if (crcReturned == CRC_OK)
+            {
+                DBG1("LoRa ACK Received! CRC OK");
+                return CRC_OK; // we're done
+            }
+            else if (crcReturned == CRC_BAD)
+            {
+                DBG1("LoRa ACK Received! CRC BAD");
+                //  Resend original packet again if retries are available
+            }
+            else
+            {
+                DBG1("LoRa Timeout waiting for ACK!");
+                // resend original packet again if retries are available
+            }
+            // Here is our retry
+            transmitLoRa(destMac, packet, len);
+        }
+        
+    }
+    return crcReturned;
 }
 
 void begin_lora()
@@ -337,6 +386,8 @@ void begin_lora()
     }
 }
 
+// Asynchronous call to transfer LoRa SystemPacket data.  Stores data in circular buffer until next transmit.
+// Returns true if data is added to buffer.  Warns if buffer data is overwritten.
 bool transmitLoRaAsync(uint16_t *destAddr, SystemPacket *sp, uint8_t len)
 {   
     for(int i=0; i < len; i++)
@@ -357,6 +408,8 @@ bool transmitLoRaAsync(uint16_t *destAddr, SystemPacket *sp, uint8_t len)
 }
 
 // Wrapper for transmitLoRa for DataReading type packets to handle processing Receiving CRCs and retransmitting packets
+// Asynchronous call to transfer LoRa DataReading data.  Stores data in circular buffer until next transmit.
+// Returns true if data is added to buffer.  Warns if buffer data is overwritten.
 bool transmitLoRaAsync(uint16_t *destAddr, DataReading *dr, uint8_t len)
 {
     // Write as much as needed and just flush out the older data if too much data writing to buffer
@@ -381,6 +434,7 @@ bool transmitLoRaAsync(uint16_t *destAddr, DataReading *dr, uint8_t len)
 }
 
 // return the number of consecutive DRs in the DR Queue that have the same destination address
+// If the size of the data is larger than LoRa data packet maximum then limit the size to LoRa max
 uint transmitSameAddrLoRa() {
     uint count = 0;
 
@@ -459,10 +513,7 @@ bool pingReplyLoRa(uint16_t address)
 }
 
 // ****DO NOT CALL receiveLoRa() directly! *****   Call handleLoRa() instead!
-// receiveLoRa for Sensors
-//  USED to get ACKs (SystemPacket type) from LoRa gateway at this point.  May be used in the future to get other data
 // Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
-
 crcResult receiveLoRa()
 {
     int packetSize = radio.getPacketLength();
@@ -628,6 +679,8 @@ crcResult receiveLoRa()
     return CRC_NULL;
 }
 
+// Uses interrupt from LoRa chip to determine start and stop of transmit and receive cycles
+// Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
 crcResult LoRaTxRxOperation() 
 {
     crcResult crcReturned = CRC_NULL;
@@ -680,7 +733,7 @@ int pingRequestLoRa(uint16_t address, uint32_t timeout)
 
         loraPing.timeout = timeout;
         loraPing.address = address;
-        // Perform blocking ping if nothing else is in process
+        // Perform blocking (synchronous) ping if nothing else is in process
         if(loraTxState == stReady) {
             loraPing.status = stInProcess;
             loraPing.start = millis();
@@ -748,6 +801,7 @@ void sendLoRaNbr(uint8_t interface)
   }
 }
 
+// Handles completion of Asynchronous LoRa processes 
 void handleLoRa()
 {
     static uint8_t len = 0;
@@ -756,6 +810,7 @@ void handleLoRa()
     static unsigned long lastTxtime = 0;
     static unsigned long statsTime = 0;
     
+    // check status of TX or RX operation
     LoRaTxRxOperation();
 
     // check for result of any ongoing async ping operations
@@ -840,7 +895,7 @@ void handleLoRa()
     }
 
 
-    // It's polite to Listen more than you talk
+    // Time delay between consecutive transmits - TXDELAYMS
     if(TDIFF(lastTxtime,(TXDELAYMS + random(0,50)))) {
         // Start Transmit data from the DataReading queue
         if((!ISBUFFEMPTY(drBuff) || (data != NULL)) && loraTxState == stReady && loraAckState == stReady) 
@@ -923,4 +978,17 @@ bool reqTimeLoRa() {
         }
     }
     return false;
+}
+
+// Check for LoRa Asynchronous operations to be complete
+// Returns True if there are no pending LoRa Async Operations.
+// Returns False if there are pending LoRa Async Operations.
+bool isLoRaAsyncComplete() {
+    if(loraTxState == stReady && ISBUFFEMPTY(drBuff) && ISBUFFEMPTY(spBuff) && loraPing.status == stReady && loraAckState == stReady) {
+        return true;
+    }
+    else {
+        return false;
+    }
+
 }

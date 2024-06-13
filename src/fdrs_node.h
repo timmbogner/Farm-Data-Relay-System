@@ -170,6 +170,8 @@ void handleIncoming()
   }
 }
 
+// Sends FDRS data synchronously
+// Returns true if success and false if not successful
 bool sendFDRS()
 {
   if(data_count == 0) {
@@ -194,27 +196,49 @@ bool sendFDRS()
     data_count = 0;
     return false;
   }
-#endif
+#endif // USE_ESPNOW
 #ifdef USE_LORA
-  transmitLoRaAsync(&gtwyAddress, fdrsData, data_count);
-  // DBG(" LoRa sent.");
+  crcResult crcReturned = CRC_NULL;
+  crcReturned = transmitLoRaSync(&gtwyAddress, fdrsData, data_count);
+  DBG(" LoRa sent.");
 #ifdef LORA_ACK
   if(crcReturned == CRC_OK) {
-  data_count = 0;
+    data_count = 0;
     return true;
   }
-#endif
+#endif // LORA_ACK
 #ifndef LORA_ACK
   if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
     data_count = 0;
   return true;
 }
-#endif
+#endif // !LORA_ACK
   else {
     data_count = 0;
     return false;
   }
-#endif
+#endif // USE_LORA
+}
+
+// Sends FDRS data asynchronously - no spinning loop, more processor friendly, but does not return as much information
+// Returns true if data is queued up, false if there is no data to be sent
+bool sendFDRSAsync()
+{
+  if(data_count == 0) {
+    return false;
+  }
+
+  DBG("Queueing FDRS Packet!");
+#ifdef USE_ESPNOW
+  esp_now_send(gatewayAddress, (uint8_t *)&fdrsData, data_count * sizeof(DataReading));
+  data_count = 0;
+  return true;
+#endif // USE_ESPNOW
+#ifdef USE_LORA
+  transmitLoRaAsync(&gtwyAddress, fdrsData, data_count);
+  data_count = 0;
+  return true;
+#endif // USE_LORA
 }
 
 void loadFDRS(float d, uint8_t t)
@@ -244,6 +268,12 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
 
 void sleepFDRS(uint32_t sleep_time)
 {
+  // make sure all Async operations are completed
+  unsigned long timeout = millis() + 1000;
+  while(millis() < timeout && !isLoRaAsyncComplete()) {
+    handleLoRa();
+    yield();
+  }
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
