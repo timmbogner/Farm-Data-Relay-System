@@ -26,9 +26,8 @@
 
 //#define USE_LR  // Use ESP-NOW LR mode (ESP32 only)
 
-// Time settings
-#define USDST
-// #define EUDST
+// NTP Time settings for controllers and sensors
+#define DST_RULE        USDST     // Use US DST Rules - Change to EUDST to use European Union DST Rules
 #define STD_OFFSET      (-6)                // Local standard time offset in hours from UTC - if unsure, check https://time.is
 #define DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is
-#define TIME_PRINTTIME    10      // Time, in minutes, between printing local time to debug
+#define TIME_PRINTTIME    15     // Time, in minutes, between printing local time to debug
