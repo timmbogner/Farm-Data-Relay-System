@@ -22,10 +22,10 @@
 #define GLOBAL_MQTT_USER   "Your MQTT Username"
 #define GLOBAL_MQTT_PASS   "Your MQTT Password"
 // MQTT Topics
-#define TOPIC_DATA    "fdrs/data"
-#define TOPIC_STATUS  "fdrs/status"
-#define TOPIC_COMMAND "fdrs/command"
-#define TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
+#define GLOBAL_TOPIC_DATA    "fdrs/data"
+#define GLOBAL_TOPIC_STATUS  "fdrs/status"
+#define GLOBAL_TOPIC_COMMAND "fdrs/command"
+#define GLOBAL_TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
 
 // NTP Time Server
 #define GLOBAL_TIME_SERVER      "0.us.pool.ntp.org"
