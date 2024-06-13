@@ -74,11 +74,8 @@ irrigController cont[] = {
 };
 
 unsigned long statusCheck = 0;
-unsigned long checkGatewayStatus = 0;
-
 bool isData = false;
 bool newStatus = false;
-bool connectedToGateway = false;
 uint numcontrollers;
 
 // Callback function in the controller that receives data to get or set coils
@@ -133,7 +130,6 @@ void checkCoils() {  // Sends back a status report for each coil pin.
   }
 }
 
-
 // Sets coil value according to data received in callback function
 void updateCoils() {  
   for(int i = 0; i < numcontrollers; i++) {
@@ -155,21 +151,6 @@ void updateCoils() {
   }
 }
 
-// Attempts to inform gateway that we are alive and waiting to receive data
-// Returns true if we have successfully registered with gateway otherwise return false
-bool registerWithGateway() {
-  if (addFDRS(1000, fdrs_recv_cb)) {
-    for(int i = 0; i < numcontrollers; i++) {
-      subscribeFDRS(cont[i].address);
-    }
-    return true;
-  } else {
-    DBG("Not Connected");
-    // If we can't connect to gateway then we won't receive data should we delay and retry or delay and reboot?
-  }
-  return false;
-}
-
 void setup() {
   beginFDRS();
   DBG("FARM DATA RELAY SYSTEM :: Irrigation Module");
@@ -181,7 +162,13 @@ void setup() {
     pinMode(cont[i].coilPin, OUTPUT);
     digitalWrite(cont[i].coilPin, OFF);
   }
-  connectedToGateway = registerWithGateway();
+  
+  // Register the callback function for received data
+  addFDRS(fdrs_recv_cb);
+  // Subscribe to Data Readings
+  for(int i = 0; i < numcontrollers; i++) {
+    subscribeFDRS(cont[i].address);
+  }
 }
 
 void loop() {
@@ -211,12 +198,5 @@ void loop() {
       }
     }
     statusCheck = millis();
-  }
-  // Periodically test and try to reestablish gateway connection if not connected
-  if(millis() - checkGatewayStatus > 20000) {
-    if(connectedToGateway == false){
-      connectedToGateway = registerWithGateway();
-    }
-    checkGatewayStatus = millis();
   }
 }
