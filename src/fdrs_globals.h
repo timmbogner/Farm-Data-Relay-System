@@ -28,7 +28,7 @@
 #define TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
 
 // NTP Time Server
-#define GLOBAL_DST_RULE        USDST       // Use US DST Rules - Change to EUDST for European rules
+#define GLOBAL_DST_RULE        USDST    // Daylight saving time rules: Use USDST for United States DST rules, EUDST for European Union
 #define GLOBAL_TIME_SERVER      "0.us.pool.ntp.org"
 #define GLOBAL_STD_OFFSET      (-6)                // Local standard time offset in hours from UTC - if unsure, check https://time.is
 #define GLOBAL_DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is

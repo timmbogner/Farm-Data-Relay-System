@@ -79,7 +79,7 @@
 //#define MQTT_PASS   "Your MQTT Password"
 
 // NTP Time settings for gateways
-#define DST_RULE        USDST     // Use US DST Rules - Change to EUDST to use European Union DST Rules
+#define DST_RULE        USDST // Daylight saving time rules: Use USDST for United States DST rules, EUDST for European Union
 #define TIME_SERVER       "0.us.pool.ntp.org"       // NTP time server to use. If FQDN at least one DNS server is required to resolve name
 #define STD_OFFSET      (-6)                // Local standard time offset in hours from UTC - if unsure, check https://time.is
 #define DST_OFFSET      (STD_OFFSET + 1)    // Local savings time offset in hours from UTC - if unsure, check https://time.is
