@@ -89,7 +89,6 @@
 // #define TOPIC_DATA    "fdrs/data"
 // #define TOPIC_STATUS  "fdrs/status"
 // #define TOPIC_COMMAND "fdrs/command"
-// #define TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
 
 // NTP Time settings
 #define USDST

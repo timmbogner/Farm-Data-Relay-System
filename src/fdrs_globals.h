@@ -25,7 +25,6 @@
 #define GLOBAL_TOPIC_DATA    "fdrs/data"
 #define GLOBAL_TOPIC_STATUS  "fdrs/status"
 #define GLOBAL_TOPIC_COMMAND "fdrs/command"
-#define GLOBAL_TOPIC_DATA_BACKLOG "fdrs/databacklog"   // Used in filesystem module
 
 // NTP Time Server
 #define GLOBAL_TIME_SERVER      "0.us.pool.ntp.org"
