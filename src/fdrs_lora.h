@@ -245,7 +245,7 @@ void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
     transmitFlag = true;
     if (state != RADIOLIB_ERR_NONE)
     {
-        DBG("Xmit failed, code " + String(state));
+        DBG("Xmit failed, code " + String(state) + " program halted.");
         while (true)
             ;
     }
@@ -293,7 +293,7 @@ void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
     transmitFlag = true;
     if (state != RADIOLIB_ERR_NONE)
     {
-        DBG("Xmit failed, code " + String(state));
+        DBG("Xmit failed, code " + String(state) + " program halted.");
         while (true)
             ;
     }
@@ -373,7 +373,7 @@ void begin_lora()
     }
     else
     {
-        DBG("RadioLib initialization failed, code " + String(state));
+        DBG("RadioLib initialization failed, code " + String(state) + " program halted.");
         while (true)
             ;
     }
@@ -392,7 +392,7 @@ void begin_lora()
     state = radio.startReceive(); // start listening for LoRa packets
     if (state != RADIOLIB_ERR_NONE)
     {
-        DBG(" failed, code " + String(state));
+        DBG(" failed, code " + String(state) + " program halted.");
         while (true)
             ;
     }
@@ -552,7 +552,7 @@ crcResult receiveLoRa()
         // for Node - need to listen to broadcast
         if (destMAC == (selfAddress[4] << 8 | selfAddress[5]) || (destMAC == 0xFFFF))
 #endif
-        { // Check if addressed to this device or broadcast
+        { 
             // printLoraPacket(packet,sizeof(packet));
             DBG1("Incoming LoRa. Size: " + String(packetSize) + " Bytes, RSSI: " + String(radio.getRSSI()) + "dBm, SNR: " + String(radio.getSNR()) + "dB, PacketCRC: 0x" + String(packetCRC, HEX));
             // Evaluate CRC
@@ -567,12 +567,12 @@ crcResult receiveLoRa()
                 if (calcCRC == packetCRC)
                 {   // We've received a DR and sending an ACK 
                     SystemPacket ACK = {.cmd = cmd_ack, .param = CRC_OK};
-                    DBG1("CRC Match, sending ACK packet to node 0x" + String(sourceMAC, HEX) + "(hex)");
+                    DBG1("CRC Match, sending ACK packet to node 0x" + String(sourceMAC, HEX));
                     transmitLoRaAsync(&sourceMAC, &ACK, 1); // Send ACK back to source
                 }
                 else if (packetCRC == crc16_update(calcCRC, 0xA1))
                 { // Sender does not want ACK and CRC is valid
-                    DBG1("Node address 0x" + String(sourceMAC, 16) + " does not want ACK");
+                    DBG1("CRC Match, node address 0x" + String(sourceMAC, 16) + " does not want ACK");
                 }
                 else
                 {   // We've received a DR and CRC is bad
@@ -654,7 +654,7 @@ crcResult receiveLoRa()
                     else
                     { // data we have received is not yet programmed.  How we handle is future enhancement.
                         DBG2("Received some LoRa SystemPacket data that is not yet handled.  To be handled in future enhancement.");
-                        DBG2("ln: " + String(ln) + "data type: " + String(receiveData[0].cmd));
+                        DBG2("ln: " + String(ln) + " data type: " + String(receiveData[0].cmd + " param: " + String(receiveData[0].param)));
                     }
                     rxCountCrcOk++;
                     return CRC_OK;
