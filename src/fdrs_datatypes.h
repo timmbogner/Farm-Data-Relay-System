@@ -39,11 +39,12 @@ enum ping_t {
   ping_reply
 };
 
-enum pingstate_t {
+enum commstate_t {
   stReady,
   stInProcess,
   stCrcMismatch,
   stCrcMatch,
+  stInterMessageDelay,
   stCompleted
 };
 
@@ -103,7 +104,7 @@ uint size;
 };
 
 struct Ping {
-  pingstate_t status = stReady;
+  commstate_t status = stReady;
   unsigned long start;
   uint timeout;
   uint16_t address;

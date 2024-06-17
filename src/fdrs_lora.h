@@ -8,7 +8,7 @@
 #define GLOBAL_LORA_RETRIES 2  // LoRa ACK automatic retries [0 - 3]
 #define GLOBAL_LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
-#define TXDELAYMS 300
+#define INTERMSGDELAY 100
 #define SPBUFFSIZE 10
 #define LORASIZE ((250 - 15) / sizeof(DataReading)) // 250 bytes minus header/crc data
 #define DRBUFFSIZE 100
@@ -112,8 +112,8 @@ DRRingBuffer drBuff = {.dr = (DataReading*)calloc(DRBUFFSIZE,sizeof(DataReading)
 SPRingBuffer spBuff = {.sp = (SystemPacket*)calloc(SPBUFFSIZE,sizeof(SystemPacket)), \
                 .address = (uint16_t*)calloc(SPBUFFSIZE,sizeof(uint16_t)), .startIdx = 0, .endIdx = 0, .size = SPBUFFSIZE};
 
-int loraTxState = stReady;
-int loraAckState = stReady;
+commstate_t loraTxState = stReady;
+commstate_t loraAckState = stReady;
 
 
 #ifdef FDRS_GATEWAY
@@ -145,6 +145,7 @@ unsigned long rxCountCrcOk = 0;             // Number of total Lora packets with
 unsigned long rxCountCrcBad = 0;             // Number of total Lora packets with valid CRC
 unsigned long txCountDR = 0;                // Number of total LoRa DR packets transmitted
 unsigned long txCountSP = 0;                // Number of total LoRa SP packets transmitted
+unsigned long lastTxComplete = 0;               // Last time that a LoRa transmit was completed
 extern time_t now;
 time_t netTimeOffset = UINT32_MAX;  // One direction of LoRa Ping time in units of seconds (1/2 full ping time)
 unsigned long tx_start_time = 0;
@@ -832,8 +833,8 @@ void handleLoRa()
     static uint8_t len = 0;
     static DataReading *data;
     static uint16_t address;
-    static unsigned long lastTxtime = 0;
     static unsigned long statsTime = 0;
+    static unsigned long lastTimeSourcePing = 0;
     
     // check status of TX or RX operation
     LoRaTxRxOperation();
@@ -900,9 +901,6 @@ void handleLoRa()
             // resend original packet again if retries are available
             loraAckState = stReady;
         }
-        if(loraTxState == stCompleted) {
-            loraTxState = stReady;
-        }
         return;
     }
 
@@ -918,62 +916,54 @@ void handleLoRa()
         transmitLoRa((spBuff.address + spBuff.startIdx), (spBuff.sp + spBuff.startIdx), 1);
         BUFFINCSTART(spBuff);
     }
+    
+    // Start Transmit data from the DataReading queue
+    if((!ISBUFFEMPTY(drBuff) || (data != NULL)) && loraTxState == stReady && loraAckState == stReady) 
+    {
+        // for(int i=drBuff.startIdx; i!=drBuff.endIdx; i = (i + 1) % drBuff.size) {
+        //     printf("id: %d, type: %d data: %f address: %X\n",(drBuff.dr + i)->id, (drBuff.dr + i)->t, (drBuff.dr + i)->d, *(spBuff.address + spBuff.startIdx));
+        // }
 
-
-    // Time delay between consecutive transmits - TXDELAYMS
-    if(TDIFF(lastTxtime,(TXDELAYMS + random(0,50)))) {
-        // Start Transmit data from the DataReading queue
-        if((!ISBUFFEMPTY(drBuff) || (data != NULL)) && loraTxState == stReady && loraAckState == stReady) 
+        // data memory is not freed when retries are exhausted and DataReading queue is not full
+        if(data == NULL) {
+            // Get number of DRs going to same destination address
+            len = transmitSameAddrLoRa();
+            // TransmitLoRa cannot handle a circular buffer so need data in one contiguous segment of memory
+            data = (DataReading *)malloc(len * sizeof(DataReading));
+            // Transfer data readings from the ring buffer to our local buffer
+            for(int i=0; i < len; i++) {
+                *(data + i) = *(drBuff.dr + ((drBuff.startIdx + i) % drBuff.size));
+            }
+            address = *(drBuff.address + drBuff.startIdx);
+            // now we have the data, we can release it from the ring buffer
+            drBuff.startIdx = (drBuff.startIdx + len) % drBuff.size;
+        }
+        DBG2("Length: " + String(len) + " Address: 0x" + String(address,HEX) + " Data:");
+        // for(int i=0; i< len; i++) {
+        //     printf("id: %d, type: %d data: %f\n",(data + i)->id, (data + i)->t, (data + i)->d);
+        // }
+        if(!ack && data != NULL) 
         {
-            // for(int i=drBuff.startIdx; i!=drBuff.endIdx; i = (i + 1) % drBuff.size) {
-            //     printf("id: %d, type: %d data: %f address: %X\n",(drBuff.dr + i)->id, (drBuff.dr + i)->t, (drBuff.dr + i)->d, *(spBuff.address + spBuff.startIdx));
-            // }
-
-            // data memory is not freed when retries are exhausted and DataReading queue is not full
-            if(data == NULL) {
-                // Get number of DRs going to same destination address
-                len = transmitSameAddrLoRa();
-                // TransmitLoRa cannot handle a circular buffer so need data in one contiguous segment of memory
-                data = (DataReading *)malloc(len * sizeof(DataReading));
-                // Transfer data readings from the ring buffer to our local buffer
-                for(int i=0; i < len; i++) {
-                    *(data + i) = *(drBuff.dr + ((drBuff.startIdx + i) % drBuff.size));
-                }
-                address = *(drBuff.address + drBuff.startIdx);
-                // now we have the data, we can release it from the ring buffer
-                drBuff.startIdx = (drBuff.startIdx + len) % drBuff.size;
-            }
-            DBG2("Length: " + String(len) + " Address: 0x" + String(address,HEX) + " Data:");
-            // for(int i=0; i< len; i++) {
-            //     printf("id: %d, type: %d data: %f\n",(data + i)->id, (data + i)->t, (data + i)->d);
-            // }
-            if(!ack && data != NULL) 
-            {
-                transmitLoRa(&address, data, len);
-                free(data);
-                data = NULL;
-                len = 0;
-            }
-            else if(data != NULL)
-            {   
-                retries--;
-                loraAckState = stInProcess;
-                transmitLoRa(&address, data, len);
-            }
+            transmitLoRa(&address, data, len);
+            free(data);
+            data = NULL;
+            len = 0;
         }
-
-        // Ping LoRa time master to estimate time delay in radio link
-        if(timeSource.tmNetIf == TMIF_LORA) {
-            static unsigned long lastTimeSourcePing = 0;
-
-            // ping the time source every 10 minutes
-            if(TDIFFMIN(lastTimeSourcePing,10) || lastTimeSourcePing == 0) {
-                pingRequestLoRa(timeSource.tmAddress,4000);
-                lastTimeSourcePing = millis();
-            }
+        else if(data != NULL)
+        {   
+            retries--;
+            loraAckState = stInProcess;
+            transmitLoRa(&address, data, len);
         }
-        lastTxtime = millis();
     }
+
+    // Ping LoRa time master to estimate time delay in radio link
+    // ping the time source every 10 minutes
+    if(timeSource.tmNetIf == TMIF_LORA && (TDIFFMIN(lastTimeSourcePing,10) || lastTimeSourcePing == 0)) {
+        pingRequestLoRa(timeSource.tmAddress,4000);
+        lastTimeSourcePing = millis();
+    }
+    
     // Print LoRa statistics
     if(TDIFFSEC(statsTime,305) && (rxCountCrcOk + rxCountCrcBad) > 0) {
         statsTime = millis();
@@ -981,7 +971,12 @@ void handleLoRa()
     }
 
     // Change to ready at the end so only one transmit happens per function call
+    // also enforce LoRa inter-message transmit delays
     if(loraTxState == stCompleted) {
+        loraTxState = stInterMessageDelay;
+        lastTxComplete = millis();
+    }
+    else if(loraTxState == stInterMessageDelay && TDIFF(lastTxComplete,(INTERMSGDELAY + random(0,50)))) {
         loraTxState = stReady;
     }
     return;
