@@ -13,7 +13,7 @@ DataReading theData[256];
 uint8_t ln;
 uint8_t newData = event_clear;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
-const uint16_t espnow_size = 250 / sizeof(DataReading);
+const uint16_t espnow_size = (250 - 15) / sizeof(DataReading); // 250 bytes minus 15 bytes for addressing and other data
 crcResult crcReturned = CRC_NULL;
 
 uint8_t incMAC[6];
@@ -244,7 +244,7 @@ bool sendFDRSAsync()
 void loadFDRS(float d, uint8_t t)
 {
   DBG("Id: " + String(READING_ID) + " - Type: " + String(t) + " - Data loaded: " + String(d));
-  if (data_count > espnow_size)
+  if (data_count >= espnow_size)
     sendFDRS();
   DataReading dr;
   dr.id = READING_ID;
@@ -256,7 +256,7 @@ void loadFDRS(float d, uint8_t t)
 void loadFDRS(float d, uint8_t t, uint16_t id)
 {
   DBG("Id: " + String(id) + " - Type: " + String(t) + " - Data loaded: " + String(d));
-  if (data_count > espnow_size)
+  if (data_count >= espnow_size)
     sendFDRS();
   DataReading dr;
   dr.id = id;

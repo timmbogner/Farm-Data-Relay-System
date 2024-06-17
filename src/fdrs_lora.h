@@ -10,7 +10,7 @@
 
 #define TXDELAYMS 300
 #define SPBUFFSIZE 10
-#define LORASIZE (250 / sizeof(DataReading))
+#define LORASIZE ((250 - 15) / sizeof(DataReading)) // 250 bytes minus header/crc data
 #define DRBUFFSIZE 100
 #define ISBUFFEMPTY(buff) ((buff.endIdx == buff.startIdx) ? true: false)
 #define ISBUFFFULL(buff) (((buff.endIdx + 1) % buff.size) == buff.startIdx ? true: false)
@@ -208,6 +208,11 @@ void printLoraPacket(uint8_t *p, int size)
 // No return data.  Use transmitLoRaSync(...) if status is important
 void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
 {
+    // Check if amount of data provided to us is too large.  Send as much data as possible and warn.
+    if(len * sizeof(DataReading) > (250 - 6)) {
+        DBG("ERROR: LoRa Transmit size too big! Truncating Data!");
+        len = (250 - 6)/sizeof(DataReading);  // readjusting number of DRs
+    }
     uint8_t pkt[6 + (len * sizeof(DataReading))];
     uint16_t calcCRC = 0x0000;
     loraTxState = stInProcess;
@@ -252,6 +257,11 @@ void transmitLoRa(uint16_t *destMac, DataReading *packet, uint8_t len)
 // waiting for ACKs from a gateway and transmit over the top
 void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
 {
+    // Amount of data provided to us is too large.  Send as much data as possible and warn.
+    if(len * sizeof(SystemPacket) > (250 - 6)) {
+        DBG("ERROR: LoRa Transmit size too big! Truncating Data!");
+        len = sizeof(SystemPacket)/(250 - 6);  // readjusting number of SPs
+    }
     uint8_t pkt[6 + (len * sizeof(SystemPacket))];
     uint16_t calcCRC = 0x0000;
     loraTxState = stInProcess;
