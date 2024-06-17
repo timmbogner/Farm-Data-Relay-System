@@ -40,6 +40,24 @@
 #define FDRS_MQTT_AUTH
 #endif // MQTT_AUTH
 
+#if defined(TOPIC_DATA)
+#define FDRS_TOPIC_DATA TOPIC_DATA
+#else
+#define FDRS_TOPIC_DATA GLOBAL_TOPIC_DATA
+#endif // TOPIC_DATA
+
+#if defined(TOPIC_STATUS)
+#define FDRS_TOPIC_STATUS TOPIC_STATUS
+#else
+#define FDRS_TOPIC_STATUS GLOBAL_TOPIC_STATUS
+#endif // TOPIC_STATUS
+
+#if defined(TOPIC_COMMAND)
+#define FDRS_TOPIC_COMMAND TOPIC_COMMAND
+#else
+#define FDRS_TOPIC_COMMAND GLOBAL_TOPIC_COMMAND
+#endif // TOPIC_COMMAND
+
 #define MQTT_MAX_BUFF_SIZE 1024
 
 WiFiClient espClient;
@@ -69,7 +87,7 @@ void reconnect_mqtt(short int attempts, bool silent)
         if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass))
         {
             // Subscribe
-            client.subscribe(TOPIC_COMMAND);
+            client.subscribe(FDRS_TOPIC_COMMAND);
             if (!silent)
                 DBG(" MQTT Connected");
             return;
@@ -157,7 +175,7 @@ void begin_mqtt()
 
 void mqtt_publish(const char *payload)
 {
-    if (!client.publish(TOPIC_DATA, payload))
+    if (!client.publish(FDRS_TOPIC_DATA, payload))
     {
         DBG(" Error on sending MQTT");
 
