@@ -302,52 +302,6 @@ void transmitLoRa(uint16_t *destMac, SystemPacket *packet, uint8_t len)
     return;
 }
 
-// Synchronously Transmits LoRa data and, if configured, listens for ACKs
-// Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
-crcResult transmitLoRaSync(uint16_t *destMac, DataReading *packet, uint8_t len)
-{
-    crcResult crcReturned = CRC_NULL;
-    // Do we check to see if another Async operation is in progress first???
-    // If Yes, what do we do if another operation is in progress?  Return and rely on retransmit retry?
-    // if(loraTxState == stReady) { }
-    transmitLoRa(destMac, packet, len);
-    
-    // if LORA_ACK is defined
-    if(ack) {
-        int retries = FDRS_LORA_RETRIES + 1;
-        while (retries != 0)
-        {
-            unsigned long loraAckTimeout = millis() + FDRS_ACK_TIMEOUT;
-            retries--;
-            delay(10);
-            while (crcReturned == CRC_NULL && (millis() < loraAckTimeout))
-            {
-                crcReturned = LoRaTxRxOperation();
-                yield();
-            }
-            if (crcReturned == CRC_OK)
-            {
-                DBG1("LoRa ACK Received! CRC OK");
-                return CRC_OK; // we're done
-            }
-            else if (crcReturned == CRC_BAD)
-            {
-                DBG1("LoRa ACK Received! CRC BAD");
-                //  Resend original packet again if retries are available
-            }
-            else
-            {
-                DBG1("LoRa Timeout waiting for ACK!");
-                // resend original packet again if retries are available
-            }
-            // Here is our retry
-            transmitLoRa(destMac, packet, len);
-        }
-        
-    }
-    return crcReturned;
-}
-
 void begin_lora()
 {
 #ifdef CUSTOM_SPI
@@ -980,6 +934,61 @@ void handleLoRa()
         loraTxState = stReady;
     }
     return;
+}
+
+// Synchronously Transmits LoRa data and, if configured, listens for ACKs
+// Return type is crcResult struct - CRC_OK, CRC_BAD, CRC_NULL.  CRC_NULL used for non-ack data
+crcResult transmitLoRaSync(uint16_t *destMac, DataReading *packet, uint8_t len)
+{
+    crcResult crcReturned = CRC_NULL;
+    unsigned long timeout = millis() + (3 * INTERMSGDELAY);
+    
+    // LoRa inter-transmit message delay to prevent data corruption in LoRa packets.
+    // We don't want to delay forever so we need a timeout as well
+    while(loraTxState != stReady && millis() < timeout) {
+        handleLoRa();
+        yield();
+    }
+    if(millis() > timeout) {
+        DBG("LoRa Error. TxState not ready");
+        return CRC_BAD;
+    }
+    transmitLoRa(destMac, packet, len);
+    
+    // if LORA_ACK is defined
+    if(ack) {
+        int retries = FDRS_LORA_RETRIES + 1;
+        while (retries != 0)
+        {
+            unsigned long loraAckTimeout = millis() + FDRS_ACK_TIMEOUT;
+            retries--;
+            delay(10);
+            while (crcReturned == CRC_NULL && (millis() < loraAckTimeout))
+            {
+                crcReturned = LoRaTxRxOperation();
+                yield();
+            }
+            if (crcReturned == CRC_OK)
+            {
+                DBG1("LoRa ACK Received! CRC OK");
+                return CRC_OK; // we're done
+            }
+            else if (crcReturned == CRC_BAD)
+            {
+                DBG1("LoRa ACK Received! CRC BAD");
+                //  Resend original packet again if retries are available
+            }
+            else
+            {
+                DBG1("LoRa Timeout waiting for ACK!");
+                // resend original packet again if retries are available
+            }
+            // Here is our retry
+            transmitLoRa(destMac, packet, len);
+        }
+        
+    }
+    return crcReturned;
 }
 
 // Only for use in nodes - not intended to be used in gateway
