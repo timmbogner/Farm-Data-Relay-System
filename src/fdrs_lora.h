@@ -4,7 +4,7 @@
 // Internal Globals
 // Default values: overridden by settings in config, if present
 
-#define GLOBAL_ACK_TIMEOUT 400 // LoRa ACK timeout in ms. (Minimum = 200)
+#define GLOBAL_ACK_TIMEOUT 1000 // LoRa ACK timeout in ms. (Minimum = 500)
 #define GLOBAL_LORA_RETRIES 2  // LoRa ACK automatic retries [0 - 3]
 #define GLOBAL_LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 
@@ -578,8 +578,10 @@ crcResult receiveLoRa()
                 {   // We've received a DR and CRC is bad
                     SystemPacket NAK = {.cmd = cmd_ack, .param = CRC_BAD};
                     // Send NAK packet
-                    DBG1("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX) + " Sending NAK packet to node 0x" + String(sourceMAC, HEX) + "(hex)");
-                    transmitLoRaAsync(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
+                    // Receiving not configured to listen/respond to NAK so disable for now
+                    DBG1("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX));
+                    // DBG1("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX) + " Sending NAK packet to node 0x" + String(sourceMAC, HEX) + "(hex)");
+                    // transmitLoRaAsync(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
                     newData = event_clear;             // do not process data as data may be corrupt
                     rxCountCrcBad++;
                     return CRC_BAD;                    // Exit function and do not update newData to send invalid data further on
@@ -610,10 +612,19 @@ crcResult receiveLoRa()
                     memcpy(receiveData, &packet[4], packetSize - 6); // Split off data portion of packet (N bytes)
                     if (ln == 1 && receiveData[0].cmd == cmd_ack)
                     {
-                        DBG1("ACK Received - CRC Match");
-                        if(loraAckState == stInProcess) {
-                            loraAckState = stCrcMatch;
+                        if(receiveData[0].param == CRC_OK) {
+                            DBG1("ACK Received - CRC Match");
+                            if(loraAckState == stInProcess) {
+                                loraAckState = stCrcMatch;
+                            }
                         }
+                        else if(receiveData[0].param == CRC_BAD) {
+                            DBG1("NAK received - CRC Mismatch");
+                            if(loraAckState == stInProcess) {
+                                loraAckState = stCrcMismatch;
+                            }
+                        // Do we send again - future need to figure out what to do
+                        }           
                     }
                     else if (ln == 1 && receiveData[0].cmd == cmd_ping)
                     { // We have received a ping request or reply??

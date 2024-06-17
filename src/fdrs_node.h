@@ -203,20 +203,16 @@ bool sendFDRS()
   crcResult crcReturned = CRC_NULL;
   crcReturned = transmitLoRaSync(&gtwyAddress, fdrsData, data_count);
   DBG(" LoRa sent.");
-#ifdef LORA_ACK
   if(crcReturned == CRC_OK) {
     data_count = 0;
     DBG1("FDRS Packet sent successfully!");
     return true;
   }
-#endif // LORA_ACK
-#ifndef LORA_ACK
-  if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
+  else if(ack == false && crcReturned == CRC_NULL) {
     data_count = 0;
     DBG1("FDRS Packet sent successfully!");
     return true;
-}
-#endif // !LORA_ACK
+  }
   else {
     data_count = 0;
     DBG1("FDRS Packet send failed!");
