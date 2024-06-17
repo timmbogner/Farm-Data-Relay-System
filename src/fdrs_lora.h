@@ -140,7 +140,9 @@ volatile bool operationDone = false;  // flag to indicate that a packet was sent
 unsigned long loraAckTimeout = 0;
 unsigned long rxCountDR = 0;              // Number of total LoRa DR packets destined for us and of valid size
 unsigned long rxCountSP = 0;               // Number of total LoRa SP packets destined for us and of valid size
+unsigned long rxCountUnk = 0;               // Number of total LoRa packets received but not known (invalid size or format)
 unsigned long rxCountCrcOk = 0;             // Number of total Lora packets with valid CRC
+unsigned long rxCountCrcBad = 0;             // Number of total Lora packets with valid CRC
 unsigned long txCountDR = 0;                // Number of total LoRa DR packets transmitted
 unsigned long txCountSP = 0;                // Number of total LoRa SP packets transmitted
 extern time_t now;
@@ -195,7 +197,7 @@ void printLoraPacket(uint8_t *p, int size)
   printf("Printing packet of size %d.", size);
   for (int i = 0; i < size; i++)
   {
-    if (i % 2 == 0)
+    if (i % 16 == 0)
       printf("\n%02d: ", i);
     printf("%02X ", p[i]);
   }
@@ -579,25 +581,24 @@ crcResult receiveLoRa()
                     DBG1("CRC Mismatch! Packet CRC is 0x" + String(packetCRC, HEX) + ", Calculated CRC is 0x" + String(calcCRC, HEX) + " Sending NAK packet to node 0x" + String(sourceMAC, HEX) + "(hex)");
                     transmitLoRaAsync(&sourceMAC, &NAK, 1); // CRC did not match so send NAK to source
                     newData = event_clear;             // do not process data as data may be corrupt
+                    rxCountCrcBad++;
                     return CRC_BAD;                    // Exit function and do not update newData to send invalid data further on
                 }
-                rxCountCrcOk++;
                 memcpy(&theData, &packet[4], packetSize - 6); // Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
                 ln = (packetSize - 6) / sizeof(DataReading);
                 if (memcmp(&sourceMAC, &LoRa1, 2) == 0)
                 { // Check if it is from a registered sender
                     newData = event_lora1;
-                    return CRC_OK;
                 }
                 else if (memcmp(&sourceMAC, &LoRa2, 2) == 0)
                 {
                     newData = event_lora2;
-                    return CRC_OK;
                 }
                 else {
                     newData = event_lorag;
-                    return CRC_OK;
                 }
+                rxCountCrcOk++;
+                return CRC_OK;
             }
             else if ((packetSize - 6) == sizeof(SystemPacket))
             {
@@ -664,6 +665,7 @@ crcResult receiveLoRa()
                     if(loraAckState == stInProcess) {
                         loraAckState = stCrcMismatch;
                     }
+                    rxCountCrcBad++;
                     return CRC_BAD;
                 }
             }
@@ -672,6 +674,7 @@ crcResult receiveLoRa()
         {   // Uncommenting below will print out packets from other LoRa controllers being sent.
             // DBG2("Incoming LoRa packet of " + String(packetSize) + " bytes received from address 0x" + String(sourceMAC, HEX) + " destined for node address 0x" + String(destMAC, HEX));
             // printLoraPacket(packet,sizeof(packet));
+            rxCountUnk++;
             return CRC_NULL;
         }
     }
@@ -683,6 +686,7 @@ crcResult receiveLoRa()
             //  uint8_t packet[packetSize];
             //  radio.readData((uint8_t *)&packet, packetSize);
             //  printLoraPacket(packet,sizeof(packet));
+            rxCountUnk++;
             return CRC_NULL;
         }
     }
@@ -960,9 +964,9 @@ void handleLoRa()
         lastTxtime = millis();
     }
     // Print LoRa statistics
-    if(TDIFFSEC(statsTime,65) && (rxCountDR + rxCountSP) > 0) {
+    if(TDIFFSEC(statsTime,305) && (rxCountCrcOk + rxCountCrcBad) > 0) {
         statsTime = millis();
-        DBG1("LoRa Stats - Rx DR:" + String(rxCountDR) + " SP:" + String(rxCountSP) + " Tx DR:" + String(txCountDR) + " SP:" + String(txCountSP) + " CRC OK: " + String(rxCountCrcOk/(rxCountDR + rxCountSP) * 100) + "%");
+        DBG1("LoRa Stats: | RX-(DR:" + String(rxCountDR) + " SP:" + String(rxCountSP) + " UNK:" + String(rxCountUnk) + ") | TX-(DR:" + String(txCountDR) + " SP:" + String(txCountSP) + ") CRC OK: " + String((float)rxCountCrcOk/(rxCountCrcOk + rxCountCrcBad) * 100.00) + "% |");
     }
 
     // Change to ready at the end so only one transmit happens per function call
