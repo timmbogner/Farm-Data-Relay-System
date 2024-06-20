@@ -127,8 +127,8 @@ typedef int esp_err_t;
 #define LIGHT_T         5  // Light (lux) 
 #define SOIL_T          6  // Soil Moisture 
 #define SOIL2_T         7  // Soil Moisture #2 
-#define SOILR_T         8 // Soil Resistance 
-#define SOILR2_T        9 // Soil Resistance #2 
+#define SOILR_T         8  // Soil Resistance 
+#define SOILR2_T        9  // Soil Resistance #2 
 #define OXYGEN_T        10 // Oxygen 
 #define CO2_T           11 // Carbon Dioxide
 #define WINDSPD_T       12 // Wind Speed
@@ -153,5 +153,7 @@ typedef int esp_err_t;
 #define POWER2_T        31 // Power #2
 #define ENERGY_T        32 // Energy
 #define ENERGY2_T       33 // Energy #2
+#define WEIGHT_T        34 // Weight
+#define WEIGHT2_T       35 // Weight #2
 
 #endif //FDRS_DATA_TYPES
