@@ -1,6 +1,6 @@
 #include <sys/time.h>
 
-#define MIN_TS 1714000000 // Time in Unit timestamp format should be greater than this number to be valid
+#define MIN_TS 1718000000 // Time in Unit timestamp format should be greater than this number to be valid
 #define MAX_TS 3318000000 // time in Unit timestamp format should be less than this number to be valid
 #define VALID_TS(_unixts) ( (_unixts > MIN_TS && _unixts < MAX_TS) ? true : false )
 
@@ -8,20 +8,15 @@
 #define TDIFFRAND(prevMs,durationMs) (millis() - prevMs > (durationMs + random(0,10000)))
 #define TDIFFSEC(prevMs,durationSec) (millis() - prevMs > (durationSec * 1000))
 #define TDIFFMIN(prevMs,durationMin) (millis() - prevMs > (durationMin * 60 * 1000))
+#define USDST 0
+#define EUDST 1
 
-// select Time, in minutes, between sending out time
-#if defined(TIME_SEND_INTERVAL)
-#define FDRS_TIME_SEND_INTERVAL TIME_SEND_INTERVAL
+// US/EU Daylight Savings Time Rules
+#if defined(DST_RULE)
+#define FDRS_DST_RULE DST_RULE
 #else
-#define FDRS_TIME_SEND_INTERVAL GLOBAL_TIME_SEND_INTERVAL
-#endif // TIME_SEND_INTERVAL
-
-// select Time, in minutes, between time printed configuration
-#if defined(TIME_PRINTTIME)
-#define FDRS_TIME_PRINTTIME TIME_PRINTTIME
-#else
-#define FDRS_TIME_PRINTTIME GLOBAL_TIME_PRINTTIME
-#endif // TIME_PRINTTIME
+#define FDRS_DST_RULE GLOBAL_DST_RULE
+#endif // DST_RULE
 
 // select Local Standard time Offset from UTC configuration
 #if defined(STD_OFFSET)
@@ -36,6 +31,20 @@
 #else
 #define FDRS_DST_OFFSET GLOBAL_DST_OFFSET
 #endif // DST_OFFSET
+
+// select Time, in minutes, between time printed configuration
+#if defined(TIME_PRINTTIME)
+#define FDRS_TIME_PRINTTIME TIME_PRINTTIME
+#else
+#define FDRS_TIME_PRINTTIME GLOBAL_TIME_PRINTTIME
+#endif // TIME_PRINTTIME
+
+// select Time, in minutes, between sending out time
+#if defined(TIME_SEND_INTERVAL)
+#define FDRS_TIME_SEND_INTERVAL TIME_SEND_INTERVAL
+#else
+#define FDRS_TIME_SEND_INTERVAL GLOBAL_TIME_SEND_INTERVAL
+#endif // TIME_SEND_INTERVAL
 
 // US DST Start - 2nd Sunday in March - 02:00 local time
 // US DST End - 1st Sunday in November - 02:00 local time
@@ -170,7 +179,7 @@ void checkDST() {
       struct tm dstBegin;
       dstBegin.tm_year = timeinfo.tm_year;
       dstBegin.tm_mon = 2;
-#ifdef USDST
+#if (FDRS_DST_RULE == USDST)
       dstBegin.tm_mday = 8;
       dstBegin.tm_hour = 2;
       dstBegin.tm_min = 0;
@@ -182,7 +191,7 @@ void checkDST() {
       // DBG2("DST Begins: " + String(buf) + " local");
       time_t tdstBegin = mktime(&dstBegin) - stdOffset;
 #endif // USDST
-#ifdef EUDST
+#if (FDRS_DST_RULE == EUDST)
       dstBegin.tm_mday = 25;
       dstBegin.tm_hour = 1;
       dstBegin.tm_min = 0;
@@ -202,7 +211,7 @@ void checkDST() {
       }
     }
     else if(timeinfo.tm_mon == 9) {
-#ifdef EUDST
+#if (FDRS_DST_RULE == EUDST)
       struct tm dstEnd;
       dstEnd.tm_year = timeinfo.tm_year;
       dstEnd.tm_mon = 9;
@@ -222,15 +231,15 @@ void checkDST() {
       else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
         dstFlag = 1;
       }
-#endif //EUDST
-#ifdef USDST
+#endif // EUDST
+#if (FDRS_DST_RULE == USDST)
       if(isDST == false) {
         dstFlag = 1;
       }
 #endif // USDST
     }
     else if(timeinfo.tm_mon == 10) {
-#ifdef USDST
+#if (FDRS_DST_RULE == USDST)
       struct tm dstEnd;
       dstEnd.tm_year = timeinfo.tm_year;
       dstEnd.tm_mon = 10;
@@ -250,8 +259,8 @@ void checkDST() {
       else if(tdstEnd != -1 && (time(NULL) - tdstEnd < 0) && isDST == false) { // STD -> DST
         dstFlag = 1;
       }
-#endif //USDST
-#ifdef EUDST
+#endif // USDST
+#if (FDRS_DST_RULE == EUDST)
       if(isDST == true) {
         dstFlag = 0;
       }

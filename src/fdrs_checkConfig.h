@@ -249,21 +249,27 @@ void printWifiDetails() {
 #endif //FDRS_MQTT_AUTH
 
 #if defined(TOPIC_DATA)
-	DBG("MQTT topic (TOPIC_DATA)                  : " + String(TOPIC_DATA));
+	DBG("MQTT topic (TOPIC_DATA)                  : " + String(FDRS_TOPIC_DATA));
+#elif defined (GLOBAL_TOPIC_DATA)
+	DBG("MQTT topic used from GLOBAL_TOPIC_DATA : " + String(FDRS_TOPIC_DATA));
 #else 
 	DBG("NO MQTT topic defined! Please define TOPIC_DATA in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //TOPIC_DATA
 
 #if defined(TOPIC_STATUS)
-	DBG("MQTT topic (TOPIC_STATUS)                : " + String(TOPIC_STATUS));
+	DBG("MQTT topic (TOPIC_STATUS)                : " + String(FDRS_TOPIC_STATUS));
+#elif defined (GLOBAL_TOPIC_STATUS)
+	DBG("MQTT topic used from GLOBAL_TOPIC_STATUS : " + String(FDRS_TOPIC_STATUS));
 #else 
 	DBG("NO MQTT topic defined! Please define TOPIC_STATUS in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);
 #endif //TOPIC_STATUS
 
 #if defined(TOPIC_COMMAND)
-	DBG("MQTT topic (TOPIC_COMMAND)               : " + String(TOPIC_COMMAND));
+	DBG("MQTT topic (TOPIC_COMMAND)               : " + String(FDRS_TOPIC_COMMAND));
+	#elif defined (GLOBAL_TOPIC_COMMAND)
+	DBG("MQTT topic used from GLOBAL_TOPIC_COMMAND : " + String(FDRS_TOPIC_COMMAND));
 #else 
 	DBG("NO MQTT topic defined! Please define TOPIC_COMMAND in fdrs_globals.h (recommended) or in fdrs_node_config.h / fdrs_gateway_config.h");
 	//exit(0);

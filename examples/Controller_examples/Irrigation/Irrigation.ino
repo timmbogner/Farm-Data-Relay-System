@@ -5,57 +5,18 @@
 //  Developed by Timm Bogner (timmbogner@gmail.com) in Urbana, Illinois, USA.
 //
 //
-
 #include "fdrs_node_config.h"
 #include <fdrs_node.h>
-
-#define CMD_GET 1
-#define CMD_SET 0
-
-typedef struct irrigController
-{
-  uint address;
-  int coilPin;
-  bool updatePending;
-  unsigned long status;
-} irrigController;
-
-/*
-
-Format of loadFDRS....
-loadFDRS(data, type, address);
-
-Get Coil status of address 102 (data value is ignored)
-loadFDRS(1, 1, 102);  
-
-Turn off (set) Coil at address 102 for an indefinite amount of time
-loadFDRS(0, 0, 102);  
-
-Turn on Coil (set) at address 102 for an indefinite amount of time
-loadFDRS(1, 0, 102);  
-
-Turn on (set) Coil at address 102 for 300 seconds
-loadFDRS(300, 0, 102);  
-
-When turning on coil for certain amount of time the data value
-must be 10 or greater and is in units of seconds.
-
-*/
 
 #define CONTROL_1 101  //Address for controller 1
 #define CONTROL_2 102  //Address for controller 2
 #define CONTROL_3 103  //Address for controller 3
 #define CONTROL_4 104  //Address for controller 4
 
-#define COIL_1 GPIO_NUM_16   //Coil Pin 1
-#define COIL_2 GPIO_NUM_17   //Coil Pin 2
-#define COIL_3 GPIO_NUM_18  //Coil Pin 3
-#define COIL_4 GPIO_NUM_19  //Coil Pin 4
-
-// These are set up for relay module which are active-LOW. 
-// Swap 'HIGH'and 'LOW' to use the inverse.
-#define ON LOW
-#define OFF HIGH
+#define COIL_1 4   //Coil Pin 1
+#define COIL_2 5   //Coil Pin 2
+#define COIL_3 13  //Coil Pin 3
+#define COIL_4 14  //Coil Pin 4
 
 irrigController cont[] = { 
   [0] = { .address = CONTROL_1, .coilPin = COIL_1, .updatePending = false, .status = 0 },
@@ -78,50 +39,87 @@ bool isData = false;
 bool newStatus = false;
 uint numcontrollers;
 
-// Callback function in the controller that receives data to get or set coils
 void fdrs_recv_cb(DataReading theData) {
-
+  DBG(String(theData.id));
   switch (theData.t) {
-    case CMD_SET:  // Incoming command is to SET a value
-      for(int i = 0; i < numcontrollers; i++) {
-        if(cont[i].address == (uint) theData.id) {
-          cont[i].status = (unsigned long) theData.d;
-          cont[i].updatePending = true;
+    case 0:  // Incoming command is to SET a value
+
+      switch (theData.id) {
+        case CONTROL_1:
+          status_1 = (int)theData.d;
           isData = true;
-          DBG1("Received SET cmd. Address: " + String(theData.id) + " value: " + String(theData.d));
           break;
-        }
+        case CONTROL_2:
+          status_2 = (int)theData.d;
+          isData = true;
+          break;
+        case CONTROL_3:
+          status_3 = (int)theData.d;
+          isData = true;
+          break;
+        case CONTROL_4:
+          status_4 = (int)theData.d;
+          isData = true;
+          break;
       }
       break;
 
-    case CMD_GET:  // Incoming command is to GET a value
-      for(int i = 0; i < numcontrollers; i++) {
-        if(cont[i].address == theData.id) {
-          if (digitalRead(cont[i].coilPin) == HIGH) {
-            loadFDRS(1, STATUS_T, cont[i].address);
+    case 1:  // Incoming command is to GET a value
+      switch (theData.id) {
+        case CONTROL_1:
+          if (digitalRead(COIL_1) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_1);
           } else {
-            loadFDRS(0, STATUS_T, cont[i].address);
+            loadFDRS(0, STATUS_T, CONTROL_1);
           }
-          DBG1("Received GET cmd for address: " + String(theData.id));
-          newStatus = true;
-        }
+          break;
+        case CONTROL_2:
+          if (digitalRead(COIL_2) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_2);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_2);
+          }
+          break;
+        case CONTROL_3:
+          if (digitalRead(COIL_3) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_3);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_3);
+          }
+          break;
+        case CONTROL_4:
+          if (digitalRead(COIL_4) == HIGH) {
+            loadFDRS(1, STATUS_T, CONTROL_4);
+          } else {
+            loadFDRS(0, STATUS_T, CONTROL_4);
+          }
+          break;
       }
+      newStatus = true;
       break;
-    
-    default:
-      DBG1("Unknown command: " + String(theData.t) + " address: " + String(theData.id) + " value: " + String(theData.d));
-      break;
-
   }
 }
 
 void checkCoils() {  // Sends back a status report for each coil pin.
-  for(int i = 0; i < numcontrollers; i++) {
-    if (digitalRead(cont[i].coilPin == HIGH)) {
-      loadFDRS(1, STATUS_T, cont[i].address);
-    } else {
-      loadFDRS(0, STATUS_T, cont[i].address);
-    }
+  if (digitalRead(COIL_1) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_1);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_1);
+  }
+  if (digitalRead(COIL_2) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_2);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_2);
+  }
+  if (digitalRead(COIL_3) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_3);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_3);
+  }
+  if (digitalRead(COIL_4) == HIGH) {
+    loadFDRS(1, STATUS_T, CONTROL_4);
+  } else {
+    loadFDRS(0, STATUS_T, CONTROL_4);
   }
   if (sendFDRS()) {
     DBG("Packet received by gateway");
@@ -153,14 +151,14 @@ void updateCoils() {
 
 void setup() {
   beginFDRS();
-  DBG("FARM DATA RELAY SYSTEM :: Irrigation Module");
   pingFDRS(1000);
-
-  numcontrollers = (uint) sizeof(cont)/sizeof(irrigController);
-  // set up the physical outputs
-  for(int i = 0; i < numcontrollers; i++) {
-    pinMode(cont[i].coilPin, OUTPUT);
-    digitalWrite(cont[i].coilPin, OFF);
+  if (addFDRS(1000, fdrs_recv_cb)) {
+    subscribeFDRS(CONTROL_1);
+    subscribeFDRS(CONTROL_2);
+    subscribeFDRS(CONTROL_3);
+    subscribeFDRS(CONTROL_4);
+  } else {
+    DBG("Not Connected");
   }
   
   // Register the callback function for received data
@@ -169,6 +167,7 @@ void setup() {
   for(int i = 0; i < numcontrollers; i++) {
     subscribeFDRS(cont[i].address);
   }
+
 }
 
 void loop() {
@@ -186,6 +185,7 @@ void loop() {
       DBG("Unable to communicate with gateway!");
     }
   }
+  
   // periodically check for timer expiration on coils
   if(millis() - statusCheck > 500) {
     for(int i = 0; i < numcontrollers; i++) {
@@ -199,4 +199,5 @@ void loop() {
     }
     statusCheck = millis();
   }
+
 }
