@@ -270,11 +270,13 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
 void sleepFDRS(uint32_t sleep_time)
 {
   // make sure all Async operations are completed
+#ifdef USE_LORA
   unsigned long timeout = millis() + 1000;
   while(millis() < timeout && !isLoRaAsyncComplete()) {
     handleLoRa();
     yield();
   }
+#endif // USE_LORA
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
@@ -284,7 +286,7 @@ void sleepFDRS(uint32_t sleep_time)
 #ifdef ESP8266
   ESP.deepSleep(sleep_time * 1000000);
 #endif
-#endif
+#endif // DEEP_SLEEP
   DBG(" Delaying.");
     delay(sleep_time * 1000);
 }
