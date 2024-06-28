@@ -62,13 +62,15 @@ Loads some data into the current packet. 'data' is a float, 'type' is the data t
 #### `loadFDRS((float data, uint8_t type);`
 Same as above, but the 'id' is preset to the node's `READING_ID`. 
 #### `bool sendFDRS();`
-Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been recieved successfully by the gateway.
+Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been received successfully by the gateway.
+#### `bool sendFDRSAsync();`
+Queues the current packet to be sent asynchronously (in the background). Be sure to use `loopFDRS()` to ensure the system can process the packet. Returns true if packet is successfully added to queue. 
 #### `sleepFDRS(seconds)`
 Time to sleep in seconds. If ```DEEP_SLEEP``` is enabled, the device will enter sleep. Otherwise it will use a simple ```delay()```.
 
 ## Controller API
 #### ```addFDRS(void callback);```
-Initializes controller functionality by selecting the function to be called when incoming commands are recieved. If using LoRa, the controller will automatically recieve any packets sent with broadcastLoRa(), provided they were sent by the paired gateway. ESP-NOW requires the device to register with its gateway before it will recieve incoming commands. This is done automatically, and the ESP-NOW node will continue recieving data until the paired gateway is reset. A maximum of 16 ESP-NOW controllers can recieve data from a single gateway. There is no limit to how many LoRa controllers can listen to the same gateway.
+Initializes controller functionality by selecting the function to be called when incoming commands are received. If using LoRa, the controller will automatically receive any packets sent with broadcastLoRa(), provided they were sent by the paired gateway. ESP-NOW requires the device to register with its gateway before it will receive incoming commands. This is done automatically, and the ESP-NOW node will continue recieving data until the paired gateway is reset. A maximum of 16 ESP-NOW controllers can receive data from a single gateway. There is no limit to how many LoRa controllers can listen to the same gateway.
 #### ```subscribeFDRS(uint16_t sub_id);``` 
 Sets the device to listen for a specific DataReading id. When a DataReading with id ```sub_id``` is received, the callback function will be called and given the full DataReading as a parameter.
 #### ```unsubscribeFDRS(uint16_t sub_id);``` 
@@ -120,7 +122,7 @@ OLED I²C pins.
 OLED reset pin. Use '-1' if not present or known.
 #
 ## Callback Function
-The callback function is executed when data arrives with an ID that the controller is subscribed to. Inside of this function, the user has access to the incoming DataReading. If multiple readings are recieved, the function will be called for each of them. While you should always be brief in interrupt callbacks (ISRs), it's okay to do more in this one.
+The callback function is executed when data arrives with an ID that the controller is subscribed to. Inside of this function, the user has access to the incoming DataReading. If multiple readings are received, the function will be called for each of them. While you should always be brief in interrupt callbacks (ISRs), it's okay to do more in this one.
 ## Type Definitions 
 For the moment, my thought is to reserve the first two bits of the type. I might use them in the future to indicate the data size or type (bool, char,  int, float, etc?). This leaves us with 64 possible type definitions. If you have more types to add, please get in touch!
 ```

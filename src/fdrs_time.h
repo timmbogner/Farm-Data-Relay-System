@@ -289,6 +289,7 @@ void checkDST() {
 
 // Periodically send time to ESP-NOW or LoRa nodes associated with this gateway/controller
 void sendTime() {
+#ifdef FDRS_GATEWAY // Nodes do not send out time
   if(validTime()) { // Only send time if it is valid
     DBG1("Sending out time");
 #if defined(USE_WIFI) || defined(USE_ETHERNET)    
@@ -297,6 +298,7 @@ void sendTime() {
     sendTimeLoRa();
     sendTimeESPNow();
   }
+#endif // FDRS_GATEWAY
 }
 
 // time parameter is in Unix Time format UTC time zone
