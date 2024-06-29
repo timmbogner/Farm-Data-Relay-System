@@ -108,7 +108,7 @@ void OnDataRecv(const esp_now_recv_info *pkt_info, const uint8_t *incomingData, 
             break;
         }
     }
-    else if((len == sizeof(DataReading)))
+    else if((len % sizeof(DataReading) == 0))
     {
         memcpy(&theData, incomingData, len);
         ln = len / sizeof(DataReading);
