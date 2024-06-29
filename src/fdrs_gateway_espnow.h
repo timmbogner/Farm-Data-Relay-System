@@ -48,14 +48,14 @@ void OnDataRecv(const esp_now_recv_info *pkt_info, const uint8_t *incomingData, 
   #endif
   if (len < sizeof(DataReading))
   {
-    DBG1("Incoming ESP-NOW System Packet from 0x" + String(incMAC[5], HEX));
+    DBG1("Incoming ESP-NOW System Packet from 0x" + String((incMAC[5] < 16) ? "0" : "" ) + String(incMAC[5], HEX));
     memcpy(&theCmd, incomingData, sizeof(theCmd));
     // processing is handled in the handlecommands() function in gateway.h - do not process here
     return;
   }
   else {
     memcpy(&theData, incomingData, sizeof(theData));
-    DBG("Incoming ESP-NOW DataReading from 0x" + String(incMAC[5], HEX));
+    DBG("Incoming ESP-NOW DataReading from 0x" +  String((incMAC[5] < 16) ? "0" : "" ) + String(incMAC[5], HEX));
     ln = len / sizeof(DataReading);
     if (memcmp(&incMAC, &ESPNOW1, 6) == 0)
     {
@@ -475,12 +475,12 @@ void sendESPNow(uint8_t address)
 void recvTimeEspNow(uint32_t t) {
   // Process time if there is no time source set yet or if LoRa is the time source or if we are already the time source
   if(timeSource.tmNetIf <= TMIF_ESPNOW ) {
-    DBG1("Received time via ESP-NOW from 0x" + String(incMAC[5], HEX));
+    DBG1("Received time via ESP-NOW from 0x" + String((incMAC[5] < 16) ? "0" : "" ) + String(incMAC[5], HEX));
     if(timeSource.tmNetIf < TMIF_ESPNOW) {
       timeSource.tmNetIf = TMIF_ESPNOW;
       timeSource.tmAddress = incMAC[4] << 8 | incMAC[5];
       timeSource.tmSource = TMS_NET;
-      DBG1("ESP-NOW time source is 0x" + String(incMAC[5], HEX));
+      DBG1("ESP-NOW time source is 0x" + String((incMAC[5] < 16) ? "0" : "" ) + String(incMAC[5], HEX));
     }
     if(timeSource.tmAddress == incMAC[4] << 8 | incMAC[5]) {
       if(setTime(t)) {
@@ -489,7 +489,7 @@ void recvTimeEspNow(uint32_t t) {
     }
   }
   else {
-    DBG2("ESP-NOW 0x" + String(incMAC[5], HEX) + " is not time source, discarding request");
+    DBG2("ESP-NOW 0x" + String((incMAC[5] < 16) ? "0" : "" ) + String(incMAC[5], HEX) + " is not time source, discarding request");
   }
   return;
 }
@@ -524,7 +524,7 @@ esp_err_t sendTimeESPNow(uint8_t *addr) {
   
   esp_err_t result = ESP_FAIL;
   SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
-  DBG1("Sending time to ESP-NOW address 0x" + String(addr[5],HEX));
+  DBG1("Sending time to ESP-NOW address 0x"+ String((addr[5] < 16) ? "0" : "" ) + String(addr[5],HEX));
   result = sendESPNow(addr, &sys_packet);
 
   return result;
