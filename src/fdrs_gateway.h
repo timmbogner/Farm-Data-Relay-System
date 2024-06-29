@@ -10,11 +10,17 @@
 #ifndef ESPNOWG_ACT
 #define ESPNOWG_ACT
 #endif
+#ifndef ESPNOW0_ACT
+#define ESPNOW0_ACT
+#endif
 #ifndef ESPNOW1_ACT
 #define ESPNOW1_ACT
 #endif
 #ifndef ESPNOW2_ACT
 #define ESPNOW2_ACT
+#endif
+#ifndef ESPNOW3_ACT
+#define ESPNOW3_ACT
 #endif
 #ifndef SERIAL_ACT
 #define SERIAL_ACT
@@ -239,11 +245,17 @@ void handleActions() {
     case event_espnowg:
       ESPNOWG_ACT
       break;
+    case event_espnow0:
+      ESPNOW0_ACT
+      break;
     case event_espnow1:
       ESPNOW1_ACT
       break;
     case event_espnow2:
       ESPNOW2_ACT
+      break;
+    case event_espnow3:
+      ESPNOW3_ACT
       break;
     case event_serial:
       SERIAL_ACT

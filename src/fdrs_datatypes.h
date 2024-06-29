@@ -53,13 +53,17 @@ enum
 {
   event_clear,
   event_espnowg,
+  event_espnow0,
   event_espnow1,
   event_espnow2,
+  event_espnow3,
   event_serial,
   event_mqtt,
   event_lorag,
+  event_lora0,
   event_lora1,
   event_lora2,
+  event_lora3,
   event_internal
 };
 
