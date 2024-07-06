@@ -31,11 +31,17 @@
 #ifndef LORAG_ACT
 #define LORAG_ACT
 #endif
+#ifndef LORA0_ACT
+#define LORA0_ACT
+#endif
 #ifndef LORA1_ACT
 #define LORA1_ACT
 #endif
 #ifndef LORA2_ACT
 #define LORA2_ACT
+#endif
+#ifndef LORA3_ACT
+#define LORA3_ACT
 #endif
 #ifndef INTERNAL_ACT
 #define INTERNAL_ACT
@@ -266,11 +272,17 @@ void handleActions() {
     case event_lorag:
       LORAG_ACT
       break;
+    case event_lora0:
+      LORA0_ACT
+      break;
     case event_lora1:
       LORA1_ACT
       break;
     case event_lora2:
       LORA2_ACT
+      break;
+    case event_lora3:
+      LORA3_ACT
       break;
     case event_internal:
       INTERNAL_ACT
@@ -299,7 +311,7 @@ void loopFDRS()
 // "Skeleton Functions related to FDRS Actions"
 #ifndef USE_LORA
   void broadcastLoRa() {}
-  void sendLoRaNbr(uint8_t address) {}
+  void sendLoRa_Nbr(uint8_t address) {}
   void timeFDRSLoRa(uint8_t *address) {}  // fdrs_gateway_lora.h
   void sendTimeLoRa() { return; }                  // fdrs_gateway_time.h
   void handleLoRa() { return; }                    // fdrs_gateway_lora.h

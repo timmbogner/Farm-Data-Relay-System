@@ -121,14 +121,15 @@ commstate_t loraAckState = stReady;
         const uint8_t mac_prefix[] = {MAC_PREFIX};
         const uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
     #endif
-    uint16_t LoRa1 = ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1); // Use 2 bytes for LoRa addressing instead of previous 3 bytes
-    uint16_t LoRa2 = ((mac_prefix[4] << 8) | LORA_NEIGHBOR_2);
+    uint16_t LoRa_Nbr[] = {((mac_prefix[4] << 8) | LORA_NEIGHBOR_0),  
+                          ((mac_prefix[4] << 8) | LORA_NEIGHBOR_1),
+                          ((mac_prefix[4] << 8) | LORA_NEIGHBOR_2),
+                          ((mac_prefix[4] << 8) | LORA_NEIGHBOR_3)};
     uint16_t loraBroadcast = 0xFFFF;
     uint16_t gtwyAddress = ((mac_prefix[4] << 8) | UNIT_MAC); // for a gateway this is our own address
 #elif defined(FDRS_NODE)
     uint8_t selfAddress[6] = {0};
-    uint16_t LoRa1 = 0;
-    uint16_t LoRa2 = 0;
+    uint16_t LoRa_Nbr[4] = {0};
     uint16_t loraBroadcast = 0;
     const uint8_t mac_prefix[] = {MAC_PREFIX};
     uint16_t gtwyAddress = ((mac_prefix[4] << 8) | GTWY_MAC);   // for a node, this is our gateway
@@ -423,28 +424,27 @@ uint transmitSameAddrLoRa() {
 
 // Send time to LoRa broadcast and peers
 // Only used in gateways
-void sendTimeLoRa() {
+void sendTimeLoRa()
+{
     // Check for node or gateway.  Do not send if we are a node.
-  if(selfAddress[0] != 0) {
-    DBG1("Sending time via LoRa");
-    SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
-    DBG1("Sending time to LoRa broadcast");
-    transmitLoRaAsync(&loraBroadcast, &spTimeLoRa, 1);
-    // Do not send to LoRa peers if their address is 0x..00
-    if(((LoRa1 & 0x00FF) != 0x0000) && (LoRa1 != timeSource.tmAddress)) {
-        DBG1("Sending time to LoRa Neighbor 1");
-        spTimeLoRa.param = now;
-        // add LoRa neighbor 1
-        transmitLoRaAsync(&LoRa1, &spTimeLoRa, 1);
+    if (selfAddress[0] != 0)
+    {
+        DBG1("Sending time via LoRa");
+        SystemPacket spTimeLoRa = {.cmd = cmd_time, .param = now};
+        DBG1("Sending time to LoRa broadcast");
+        transmitLoRaAsync(&loraBroadcast, &spTimeLoRa, 1);
+        // Do not send to LoRa peers if their address is 0x..00
+        for (int i = 0; i < 4; i++)
+        {
+            if (((LoRa_Nbr[i] & 0x00FF) != 0x0000) && (LoRa_Nbr[i] != timeSource.tmAddress))
+            {
+                DBG1("Sending time to LoRa Neighbor " + String(i));
+                spTimeLoRa.param = now;
+                transmitLoRaAsync(&LoRa_Nbr[i], &spTimeLoRa, 1);
+            }
+        }
     }
-    if(((LoRa2 & 0x00FF) != 0x0000) && (LoRa2 != timeSource.tmAddress)) {
-        DBG1("Sending time to LoRa Neighbor 2");
-        spTimeLoRa.param = now;
-        // add LoRa neighbor 2
-        transmitLoRaAsync(&LoRa2, &spTimeLoRa, 1);
-    }
-  }
-  return;
+    return;
 }
 
 // Send time to LoRa node at specific address - gateway
@@ -543,13 +543,21 @@ crcResult receiveLoRa()
                 }
                 memcpy(&theData, &packet[4], packetSize - 6); // Split off data portion of packet (N - 6 bytes (6 bytes for headers and CRC))
                 ln = (packetSize - 6) / sizeof(DataReading);
-                if (memcmp(&sourceMAC, &LoRa1, 2) == 0)
-                { // Check if it is from a registered sender
+                if (memcmp(&sourceMAC, &LoRa_Nbr[0], 2) == 0) // Check if it is from a registered sender
+                {
+                    newData = event_lora0;
+                }
+                else if (memcmp(&sourceMAC, &LoRa_Nbr[1], 2) == 0)
+                {
                     newData = event_lora1;
                 }
-                else if (memcmp(&sourceMAC, &LoRa2, 2) == 0)
+                else if (memcmp(&sourceMAC, &LoRa_Nbr[2], 2) == 0)
                 {
                     newData = event_lora2;
+                }
+                else if (memcmp(&sourceMAC, &LoRa_Nbr[3], 2) == 0)
+                {
+                    newData = event_lora3;
                 }
                 else {
                     newData = event_lorag;
@@ -763,22 +771,9 @@ void broadcastLoRa()
 }
 
 // Sends packet to neighbor gateways
-void sendLoRaNbr(uint8_t interface)
+void sendLoRaNbr(uint8_t neighbor)
 {
-  DBG("Sending to LoRa neighbor buffer");
-  switch (interface)
-  {
-    case 1:
-      {
-        transmitLoRaAsync(&LoRa1,theData,ln);
-        break;
-      }
-    case 2:
-      {
-        transmitLoRaAsync(&LoRa2,theData,ln);
-        break;
-      }
-  }
+        transmitLoRaAsync(&LoRa_Nbr[neighbor],theData,ln);
 }
 
 // Handles completion of Asynchronous LoRa processes 
