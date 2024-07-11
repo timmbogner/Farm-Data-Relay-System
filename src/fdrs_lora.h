@@ -92,9 +92,10 @@
 
 #ifdef CUSTOM_SPI
 #ifdef ARDUINO_ARCH_RP2040
-RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI1);
-#endif  // RP2040
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI);
+#else  // RP2040
+RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY, SPI);
+#endif
 #else
 RADIOLIB_MODULE radio = new Module(LORA_SS, LORA_DIO, LORA_RST, LORA_BUSY);
 #endif  // CUSTOM_SPI
@@ -309,10 +310,10 @@ void begin_lora()
   SPI.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI);
 #endif  // ESP32
 #ifdef ARDUINO_ARCH_RP2040
-  SPI1.setRX(LORA_SPI_MISO);
-  SPI1.setTX(LORA_SPI_MOSI);
-  SPI1.setSCK(LORA_SPI_SCK);
-  SPI1.begin(false);
+  SPI.setRX(LORA_SPI_MISO);
+  SPI.setTX(LORA_SPI_MOSI);
+  SPI.setSCK(LORA_SPI_SCK);
+  SPI.begin(false);
 #endif  //ARDUINO_ARCH_RP2040
 #endif  // CUSTOM_SPI
 
@@ -402,8 +403,8 @@ bool transmitLoRaAsync(uint16_t *destAddr, DataReading *dr, uint8_t len)
 
 // return the number of consecutive DRs in the DR Queue that have the same destination address
 // If the size of the data is larger than LoRa data packet maximum then limit the size to LoRa max
-uint transmitSameAddrLoRa() {
-    uint count = 0;
+unsigned int transmitSameAddrLoRa() {
+    unsigned int count = 0;
 
     for(int i=drBuff.startIdx; i!=drBuff.endIdx; i = (i + 1) % drBuff.size) {
         if(*(drBuff.address + i) == *(drBuff.address + drBuff.startIdx))

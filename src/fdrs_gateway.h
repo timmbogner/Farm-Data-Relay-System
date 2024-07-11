@@ -144,6 +144,13 @@ void beginFDRS()
 #elif defined(ESP32)
   Serial.begin(115200);
   UART_IF.begin(115200, SERIAL_8N1, RXD2, TXD2);
+#elif defined (ARDUINO_ARCH_RP2040)
+  Serial.begin();
+  UART_IF.setTX(TXD2);
+  UART_IF.setRX(RXD2);
+  UART_IF.begin(115200);
+#else
+  Serial.begin(115200);
 #endif
 #ifdef USE_GPS
   begin_gps();

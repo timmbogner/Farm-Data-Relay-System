@@ -36,6 +36,7 @@
   */
 
 #include "OLEDDisplay.h"
+#include <stdarg.h>
 
 OLEDDisplay::OLEDDisplay() {
 

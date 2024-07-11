@@ -90,23 +90,23 @@ struct TimeSource {
 struct DRRingBuffer {
 DataReading *dr;
 uint16_t *address;
-uint startIdx;
-uint endIdx;
-uint size;
+unsigned int startIdx;
+unsigned int endIdx;
+unsigned int size;
 };
 
 struct SPRingBuffer {
 SystemPacket *sp;
 uint16_t *address;
-uint startIdx;
-uint endIdx;
-uint size;
+unsigned int startIdx;
+unsigned int endIdx;
+unsigned int size;
 };
 
 struct Ping {
   commstate_t status = stReady;
   unsigned long start;
-  uint timeout;
+  unsigned int timeout;
   uint16_t address;
   uint32_t response = __UINT32_MAX__;
 };

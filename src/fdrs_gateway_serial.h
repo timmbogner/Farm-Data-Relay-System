@@ -1,6 +1,6 @@
 #include <ArduinoJson.h>
 
-#if defined (ESP32)
+#if defined (ESP32) || (ARDUINO_ARCH_RP2040)
   #define UART_IF Serial1
   #ifdef USE_GPS
     #define GPS_IF Serial2
@@ -29,6 +29,12 @@
     #else
         #error MCU not supported.
     #endif
+#endif
+#elif defined(ARDUINO_ARCH_RP2040)
+#if !defined RXD2 or !defined TXD2
+    #warning Defining RXD2 and TXD2 using MCU defaults.
+        #define RXD2 1
+        #define TXD2 0
 #endif
 #endif
 
@@ -265,7 +271,11 @@ void sendTimeSerial() {
 
 void begin_gps() {
 #ifdef GPS_IF
-#ifdef ARDUINO_ARCH_SAMD
+  #ifdef ARDUINO_ARCH_SAMD
+    GPS_IF.begin(9600); //To-Do: Investigate adding pins here?
+  #elif ARDUINO_ARCH_RP2040
+    GPS_IF.setTX(TXD2);
+    GPS_IF.setRX(RXD2);
     GPS_IF.begin(9600);
   #else
     GPS_IF.begin(9600, SERIAL_8N1, GPS_RXD, GPS_TXD);

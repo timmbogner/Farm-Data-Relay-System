@@ -90,7 +90,7 @@ unsigned int localPort = 8888;        // local port to listen for UDP packets
 const char timeServer[] = FDRS_TIME_SERVER; // NTP server
 const int NTP_PACKET_SIZE = 48;       // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer[NTP_PACKET_SIZE];   //buffer to hold incoming and outgoing packets
-uint NTPFetchFail = 0;                // consecutive NTP fetch failures
+unsigned int NTPFetchFail = 0;                // consecutive NTP fetch failures
 extern time_t now;
 
 const char *ssid = FDRS_WIFI_SSID;
@@ -224,7 +224,7 @@ void fetchNtpTime() {
     FDRSNtp.begin(localPort);
 
     sendNTPpacket(timeServer); // send an NTP packet to a time server
-    uint i = 0;
+    unsigned int i = 0;
     for(i = 0; i < 800; i++) {
       if(FDRSNtp.parsePacket())
         break;

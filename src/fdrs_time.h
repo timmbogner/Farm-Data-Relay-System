@@ -1,4 +1,8 @@
+#if defined(ARDUINO_ARCH_AVR) // This fixed the initial AVR timekeeping errors, but not all.
+#include <time.h>
+#else
 #include <sys/time.h>
+#endif
 
 #define MIN_TS 1718000000 // Time in Unit timestamp format should be greater than this number to be valid
 #define MAX_TS 3318000000 // time in Unit timestamp format should be less than this number to be valid
