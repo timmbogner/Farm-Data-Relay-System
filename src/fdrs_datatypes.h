@@ -26,6 +26,11 @@ enum crcResult {
   CRC_BAD,
 } returnCRC;
 
+enum FDRSMode {
+  MODE_NORMAL,
+  MODE_UPDATE,
+};
+
 enum cmd_t {
   cmd_clear,
   cmd_ping,

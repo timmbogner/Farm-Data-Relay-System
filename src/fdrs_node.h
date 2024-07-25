@@ -20,6 +20,7 @@ uint8_t incMAC[6];
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
 TimeSource timeSource;
+FDRSMode fdrsMode = MODE_NORMAL;
 
 uint8_t data_count = 0;
 
@@ -427,6 +428,61 @@ bool reqTimeFDRS() {
 #ifdef USE_LORA
   return reqTimeLoRa();
 #endif
+}
+
+// goes into Update Mode where new software can be uploaded
+bool updateFDRS() {
+  bool backToSta = false;
+
+  fdrsMode = MODE_UPDATE;
+  DBG("Update Mode.");
+
+  // Finish any async operations
+#ifdef USE_LORA
+  unsigned long timeout = millis() + 1000;
+  while(millis() < timeout && !isLoRaAsyncComplete()) {
+    handleLoRa();
+    handleTime();
+    yield();
+  }
+#endif // USE_LORA
+
+  if(WiFi.getMode() == WIFI_MODE_STA) {
+    WiFi.mode(WIFI_MODE_APSTA);
+    backToSta = true;
+  }
+  else {
+    WiFi.mode(WIFI_MODE_AP);
+  }
+  
+  WiFi.softAP("fdrs", "fdrs1234");
+  // print IP address
+  DBG("IP: " + WiFi.softAPIP().toString());
+  // WiFi.softAPConfig();
+  // start OTA listening for x minutes
+  begin_OTA();
+  unsigned long timeout = (1000 * 60 * 5); // 5 minutes
+  DBG("Mode time out in " + String(timeout/1000) + " seconds."); // x seconds remaining
+  timeout += millis();
+  // timeout after x minutes
+  while(millis() < timeout) {
+    handleOTA();
+    handleTime();
+    yield();
+    if((timeout - millis()) % (60 * 1000) == 0) {
+      DBG("Mode time out in " + String((timeout - millis())/1000) + " seconds."); // x seconds remaining
+    }
+
+  }
+  if(backToSta) {
+    WiFi.mode(WIFI_MODE_STA);
+  }
+  else {
+    WiFi.mode(WIFI_MODE_NULL);
+  }
+  fdrsMode = MODE_NORMAL;
+  DBG("Leaving Update Mode.");
+  return false;
 }
 
 // Skeleton Functions related to function calls to files that are not included
