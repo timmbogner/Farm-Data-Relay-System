@@ -1,4 +1,8 @@
-#include <sys/time.h>
+#ifdef AVR
+  #include <time.h>
+#else
+  #include <sys/time.h>
+#endif
 
 #define MIN_TS 1718000000 // Time in Unit timestamp format should be greater than this number to be valid
 #define MAX_TS 3318000000 // time in Unit timestamp format should be less than this number to be valid
@@ -54,7 +58,6 @@
 
 time_t now;                           // Current time in UTC - number of seconds since Jan 1 1970 (epoch)
 struct tm timeinfo;                   // Structure containing time elements
-struct timeval tv;
 bool validTimeFlag = false;           // Indicate whether we have reliable time 
 bool validRtcFlag = false;            // Is RTC date and time valid?
 bool isDST;                           // Keeps track of Daylight Savings Time vs Standard Time
@@ -65,6 +68,11 @@ time_t lastDstCheck = 0;
 unsigned long lastTimeSend = 0;
 unsigned long lastRtcCheck = 0;
 unsigned long lastRtcTimeSetMin = 0;
+
+#if defined(ESP32) || defined(ESP8266)
+struct timeval tv;
+#endif
+
 
 // function prototypes
 void sendTimeLoRa();
@@ -320,8 +328,8 @@ bool setTime(time_t currentTime) {
   mktime(&timeinfo); // set tm_isdst flag
   // Check for DST/STD time and adjust accordingly
   checkDST();
-  tv.tv_sec = now;
 #if defined(ESP32) || defined(ESP8266) // settimeofday may only work with Espressif chips
+  tv.tv_sec = now;
   settimeofday(&tv,NULL); // set the RTC time
 #endif
 #ifdef USE_RTC
@@ -352,10 +360,12 @@ void handleTime() {
   if(TDIFF(lastUpdate,500)) {
     time(&now);
     localtime_r(&now, &timeinfo);
-    tv.tv_sec = now;
-    tv.tv_usec = 0;
     validTime();
     checkDST();
+    #if defined(ESP32) || defined(ESP8266)
+      tv.tv_sec = now;
+      tv.tv_usec = 0;
+    #endif
     lastUpdate = millis();
   }
 
