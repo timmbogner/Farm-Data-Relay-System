@@ -1,7 +1,11 @@
 // A list of all datatypes you can use within FDRS.
 // If you are missing any data type, please open an issue at:
 // https://github.com/timmbogner/Farm-Data-Relay-System/issues
- 
+
+#ifdef AVR
+typedef unsigned int uint;
+#endif
+
 typedef struct FDRSPeer {
   uint8_t mac[6];
   uint32_t last_seen = 0;
