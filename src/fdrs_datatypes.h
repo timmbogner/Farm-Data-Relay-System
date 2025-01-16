@@ -83,8 +83,10 @@ enum
 #define POWER2_T        31 // Power #2
 #define ENERGY_T        32 // Energy
 #define ENERGY2_T       33 // Energy #2
+#define WEIGHT_T        34 // Weight
+#define WEIGHT2_T       35 // Weight #2
 
-#define NOISE_T         34 // Noise level #1
-#define NOISE2_T        35 // Noise level #2
+#define NOISE_T         36 // Noise level #1
+#define NOISE2_T        37 // Noise level #2
 
 #endif //FDRS_DATA_TYPES
