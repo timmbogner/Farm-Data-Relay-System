@@ -9,8 +9,6 @@ Farm Data Relay System is an easy way to communicate with remote IoT devices wit
 Devices are classified into two types: **Gateways** and **Nodes**. Gateways comprise the infrastructure of the network, moving data along pre-directed routes and providing coverage to all devices. Nodes allow the user to exchange data with a gateway. Each gateway is identified with an 8-bit physical hex address (MAC), while nodes use 16-bit integers to identify datapoints as they move through the system.
 
 
-If you are having fun with FDRS, **[please consider supporting me](https://www.buymeacoffee.com/TimmB)** so that I can spend more time building it.
-
 ## Getting Started
 **Libraries Required:**
 - [ArduinoJson](https://arduinojson.org/)
@@ -47,6 +45,12 @@ Gateways are modular and configurable microcontroller devices that can perform a
 In its most common usage, an FDRS gateway is deployed as an access point for remote ESP-NOW and LoRa user nodes. If it receives a packet from an unknown ESP-NOW or LoRa address, the gateway assumes that these are sensor readings and passes them downstream towards the front-end. The gateway will also broadcast packets coming *from* the front-end out to any controller nodes that are registered/listening. 
 
 Gateways can also be configured as simple repeaters; passing data from one neighbor directly to another neighbor or vice versa. This can create a data wormhole that will carry packets upstream or downstream ad infinitum. You can configure your gateways to share data headed upstream with connected peers, thus providing them with any data being sent from the front-end.
+
+If you're looking for a simple, attractve, and enclosed solution for your MQTT/UART gateway, I personally recommend both the **ThingPulse ESPGateway** and the **ThingPulse ESPGateway Ethernet**:
+
+- The [ESPGateway](https://thingpulse.com/product/espgateway/) contains two ESP32 WROVER-IB Modules on one board with external antennas. They are linked together by pins 14 and 15 to allow for serial communication between them. This is the perfect setup for a link between ESP-NOW and WiFi.
+
+- The [ESPGateway Ethernet](https://thingpulse.com/product/espgateway-ethernet-esp32-wifi-ble-gateway-with-rj45-ethernet-connector/) contains one ESP32 WROVER-IB Module with antenna, along with an RJ45 Ethernet connector. This is the hardware used in the ethernet gateway [example](https://github.com/timmbogner/Farm-Data-Relay-System/tree/main/examples/Gateway_Examples/1_MQTT_Gateway_Ethernet).
   
 ## Front-end
  The front-end is where all data is entered or consumed by another application. This could be anything from a microcontroller communicating through UART and displaying data on a screen to a server/database platform logging the data via MQTT.

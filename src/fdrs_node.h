@@ -8,84 +8,77 @@
 #include <fdrs_globals.h>
 #define FDRS_NODE
 
-// CRC16 from https://github.com/4-20ma/ModbusMaster/blob/3a05ff87677a9bdd8e027d6906dc05ca15ca8ade/src/util/crc16.h#L71
-
-/** @ingroup util_crc16
-    Processor-independent CRC-16 calculation.
-    Polynomial: x^16 + x^15 + x^2 + 1 (0xA001)<br>
-    Initial value: 0xFFFF
-    This CRC is normally used in disk-drive controllers.
-    @param uint16_t crc (0x0000..0xFFFF)
-    @param uint8_t a (0x00..0xFF)
-    @return calculated CRC (0x0000..0xFFFF)
-*/
-
-static uint16_t crc16_update(uint16_t crc, uint8_t a)
-{
-  int i;
-
-  crc ^= a;
-  for (i = 0; i < 8; ++i)
-  {
-    if (crc & 1)
-      crc = (crc >> 1) ^ 0xA001;
-    else
-      crc = (crc >> 1);
-  }
-
-  return crc;
-}
-
 bool is_controller = false;
-SystemPacket theCmd;
 DataReading theData[256];
 uint8_t ln;
-bool newData;
+uint8_t newData = event_clear;
 uint8_t gatewayAddress[] = {MAC_PREFIX, GTWY_MAC};
-const uint16_t espnow_size = 250 / sizeof(DataReading);
+const uint16_t espnow_size = (250 - 15) / sizeof(DataReading); // 250 bytes minus 15 bytes for addressing and other data
 crcResult crcReturned = CRC_NULL;
 
 uint8_t incMAC[6];
 DataReading fdrsData[espnow_size];
 DataReading incData[espnow_size];
+TimeSource timeSource;
 
 uint8_t data_count = 0;
 
 void (*callback_ptr)(DataReading);
 uint16_t subscription_list[256] = {};
 bool active_subs[256] = {};
+unsigned long lastTimePrint = 0;
 
-#include "fdrs_debug.h"
-#ifdef DEBUG_CONFIG
-// #include "fdrs_checkConfig.h"
+void sendTimeSerial();
+
+
+#ifdef USE_I2C
+  #include <Wire.h>
 #endif
 #ifdef USE_OLED
   #include "fdrs_oled.h"
+#endif
+#include "fdrs_debug.h"
+#include "fdrs_time.h"
+#ifdef DEBUG_CONFIG
+// #include "fdrs_checkConfig.h"
 #endif
 #ifdef USE_ESPNOW
   #include "fdrs_node_espnow.h"
 #endif
 #ifdef USE_LORA
-  #include "fdrs_node_lora.h"
+  #include "fdrs_lora.h"
 #endif
 
 void beginFDRS()
 {
-#ifdef FDRS_DEBUG
   Serial.begin(115200);
   // // find out the reset reason
   // esp_reset_reason_t resetReason;
   // resetReason = esp_reset_reason();
+#ifdef USE_I2C
+  Wire.begin(I2C_SDA, I2C_SCL);
 #endif
 #ifdef USE_OLED
   init_oled();
   DBG("Display initialized!");
   DBG("Hello, World!");
 #endif
-  DBG("FDRS User Node initializing...");
-  DBG(" Reading ID " + String(READING_ID));
-  DBG(" Gateway: " + String(GTWY_MAC, HEX));
+  DBG("");
+  DBG("Initializing FDRS Node!");
+  DBG("Reading ID " + String(READING_ID));
+  DBG("Gateway: " + String(GTWY_MAC, HEX));
+  DBG("Debugging verbosity level: " + String(DBG_LEVEL));
+#ifdef USE_ESPNOW
+  DBG1("ESP-NOW is enabled.");
+#endif
+#ifdef USE_LORA
+  DBG1("LoRa is enabled.");
+#endif
+#ifdef DEEP_SLEEP
+  DBG1("Deep sleep is enabled.");
+#endif
 #ifdef POWER_CTRL
+  DBG1("Power control is enabled on pin " + String(POWER_CTRL));
   DBG("Powering up the sensor array!");
   pinMode(POWER_CTRL, OUTPUT);
   digitalWrite(POWER_CTRL, 1);
@@ -131,13 +124,13 @@ void beginFDRS()
   memcpy(peerInfo.peer_addr, broadcast_mac, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK)
   {
-    DBG("Failed to add peer bcast");
+    DBG(" Failed to add peer bcast");
     return;
   }
   memcpy(peerInfo.peer_addr, gatewayAddress, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK)
   {
-    DBG("Failed to add peer");
+    DBG(" Failed to add peer");
     return;
   }
 #endif
@@ -155,10 +148,10 @@ void beginFDRS()
 
 void handleIncoming()
 {
-  if (newData)
+  if (newData != event_clear)
   {
 
-    newData = false;
+    newData = event_clear;
     for (int i = 0; i < ln; i++)
     { // Cycle through array of incoming DataReadings for any we are subbed to
       for (int j = 0; j < 255; j++)
@@ -177,6 +170,8 @@ void handleIncoming()
   }
 }
 
+// Sends FDRS data synchronously
+// Returns true if success and false if not successful
 bool sendFDRS()
 {
   if(data_count == 0) {
@@ -194,40 +189,63 @@ bool sendFDRS()
   if (esp_now_ack_flag == CRC_OK)
   {
     data_count = 0;
+    DBG1("FDRS Packet sent successfully!");
     return true;
   }
   else
   {
     data_count = 0;
+    DBG1("FDRS Packet send failed!");
     return false;
   }
-#endif
+#endif // USE_ESPNOW
 #ifdef USE_LORA
-  crcReturned = transmitLoRa(&gtwyAddress, fdrsData, data_count);
-  // DBG(" LoRa sent.");
-#ifdef LORA_ACK
+  crcResult crcReturned = CRC_NULL;
+  crcReturned = transmitLoRaSync(&gtwyAddress, fdrsData, data_count);
+  DBG(" LoRa sent.");
   if(crcReturned == CRC_OK) {
-  data_count = 0;
+    data_count = 0;
+    DBG1("FDRS Packet sent successfully!");
     return true;
   }
-#endif
-#ifndef LORA_ACK
-  if(crcReturned == CRC_OK || crcReturned == CRC_NULL) {
+  else if(ack == false && crcReturned == CRC_NULL) {
     data_count = 0;
-  return true;
-}
-#endif
+    DBG1("FDRS Packet sent successfully!");
+    return true;
+  }
   else {
     data_count = 0;
+    DBG1("FDRS Packet send failed!");
     return false;
   }
-#endif
+#endif // USE_LORA
+}
+
+// Sends FDRS data asynchronously - no spinning loop, more processor friendly, but does not return as much information
+// Returns true if data is queued up, false if there is no data to be sent
+bool sendFDRSAsync()
+{
+  if(data_count == 0) {
+    return false;
+  }
+
+  DBG("Queueing FDRS Packet!");
+#ifdef USE_ESPNOW
+  esp_now_send(gatewayAddress, (uint8_t *)&fdrsData, data_count * sizeof(DataReading));
+  data_count = 0;
+  return true;
+#endif // USE_ESPNOW
+#ifdef USE_LORA
+  transmitLoRaAsync(&gtwyAddress, fdrsData, data_count);
+  data_count = 0;
+  return true;
+#endif // USE_LORA
 }
 
 void loadFDRS(float d, uint8_t t)
 {
   DBG("Id: " + String(READING_ID) + " - Type: " + String(t) + " - Data loaded: " + String(d));
-  if (data_count > espnow_size)
+  if (data_count >= espnow_size)
     sendFDRS();
   DataReading dr;
   dr.id = READING_ID;
@@ -239,7 +257,7 @@ void loadFDRS(float d, uint8_t t)
 void loadFDRS(float d, uint8_t t, uint16_t id)
 {
   DBG("Id: " + String(id) + " - Type: " + String(t) + " - Data loaded: " + String(d));
-  if (data_count > espnow_size)
+  if (data_count >= espnow_size)
     sendFDRS();
   DataReading dr;
   dr.id = id;
@@ -251,6 +269,14 @@ void loadFDRS(float d, uint8_t t, uint16_t id)
 
 void sleepFDRS(uint32_t sleep_time)
 {
+  // make sure all Async operations are completed
+#ifdef USE_LORA
+  unsigned long timeout = millis() + 1000;
+  while(millis() < timeout && !isLoRaAsyncComplete()) {
+    handleLoRa();
+    yield();
+  }
+#endif // USE_LORA
 #ifdef DEEP_SLEEP
   DBG(" Deep sleeping.");
 #ifdef ESP32
@@ -260,27 +286,33 @@ void sleepFDRS(uint32_t sleep_time)
 #ifdef ESP8266
   ESP.deepSleep(sleep_time * 1000000);
 #endif
-#endif
+#endif // DEEP_SLEEP
   DBG(" Delaying.");
-  delay(sleep_time * 1000);
+    delay(sleep_time * 1000);
 }
 
 
 
 void loopFDRS()
 {
+  handleTime();
 #ifdef USE_LORA
   handleLoRa();
 #endif
 if (is_controller){
   handleIncoming();
 #ifdef USE_ESPNOW
-    if ((millis() - last_refresh) >= gtwy_timeout)
+    if (TDIFF(last_refresh,gtwy_timeout))
     {
       refresh_registration();
       last_refresh = millis();
     }
 #endif 
+  }
+  // Output time to display if time is valid
+  if(TDIFFMIN(lastTimePrint,FDRS_TIME_PRINTTIME)) {
+    lastTimePrint = millis();
+    printTime();
   }
 }
 
@@ -290,10 +322,10 @@ bool addFDRS(void (*new_cb_ptr)(DataReading))
   callback_ptr = new_cb_ptr;
 #ifdef USE_ESPNOW
   SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
-  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  DBG("ESP-NOW peer registration request submitted to 0x" + String(gatewayAddress[5],HEX));
   uint32_t add_start = millis();
   is_added = false;
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   while ((millis() - add_start) <= 1000) // 1000ms timeout
   {
     yield();
@@ -316,10 +348,10 @@ bool addFDRS(int timeout, void (*new_cb_ptr)(DataReading))
   callback_ptr = new_cb_ptr;
 #ifdef USE_ESPNOW
   SystemPacket sys_packet = {.cmd = cmd_add, .param = 0};
-  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
-  DBG("ESP-NOW peer registration request submitted to " + String(gatewayAddress[5]));
+  DBG("ESP-NOW peer registration request submitted to 0x" + String(gatewayAddress[5],HEX));
   uint32_t add_start = millis();
   is_added = false;
+  esp_now_send(gatewayAddress, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   while ((millis() - add_start) <= timeout)
   {
     yield();
@@ -376,15 +408,33 @@ bool unsubscribeFDRS(uint16_t sub_id)
 
 
 
-uint32_t pingFDRS(uint32_t timeout)
+int pingFDRS(uint32_t timeout)
 {
+  int pingResult = -1;
 #ifdef USE_ESPNOW
-  uint32_t pingResponseMs = pingFDRSEspNow(gatewayAddress, timeout);
-  return pingResponseMs;
+  pingResult = pingFDRSEspNow(gatewayAddress, timeout);
 #endif
 #ifdef USE_LORA
-  uint32_t pingResponseMs = pingFDRSLoRa(&gtwyAddress, timeout);
-  return pingResponseMs;
+  pingResult = pingRequestLoRa(gtwyAddress, timeout);
+#endif
+  return pingResult;
+}
+
+bool reqTimeFDRS() {
+#ifdef USE_ESPNOW
+  return reqTimeEspNow();
+#endif
+#ifdef USE_LORA
+  return reqTimeLoRa();
 #endif
 }
 
+// Skeleton Functions related to function calls to files that are not included
+#ifndef USE_LORA
+  void sendTimeLoRa() {}
+  bool reqTimeLoRa() { return false; }
+#endif
+#ifndef USE_ESPNOW
+  esp_err_t sendTimeESPNow() { return ESP_OK; }                  // fdrs_gateway_time.h
+#endif
+void sendTimeSerial() { }
