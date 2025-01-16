@@ -11,35 +11,20 @@
 //#define USE_LORA
 #define DEEP_SLEEP
 //#define POWER_CTRL    14
-
-#define FDRS_DEBUG     // Enable USB-Serial debugging
-//#define DBG_LEVEL 0    // 0 for minimal messaging, 1 for troubleshooting, 2 for development
-
-// I2C - OLED or RTC
-#define I2C_SDA 5
-#define I2C_SCL 6
-
-// OLED -- Displays console debugging messages on an SSD1306 I²C OLED
-// #define USE_OLED    
-#define OLED_HEADER "FDRS"
-#define OLED_PAGE_SECS 30
-#define OLED_RST -1
+#define FDRS_DEBUG
 
 // LoRa Configuration
-#define RADIOLIB_MODULE SX1276 //Tested on SX1276
-#define LORA_SS 18
-#define LORA_RST 14
-#define LORA_DIO 26
+#define RADIOLIB_MODULE SX1276
+#define LORA_SS    18
+#define LORA_RST   14
+#define LORA_DIO   26
 #define LORA_BUSY  33
 //#define USE_SX126X
 
-//#define CUSTOM_SPI
-#define LORA_SPI_SCK  5
-#define LORA_SPI_MISO 19
-#define LORA_SPI_MOSI 27
-
-#define LORA_TXPWR 17    // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
+#define LORA_TXPWR 17   // LoRa TX power in dBm (: +2dBm - +17dBm (for SX1276-7) +20dBm (for SX1278))
 #define LORA_ACK        // Request LoRa acknowledgment.
+
+//#define USE_LR  // Use ESP-NOW LR mode (ESP32 only)
 
 // NTP Time settings for controllers and sensors
 #define DST_RULE        USDST // Daylight saving time rules: Use USDST for United States DST rules, EUDST for European Union

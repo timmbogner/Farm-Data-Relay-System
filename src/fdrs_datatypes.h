@@ -1,7 +1,11 @@
 // A list of all datatypes you can use within FDRS.
 // If you are missing any data type, please open an issue at:
 // https://github.com/timmbogner/Farm-Data-Relay-System/issues
- 
+
+#ifdef AVR
+typedef unsigned int uint;
+#endif
+
 typedef struct FDRSPeer {
   uint8_t mac[6];
   uint32_t last_seen = 0;
@@ -26,12 +30,28 @@ enum crcResult {
   CRC_BAD,
 } returnCRC;
 
-enum {
+enum cmd_t {
   cmd_clear,
   cmd_ping,
   cmd_add,
   cmd_ack,
+  cmd_time
 };
+
+enum ping_t {
+  ping_request,
+  ping_reply
+};
+
+enum commstate_t {
+  stReady,
+  stInProcess,
+  stCrcMismatch,
+  stCrcMatch,
+  stInterMessageDelay,
+  stCompleted
+};
+
 
 enum
 {
@@ -46,6 +66,61 @@ enum
   event_lora2,
   event_internal
 };
+
+// Interface type that is the time source
+enum TmNetIf {
+  TMIF_NONE,
+  TMIF_LORA,
+  TMIF_ESPNOW,
+  TMIF_SERIAL,
+  TMIF_LOCAL,
+};
+// Local time source that is setting the time
+enum TmSource {
+  TMS_NONE,
+  TMS_NET,
+  TMS_RTC,
+  TMS_NTP,
+  TMS_GPS,
+};
+
+struct TimeSource {
+  TmNetIf tmNetIf;
+  uint16_t tmAddress;
+  TmSource tmSource;
+  unsigned long tmLastTimeSet;
+};
+
+struct DRRingBuffer {
+DataReading *dr;
+uint16_t *address;
+uint startIdx;
+uint endIdx;
+uint size;
+};
+
+struct SPRingBuffer {
+SystemPacket *sp;
+uint16_t *address;
+uint startIdx;
+uint endIdx;
+uint size;
+};
+
+struct Ping {
+  commstate_t status = stReady;
+  unsigned long start;
+  uint timeout;
+  uint16_t address;
+  uint32_t response = __UINT32_MAX__;
+};
+
+#ifndef ESP32
+typedef int esp_err_t;
+#define ESP_FAIL 0
+#define ESP_OK 1
+#endif
+
 #ifndef FDRS_DATA_TYPES
 #define FDRS_DATA_TYPES
 
@@ -57,8 +132,8 @@ enum
 #define LIGHT_T         5  // Light (lux) 
 #define SOIL_T          6  // Soil Moisture 
 #define SOIL2_T         7  // Soil Moisture #2 
-#define SOILR_T         8 // Soil Resistance 
-#define SOILR2_T        9 // Soil Resistance #2 
+#define SOILR_T         8  // Soil Resistance 
+#define SOILR2_T        9  // Soil Resistance #2 
 #define OXYGEN_T        10 // Oxygen 
 #define CO2_T           11 // Carbon Dioxide
 #define WINDSPD_T       12 // Wind Speed

@@ -1,36 +1,6 @@
 # FDRS Node
-A node is a device that sends and receives data from a nearby gateway. A node can be a **sensor**, **controller**, ***or both***.
-## Addresses
-#### ```#define READING_ID  n```
-The unique ID that the node will use when sending sensor values. Can be any integer 0 - 65535. Nodes are not necessarily tied to this parameter. They can be subscribed to up to 256 different IDs or send using several different IDs.
-#### ```#define GTWY_MAC  0xnn```
-The ```UNIT_MAC``` of the gateway that this device will be paired with.
 
-## Usage
-#### ```beginFDRS();```
-Initializes FDRS, powers up the sensor array, and begins ESP-NOW and/or LoRa.
-#### ```uint32_t pingFDRS(timeout);```
-Sends a ping request to the device's paired gateway with a timeout in ms. Returns the ping time in ms as well as displaying it on the debugging console.
-
-## Sensor API
-#### ```loadFDRS(float data, uint8_t type, uint16_t id);```
-Loads some data into the current packet. 'data' is a float, 'type' is the data type (see below), and 'id' is the DataReading id.
-#### ```loadFDRS((float data, uint8_t type);```
-Same as above, but the 'id' is preset to the node's ```READING_ID```. 
-#### ```bool sendFDRS();```
-Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been recieved successfully by the gateway.
-#### ```sleepFDRS(seconds)```
-Time to sleep in seconds. If ```DEEP_SLEEP``` is enabled, the device will enter sleep. Otherwise it will use a simple ```delay()```.
-
-## Controller API
-#### ```addFDRS(void callback);```
-Initializes controller functionality by selecting the function to be called when incoming commands are recieved. If using LoRa, the controller will automatically recieve any packets sent with broadcastLoRa(), provided they were sent by the paired gateway. ESP-NOW requires the device to register with its gateway before it will recieve incoming commands. This is done automatically, and the ESP-NOW node will continue recieving data until the paired gateway is reset. A maximum of 16 ESP-NOW controllers can recieve data from a single gateway. There is no limit to how many LoRa controllers can listen to the same gateway.
-#### ```subscribeFDRS(uint16_t sub_id);``` 
-Sets the device to listen for a specific DataReading id. When a DataReading with id ```sub_id``` is received, the callback function will be called and given the full DataReading as a parameter.
-#### ```unsubscribeFDRS(uint16_t sub_id);``` 
-Removes ```sub_id``` from subscription list.
-#### ```loopFDRS();``` 
-Always add this to ```loop()``` to handle the controller's listening capabilities.
+A node is a device that sends and receives data from a nearby gateway. This is where the user can communicate with a network of FDRS gateways using their own sketch. A node can be a **sensor** (sending data), **controller** (receiving data), ***or both***. 
 
 ## Basic Examples:
 ### Sensor
@@ -66,57 +36,93 @@ void fdrs_recv_cb(DataReading theData) {
 void setup() {
   beginFDRS();       // Start the system
   addFDRS(fdrs_recv_cb);  // Call fdrs_recv_cb() when data arrives.
-  subscribeFDRS(READING_ID);  // Subscribe to DataReadings with ID matching READING_ID
+  subscribeFDRS(42);  // Subscribe to DataReadings with ID 42
 }
 void loop() {
   loopFDRS();  // Listen for data
 }
 ```
 
+
+## Addresses
+#### `#define READING_ID  n`
+The unique ID that the node will use when sending sensor values. Can be any integer 0 - 65535. Nodes are not necessarily tied to this parameter. They can be subscribed to up to 256 different IDs or send using several different IDs.
+#### `#define GTWY_MAC  0xnn`
+The `UNIT_MAC` of the gateway that this device will be paired with.
+
+## Usage
+#### `beginFDRS();`
+Initializes FDRS, powers up the sensor array, and begins ESP-NOW and/or LoRa.
+#### `uint32_t pingFDRS(timeout);`
+Sends a ping request to the device's paired gateway with a timeout in ms. Returns the ping time in ms and displays it on the debugging console.
+
+## Sensor API
+#### `loadFDRS(float data, uint8_t type, uint16_t id);`
+Loads some data into the current packet. 'data' is a float, 'type' is the data type (see below), and 'id' is the DataReading id.
+#### `loadFDRS((float data, uint8_t type);`
+Same as above, but the 'id' is preset to the node's `READING_ID`. 
+#### `bool sendFDRS();`
+Sends the current packet using ESP-NOW and/or LoRa. Returns true if packet is confirmed to have been received successfully by the gateway.
+#### `bool sendFDRSAsync();`
+Queues the current packet to be sent asynchronously (in the background). Be sure to use `loopFDRS()` to ensure the system can process the packet. Returns true if packet is successfully added to queue. 
+#### `sleepFDRS(seconds)`
+Time to sleep in seconds. If ```DEEP_SLEEP``` is enabled, the device will enter sleep. Otherwise it will use a simple ```delay()```.
+
+## Controller API
+#### ```addFDRS(void callback);```
+Initializes controller functionality by selecting the function to be called when incoming commands are received. If using LoRa, the controller will automatically receive any packets sent with broadcastLoRa(), provided they were sent by the paired gateway. ESP-NOW requires the device to register with its gateway before it will receive incoming commands. This is done automatically, and the ESP-NOW node will continue recieving data until the paired gateway is reset. A maximum of 16 ESP-NOW controllers can receive data from a single gateway. There is no limit to how many LoRa controllers can listen to the same gateway.
+#### ```subscribeFDRS(uint16_t sub_id);``` 
+Sets the device to listen for a specific DataReading id. When a DataReading with id ```sub_id``` is received, the callback function will be called and given the full DataReading as a parameter.
+#### ```unsubscribeFDRS(uint16_t sub_id);``` 
+Removes ```sub_id``` from subscription list.
+#### ```loopFDRS();``` 
+Always add this to ```loop()``` to handle the controller's listening capabilities.
+
 ## Configuration
 
-#### ```#define USE_ESPNOW```
+#### `#define USE_ESPNOW`
 Enables/disables ESP-NOW.
-#### ```#define USE_LORA```
+#### `#define USE_LORA`
 Enables/disables LoRa.
-#### ```#define LORA_ACK```
-Enables LoRa packet acknowledgement. The device will use CRC to ensure that the data arrived at its destination correctly. If disabled, ```sendFDRS()``` will always return true when sending LoRa packets.
-
-Thanks to [aviateur17](https://github.com/aviateur17) for this feature!
-#### ```#define FDRS_DEBUG```
+#### `#define FDRS_DEBUG`
 This definition enables debug messages to be sent over the serial port. If disabled, no serial debug interface will be initialized. 
-#### ```#define DEEP_SLEEP```
+#### `#define DBG_LEVEL n`
+Sets the level of verbosity in debug messages. '0' (default) shows only the most important system messages, '1' will show additional debug messages for troubleshooting, and '2' will show all messages, including those used in development. Much gratitude to  [Jeff Lehman](https://github.com/aviateur17) for this feature!
+#### `#define DEEP_SLEEP`
 If enabled, device will enter deep-sleep when the sleepFDRS() command is used. If using ESP8266, be sure that you connect the WAKE pin (GPIO 16) to RST or your device will not wake up. 
-#### ```#define POWER_CTRL n```
+#### `#define POWER_CTRL n`
 If defined, power control will bring a GPIO pin high when FDRS is initialized. This is useful for powering sensors while running on battery.
 #
 ## LoRa Configuration
-#### ```#define RADIOLIB_MODULE cccc```
+#### ```#define LORA_ACK```
+Enables LoRa packet acknowledgement. The device will use CRC to ensure that the data arrived at its destination correctly. If disabled, ```sendFDRS()``` will always return true when sending LoRa packets.
+Thanks [Jeff Lehman](https://github.com/aviateur17) for this feature!
+#### `#define RADIOLIB_MODULE cccc`
 The name of the RadioLib module being used. Tested modules: SX1276, SX1278, SX1262.
-#### ```#define LORA_SS n```
+#### `#define LORA_SS n`
 LoRa chip select pin.
-#### ```#define LORA_RST n```
+#### `#define LORA_RST n`
 LoRa reset pin.
-#### ```#define LORA_DIO n```
+#### `#define LORA_DIO n`
 LoRa DIO pin. This refers to DIO1 on SX127x chips and DIO1 on SX126x chips.
-#### ```#define LORA_BUSY n```
+#### `#define LORA_BUSY n`
 For SX126x chips: LoRa BUSY pin. For SX127x: DIO1 pin, or "RADIOLIB_NC" to leave it blank. 
-#### ```#define LORA_TXPWR n```
+#### `#define LORA_TXPWR n`
 LoRa TX power in dBm.
-#### ```#define USE_SX126X```
+#### `#define USE_SX126X`
 Enable this if using the SX126x series of LoRa chips.
 #
 ### SSD1306 OLED Display
 Built on the [ThingPulse OLED SSD1306 Library](https://github.com/ThingPulse/esp8266-oled-ssd1306)
-##### ```#define OLED_HEADER "cccc"```
+##### `#define OLED_HEADER "cccc"`
 The message to be displayed at the top of the screen.
-#### ```#define OLED_SDA n``` and ```OLED_SCL n```
+#### `#define OLED_SDA n` and `OLED_SCL n`
 OLED I²C pins.
-#### ```#define OLED_RST n```
+#### `#define OLED_RST n`
 OLED reset pin. Use '-1' if not present or known.
 #
 ## Callback Function
-The callback function is executed when data arrives with an ID that the controller is subscribed to. Inside of this function, the user has access to the incoming DataReading. If multiple readings are recieved, the function will be called for each of them. While you should always be brief in interrupt callbacks (ISRs), it's okay to do more in this one.
+The callback function is executed when data arrives with an ID that the controller is subscribed to. Inside of this function, the user has access to the incoming DataReading. If multiple readings are received, the function will be called for each of them. While you should always be brief in interrupt callbacks (ISRs), it's okay to do more in this one.
 ## Type Definitions 
 For the moment, my thought is to reserve the first two bits of the type. I might use them in the future to indicate the data size or type (bool, char,  int, float, etc?). This leaves us with 64 possible type definitions. If you have more types to add, please get in touch!
 ```

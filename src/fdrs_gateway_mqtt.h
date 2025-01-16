@@ -40,17 +40,32 @@
 #define FDRS_MQTT_AUTH
 #endif // MQTT_AUTH
 
+#if defined(TOPIC_DATA)
+#define FDRS_TOPIC_DATA TOPIC_DATA
+#else
+#define FDRS_TOPIC_DATA GLOBAL_TOPIC_DATA
+#endif // TOPIC_DATA
+
+#if defined(TOPIC_STATUS)
+#define FDRS_TOPIC_STATUS TOPIC_STATUS
+#else
+#define FDRS_TOPIC_STATUS GLOBAL_TOPIC_STATUS
+#endif // TOPIC_STATUS
+
+#if defined(TOPIC_COMMAND)
+#define FDRS_TOPIC_COMMAND TOPIC_COMMAND
+#else
+#define FDRS_TOPIC_COMMAND GLOBAL_TOPIC_COMMAND
+#endif // TOPIC_COMMAND
+
 #define MQTT_MAX_BUFF_SIZE 1024
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+unsigned long lastMqttConnectAttempt = 0;
 
 const char *mqtt_server = FDRS_MQTT_ADDR;
 const int mqtt_port = FDRS_MQTT_PORT;
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-    extern time_t last_log_write;
-    extern time_t last_mqtt_success;
-#endif
 
 
 #ifdef FDRS_MQTT_AUTH
@@ -72,7 +87,7 @@ void reconnect_mqtt(short int attempts, bool silent)
         if (client.connect("FDRS_GATEWAY", mqtt_user, mqtt_pass))
         {
             // Subscribe
-            client.subscribe(TOPIC_COMMAND);
+            client.subscribe(FDRS_TOPIC_COMMAND);
             if (!silent)
                 DBG(" MQTT Connected");
             return;
@@ -106,7 +121,10 @@ void handleMQTT()
 {
     if (!client.connected())
     {
-        reconnect_mqtt(1, true);
+        if(TDIFF(lastMqttConnectAttempt,5000)) {
+            reconnect_mqtt(1, true);
+            lastMqttConnectAttempt = millis();
+        }
     }
     client.loop(); // for recieving incoming messages and maintaining connection
 }
@@ -119,12 +137,12 @@ void mqtt_callback(char *topic, byte *message, unsigned int length)
     {
         incomingString += (char)message[i];
     }
-    StaticJsonDocument<2048> doc;
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, incomingString);
     if (error)
     { // Test if parsing succeeds.
-        DBG("json parse err");
-        DBG(incomingString);
+        DBG2("json parse err");
+        DBG2(incomingString);
         return;
     }
     else
@@ -157,36 +175,22 @@ void begin_mqtt()
 
 void mqtt_publish(const char *payload)
 {
-    if (!client.publish(TOPIC_DATA, payload))
+    if (!client.publish(FDRS_TOPIC_DATA, payload))
     {
         DBG(" Error on sending MQTT");
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-        sendLog();
-#endif
-    }
-    else
-    {
-#if defined(USE_SD_LOG) || defined(USE_FS_LOG)
-        if (last_log_write >= last_mqtt_success)
-        {
-            releaseLogBuffer();
-            resendLog();
-        }
-        time(&last_mqtt_success);
-#endif
+
     }
 }
 
 void sendMQTT()
 {
     DBG("Sending MQTT.");
-    DynamicJsonDocument doc(24576);
+    JsonDocument doc;
     for (int i = 0; i < ln; i++)
     {
         doc[i]["id"] = theData[i].id;
         doc[i]["type"] = theData[i].t;
         doc[i]["data"] = theData[i].d;
-        doc[i]["time"] = time(nullptr);
     }
     String outgoingString;
     serializeJson(doc, outgoingString);

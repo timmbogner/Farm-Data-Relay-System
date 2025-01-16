@@ -1,12 +1,12 @@
 //  FARM DATA RELAY SYSTEM
 //
-//  ETHERNET GATEWAY CONFIGURATION
+//  GATEWAY CONFIGURATION
 
 //Addresses
-#define UNIT_MAC           0x01  // The address of this gateway
+#define UNIT_MAC           0x02  // The address of this gateway
 
-#define ESPNOW_NEIGHBOR_1  0x00  // Address of ESP-NOW neighbor #1
-#define ESPNOW_NEIGHBOR_2  0x02  // Address of ESP-NOW neighbor #2
+#define ESPNOW_NEIGHBOR_1  0x01  // Address of ESP-NOW neighbor #1
+#define ESPNOW_NEIGHBOR_2  0x04  // Address of ESP-NOW neighbor #2
 #define LORA_NEIGHBOR_1    0x00  // Address of LoRa neighbor #1
 #define LORA_NEIGHBOR_2    0x00  // Address of LoRa neighbor #2
 
@@ -14,19 +14,19 @@
 #define USE_ESPNOW  
 //#define USE_LORA
 //#define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
-#define USE_ETHERNET
+//#define USE_ETHERNET
 
 // Routing
 // Options: sendESPNowNbr(1 or 2); sendESPNowPeers(); sendLoRaNbr(1 or 2); broadcastLoRa(); sendSerial(); sendMQTT();
-#define ESPNOWG_ACT    sendMQTT();
+#define ESPNOWG_ACT    sendESPNowNbr(1);
 #define LORAG_ACT      
-#define SERIAL_ACT     sendESPNowNbr(2); sendESPNowPeers();
+#define SERIAL_ACT     
 #define MQTT_ACT          
-#define INTERNAL_ACT   sendMQTT();
-#define ESPNOW1_ACT    
-#define ESPNOW2_ACT    sendMQTT();                
+#define INTERNAL_ACT   sendESPNowNbr(1);
+#define ESPNOW1_ACT    sendESPNowNbr(2); sendESPNowPeers();
+#define ESPNOW2_ACT    sendESPNowNbr(1);                
 #define LORA1_ACT      
-#define LORA2_ACT      
+#define LORA2_ACT 
 
 // LoRa Configuration
 #define RADIOLIB_MODULE SX1276
@@ -62,24 +62,15 @@
 // #define USE_RTC_DS1307
 // #define RTC_ADDR 0x68
 
-// UART data interface pins (ESP32 only)
-//#define RXD2 14
-//#define TXD2 15
+// UART data interface pins (if available)
+#define RXD2 14
+#define TXD2 15
 
 //#define USE_LR  // Use ESP-NOW LR mode (ESP32 only)
 
 // WiFi and MQTT Credentials  -- These will override the global settings
 //#define WIFI_SSID   "Your SSID"  
 //#define WIFI_PASS   "Your Password"
-
-
-// Use Static IP Address for WiFi connections
-// #define USE_STATIC_IPADDRESS     
-// #define HOST_IPADDRESS      "192.168.0.100"
-// #define GW_IPADDRESS        "192.168.0.1"
-// #define SUBNET_ADDRESS      "255.255.255.0"
-// #define DNS1_IPADDRESS      "192.168.0.1"  
-// #define DNS2_IPADDRESS      "192.168.0.2"  
 
 // MQTT Settings
 // #define MQTT_ADDR   "192.168.0.8"
