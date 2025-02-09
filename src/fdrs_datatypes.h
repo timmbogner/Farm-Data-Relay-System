@@ -160,7 +160,6 @@ typedef int esp_err_t;
 #define ENERGY2_T       33 // Energy #2
 #define WEIGHT_T        34 // Weight
 #define WEIGHT2_T       35 // Weight #2
-
 #define NOISE_T         36 // Noise level #1
 #define NOISE2_T        37 // Noise level #2
 
