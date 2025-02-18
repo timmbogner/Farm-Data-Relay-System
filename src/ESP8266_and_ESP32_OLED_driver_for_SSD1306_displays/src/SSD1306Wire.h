@@ -54,9 +54,9 @@ class SSD1306Wire : public OLEDDisplay {
 
     /**
      * Create and initialize the Display using Wire library
-     *
+     * 
      * Beware for retro-compatibility default values are provided for all parameters see below.
-     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed ot need to 
+     * Please note that if you don't wan't SD1306Wire to initialize and change frequency speed you need to 
      * ensure -1 value are specified for all 3 parameters. This can be usefull to control TwoWire with multiple
      * device on the same bus.
      * 
@@ -64,7 +64,7 @@ class SSD1306Wire : public OLEDDisplay {
      * @param _sda I2C SDA pin number, default to -1 to skip Wire begin call
      * @param _scl I2C SCL pin number, default to -1 (only SDA = -1 is considered to skip Wire begin call)
      * @param g display geometry dafault to generic GEOMETRY_128_64, see OLEDDISPLAY_GEOMETRY definition for other options
-     * @param _i2cBus on ESP32 with 2 I2C HW buses, I2C_ONE for 1st Bus, I2C_TWO fot 2nd bus, default I2C_ONE
+     * @param _i2cBus on ESP32 with 2 I2C HW buses, I2C_ONE for 1st Bus, I2C_TWO for 2nd bus, default I2C_ONE (ESP32-C3 has only one I2C Bus)
      * @param _frequency for Frequency by default Let's use ~700khz if ESP8266 is in 160Mhz mode, this will be limited to ~400khz if the ESP8266 in 80Mhz mode
      */
     SSD1306Wire(uint8_t _address, int _sda = -1, int _scl = -1, OLEDDISPLAY_GEOMETRY g = GEOMETRY_128_64, HW_I2C _i2cBus = I2C_ONE, int _frequency = 700000) {
@@ -73,7 +73,7 @@ class SSD1306Wire : public OLEDDisplay {
       this->_address = _address;
       this->_sda = _sda;
       this->_scl = _scl;
-#if !defined(ARDUINO_ARCH_ESP32)
+#if !defined(ARDUINO_ARCH_ESP32) ||  defined(ARDUINO_ESP32C3_DEV) || defined(ARDUINO_MAKERGO_C3_SUPERMINI)
       this->_wire = &Wire;
 #else
       this->_wire = (_i2cBus==I2C_ONE) ? &Wire : &Wire1;
