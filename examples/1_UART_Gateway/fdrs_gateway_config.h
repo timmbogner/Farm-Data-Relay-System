@@ -11,7 +11,7 @@
 #define LORA_NEIGHBOR_2    0x03  // Address of LoRa neighbor #2
 
 // Interfaces
-#define USE_ESPNOW  
+#define USE_ESPNOW
 //#define USE_LORA
 //#define USE_WIFI  // Will cause errors if used with ESP-NOW. Use a serial link instead!
 //#define USE_ETHERNET
@@ -73,12 +73,12 @@
 //#define WIFI_PASS   "Your Password"
 
 // Use Static IP Address for WiFi connections
-// #define USE_STATIC_IPADDRESS     
+// #define USE_STATIC_IPADDRESS
 // #define HOST_IPADDRESS      "192.168.0.100"
 // #define GW_IPADDRESS        "192.168.0.1"
 // #define SUBNET_ADDRESS      "255.255.255.0"
-// #define DNS1_IPADDRESS      "192.168.0.1"    
-// #define DNS2_IPADDRESS      "192.168.0.2"    
+// #define DNS1_IPADDRESS      "192.168.0.1"
+// #define DNS2_IPADDRESS      "192.168.0.2"
 
 // MQTT Settings
 // #define MQTT_ADDR   "192.168.0.8"
