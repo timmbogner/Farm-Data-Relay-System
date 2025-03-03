@@ -161,7 +161,7 @@ void getSerial() {
   } else {
     int s = doc.size();
     JsonObject obj = doc[0].as<JsonObject>();
-    if(obj.containsKey("type")) { // DataReading
+    if(obj["type"].is<uint8_t>()) { // DataReading
     //UART_IF.println(s);
     for (int i = 0; i < s; i++) {
       theData[i].id = doc[i]["id"];
@@ -175,7 +175,7 @@ void getSerial() {
       serializeJson(doc, data);
       DBG1("DR data: " + data);
     }
-    else if(obj.containsKey("cmd")) { // SystemPacket
+    else if(obj["cmd"].is<uint32_t>()) { // SystemPacket
       cmd_t c = doc[0]["cmd"];
       uint32_t p = doc[0]["param"];
       if(c == cmd_time && p > MIN_TS) {

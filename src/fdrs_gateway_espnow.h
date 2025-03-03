@@ -199,7 +199,7 @@ void add_espnow_peer()
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
 if(validTimeFlag){
-    SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+    SystemPacket sys_packet = { .cmd = cmd_time, .param = (uint32_t) now };
     esp_now_send(incMAC, (uint8_t *)&sys_packet, sizeof(SystemPacket));
   }
 }
@@ -498,7 +498,7 @@ void recvTimeEspNow(uint32_t t) {
 esp_err_t sendTimeESPNow() {
   
   esp_err_t result1 = ESP_OK, result2 = ESP_OK, result3 = ESP_OK;
-  SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+  SystemPacket sys_packet = { .cmd = cmd_time, .param = (uint32_t) now };
 
   if((timeSource.tmAddress != (ESPNOW1[4] << 8 | ESPNOW1[5])) && ESPNOW1[5] != 0x00) {
     DBG1("Sending time to ESP-NOW Peer 1");
@@ -523,7 +523,7 @@ esp_err_t sendTimeESPNow() {
 esp_err_t sendTimeESPNow(uint8_t *addr) {
   
   esp_err_t result = ESP_FAIL;
-  SystemPacket sys_packet = { .cmd = cmd_time, .param = now };
+  SystemPacket sys_packet = { .cmd = cmd_time, .param = (uint32_t) now };
   DBG1("Sending time to ESP-NOW address 0x" + String(addr[5],HEX));
   result = sendESPNow(addr, &sys_packet);
 
