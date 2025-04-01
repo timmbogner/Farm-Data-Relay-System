@@ -10,11 +10,17 @@
 #ifndef ESPNOWG_ACT
 #define ESPNOWG_ACT
 #endif
+#ifndef ESPNOW0_ACT
+#define ESPNOW0_ACT
+#endif
 #ifndef ESPNOW1_ACT
 #define ESPNOW1_ACT
 #endif
 #ifndef ESPNOW2_ACT
 #define ESPNOW2_ACT
+#endif
+#ifndef ESPNOW3_ACT
+#define ESPNOW3_ACT
 #endif
 #ifndef SERIAL_ACT
 #define SERIAL_ACT
@@ -25,11 +31,17 @@
 #ifndef LORAG_ACT
 #define LORAG_ACT
 #endif
+#ifndef LORA0_ACT
+#define LORA0_ACT
+#endif
 #ifndef LORA1_ACT
 #define LORA1_ACT
 #endif
 #ifndef LORA2_ACT
 #define LORA2_ACT
+#endif
+#ifndef LORA3_ACT
+#define LORA3_ACT
 #endif
 #ifndef INTERNAL_ACT
 #define INTERNAL_ACT
@@ -239,11 +251,17 @@ void handleActions() {
     case event_espnowg:
       ESPNOWG_ACT
       break;
+    case event_espnow0:
+      ESPNOW0_ACT
+      break;
     case event_espnow1:
       ESPNOW1_ACT
       break;
     case event_espnow2:
       ESPNOW2_ACT
+      break;
+    case event_espnow3:
+      ESPNOW3_ACT
       break;
     case event_serial:
       SERIAL_ACT
@@ -254,11 +272,17 @@ void handleActions() {
     case event_lorag:
       LORAG_ACT
       break;
+    case event_lora0:
+      LORA0_ACT
+      break;
     case event_lora1:
       LORA1_ACT
       break;
     case event_lora2:
       LORA2_ACT
+      break;
+    case event_lora3:
+      LORA3_ACT
       break;
     case event_internal:
       INTERNAL_ACT
@@ -287,7 +311,7 @@ void loopFDRS()
 // "Skeleton Functions related to FDRS Actions"
 #ifndef USE_LORA
   void broadcastLoRa() {}
-  void sendLoRaNbr(uint8_t address) {}
+  void sendLoRa_Nbr(uint8_t address) {}
   void timeFDRSLoRa(uint8_t *address) {}  // fdrs_gateway_lora.h
   void sendTimeLoRa() { return; }                  // fdrs_gateway_time.h
   void handleLoRa() { return; }                    // fdrs_gateway_lora.h
