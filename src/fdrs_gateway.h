@@ -88,8 +88,8 @@ void printFDRS(DataReading*, int);
 #ifdef USE_WIFI
   #include "fdrs_gateway_wifi.h"
   #include "fdrs_gateway_mqtt.h"
-#include "fdrs_gateway_ota.h"
 #endif
+#include "fdrs_ota.h"
 
 #ifdef DEBUG_CONFIG
   #include "fdrs_checkConfig.h"
