@@ -22,8 +22,16 @@ const uint8_t mac_prefix[] = {MAC_PREFIX};
 uint8_t selfAddress[] = {MAC_PREFIX, UNIT_MAC};
 uint8_t incMAC[6];
 
-uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
-uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
+// uint8_t ESPNOW1[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_1};
+// uint8_t ESPNOW2[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_2};
+// uint8_t ESPNOW3[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_3};
+// uint8_t ESPNOW4[] = {MAC_PREFIX, ESPNOW_NEIGHBOR_4};
+
+
+uint8_t ESPNOW_Nbr[4][6] = {{MAC_PREFIX, ESPNOW_NEIGHBOR_0},
+                          {MAC_PREFIX, ESPNOW_NEIGHBOR_1},
+                          {MAC_PREFIX, ESPNOW_NEIGHBOR_2},
+                          {MAC_PREFIX, ESPNOW_NEIGHBOR_3}};
 extern time_t now;
 // JL - pingFlagEspNow var probably to be removed
 bool pingFlagEspNow = false;
@@ -57,14 +65,24 @@ void OnDataRecv(const esp_now_recv_info *pkt_info, const uint8_t *incomingData, 
     memcpy(&theData, incomingData, sizeof(theData));
     DBG("Incoming ESP-NOW DataReading from 0x" + String(incMAC[5], HEX));
     ln = len / sizeof(DataReading);
-    if (memcmp(&incMAC, &ESPNOW1, 6) == 0)
+    if (memcmp(&incMAC, &ESPNOW_Nbr[0], 6) == 0)
+    {
+      newData = event_espnow0;
+      return;
+    }
+    if (memcmp(&incMAC, &ESPNOW_Nbr[1], 6) == 0)
     {
       newData = event_espnow1;
       return;
     }
-    if (memcmp(&incMAC, &ESPNOW2, 6) == 0)
+    if (memcmp(&incMAC, &ESPNOW_Nbr[2], 6) == 0)
     {
       newData = event_espnow2;
+      return;
+    }
+    if (memcmp(&incMAC, &ESPNOW_Nbr[3], 6) == 0)
+    {
+      newData = event_espnow3;
       return;
     }
     newData = event_espnowg;
@@ -236,81 +254,41 @@ void pingback_espnow()
   }
 }
 
-void sendESPNowNbr(uint8_t interface)
+void sendESPNowNbr(uint8_t neighbor)
 {
-  switch (interface)
+  DBG("Sending data to ESP-NOW Neighbor #" + String(neighbor));
+#if defined(ESP32)
+  esp_now_peer_info_t peerInfo;
+  peerInfo.ifidx = WIFI_IF_STA;
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+  memcpy(peerInfo.peer_addr, ESPNOW_Nbr[neighbor], 6);
+  if (esp_now_add_peer(&peerInfo) != ESP_OK)
   {
-    case 1:
-    { // These brackets are required!
-      DBG("Sending DR to ESP-NOW Neighbor #1");
-#if defined(ESP32)
-      esp_now_peer_info_t peerInfo;
-      peerInfo.ifidx = WIFI_IF_STA;
-      peerInfo.channel = 0;
-      peerInfo.encrypt = false;
-      memcpy(peerInfo.peer_addr, ESPNOW1, 6);
-      if (esp_now_add_peer(&peerInfo) != ESP_OK)
-      {
-        DBG("Failed to add peer");
-        return;
-      }
-#endif // ESP32
-      DataReading thePacket[ln];
-      int j = 0;
-
-      for (int i = 0; i < ln; i++)
-      {
-        if (j > espnow_size)
-        {
-          j = 0;
-          esp_now_send(ESPNOW1, (uint8_t *)&thePacket, sizeof(thePacket));
-        }
-        thePacket[j] = theData[i];
-        j++;
-      }
-      esp_now_send(ESPNOW1, (uint8_t *)&thePacket, j * sizeof(DataReading));
-      esp_now_del_peer(ESPNOW1);
-
-      break;
-    } // These brackets are required!
-    case 2:
-    {
-      DBG("Sending DR to ESP-NOW Neighbor #2");
-#if defined(ESP32)
-      esp_now_peer_info_t peerInfo;
-      peerInfo.ifidx = WIFI_IF_STA;
-      peerInfo.channel = 0;
-      peerInfo.encrypt = false;
-      memcpy(peerInfo.peer_addr, ESPNOW2, 6);
-      if (esp_now_add_peer(&peerInfo) != ESP_OK)
-      {
-        DBG("Failed to add peer");
-        return;
-      }
-#endif // ESP32
-      DataReading thePacket[ln];
-      int j = 0;
-      for (int i = 0; i < ln; i++)
-      {
-        if (j > espnow_size)
-        {
-          j = 0;
-          esp_now_send(ESPNOW2, (uint8_t *)&thePacket, sizeof(thePacket));
-        }
-        thePacket[j] = theData[i];
-        j++;
-      }
-      esp_now_send(ESPNOW2, (uint8_t *)&thePacket, j * sizeof(DataReading));
-      esp_now_del_peer(ESPNOW2);
-
-      break;
-    }
+    DBG("Failed to add peer");
+    return;
   }
+#endif // ESP32
+  DataReading thePacket[ln];
+  int j = 0;
+
+  for (int i = 0; i < ln; i++)
+  {
+    if (j > espnow_size)
+    {
+      j = 0;
+      esp_now_send(ESPNOW_Nbr[neighbor], (uint8_t *)&thePacket, sizeof(thePacket));
+    }
+    thePacket[j] = theData[i];
+    j++;
+  }
+  esp_now_send(ESPNOW_Nbr[neighbor], (uint8_t *)&thePacket, j * sizeof(DataReading));
+  esp_now_del_peer(ESPNOW_Nbr[neighbor]);
 }
 
 void sendESPNowPeers()
 {
-  DBG("Sending DR to ESP-NOW peers.");
+  DBG("Sending data to ESP-NOW peers.");
   DataReading thePacket[ln];
   int j = 0;
   for (int i = 0; i < ln; i++)
@@ -500,14 +478,13 @@ esp_err_t sendTimeESPNow() {
   esp_err_t result1 = ESP_OK, result2 = ESP_OK, result3 = ESP_OK;
   SystemPacket sys_packet = { .cmd = cmd_time, .param = (uint32_t) now };
 
-  if((timeSource.tmAddress != (ESPNOW1[4] << 8 | ESPNOW1[5])) && ESPNOW1[5] != 0x00) {
-    DBG1("Sending time to ESP-NOW Peer 1");
-    result1 = sendESPNow(ESPNOW1, &sys_packet);
+for (uint8_t i = 0; i < 4; i++){
+  if((timeSource.tmAddress != (ESPNOW_Nbr[i][4] << 8 | ESPNOW_Nbr[i][5])) && ESPNOW_Nbr[i][5] != 0x00) {
+    DBG1("Sending time to ESP-NOW Neighbor #" + String(i));
+    result1 = sendESPNow(ESPNOW_Nbr[i], &sys_packet);
   }
-  if((timeSource.tmAddress != (ESPNOW2[4] << 8 | ESPNOW2[5])) && ESPNOW2[5] != 0x00) {
-    DBG1("Sending time to ESP-NOW Peer 2");
-    result2 = sendESPNow(ESPNOW2, &sys_packet);
-  }
+}
+
   DBG1("Sending time to ESP-NOW registered peers");
   result3 = sendESPNow(nullptr, &sys_packet);
 
